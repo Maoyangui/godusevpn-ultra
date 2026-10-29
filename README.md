@@ -80,7 +80,7 @@ node tools/audit-built-package.cjs dist/godusevpn-ultra-0.01-beta-windows-amd64
 
 The script runs isolated regression tests, generates resources, builds GUI/CLI/service and creates a ZIP with checksums. It does not start the product, install a service or change network settings. Existing outputs are refused. Tests use fake registry/WFP or temporary fixtures; live tests are opt-in and excluded from CI. Development-only DOM/visual dependencies are pinned under `tools/qa`.
 
-Latest preview tag: `v0.01-beta.5`; displayed release: **v0.01 beta.5**; numeric Windows file version: `0.1.0.0`. The Windows workflow checks source, tests, PE resources, package/ZIP inventory and embedded frontend. CI success alone does not complete release acceptance. Real UAC, managed browsers, reboot persistence and end-to-end network validation remain pending wherever the ledgers lack evidence; untested versions and scenarios are not certified.
+Latest preview tag: `v0.01-beta.6.1`; displayed release: **v0.01 beta.6.1**; numeric Windows file version: `0.1.0.0`. The Windows workflow checks source, tests, PE resources, package/ZIP inventory and embedded frontend. CI success alone does not complete release acceptance. Real UAC, managed browsers, reboot persistence and end-to-end network validation remain pending wherever the ledgers lack evidence; untested versions and scenarios are not certified.
 
 ## License and attribution
 
