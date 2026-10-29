@@ -87,6 +87,28 @@ func TestPrivacyAuthorizationIsSingleFlightAndExplicitlyRetryable(t *testing.T) 
 	}
 }
 
+func TestPrivacyAuthorizationReplacesStaleHelperWhenStateIsNotConnected(t *testing.T) {
+	if !identity.Ultra {
+		t.Skip("Ultra helper is Windows-only")
+	}
+	old := launchPrivacyHelper
+	t.Cleanup(func() { launchPrivacyHelper = old })
+	stale := &fakePrivacyHelper{}
+	fresh := &fakePrivacyHelper{}
+	var launches atomic.Int32
+	launchPrivacyHelper = func(context.Context, string) (privacyHelper, error) {
+		launches.Add(1)
+		return fresh, nil
+	}
+	a := &App{ctx: context.Background(), privacyHost: stale, privacyHostState: "lost"}
+	if _, err := a.PrivacyAuthorize(); err != nil {
+		t.Fatal(err)
+	}
+	if launches.Load() != 1 || !stale.closed || a.privacyHost != fresh || a.privacyHostState != "connected" {
+		t.Fatalf("stale helper was not replaced: launches=%d staleClosed=%v host=%T state=%s", launches.Load(), stale.closed, a.privacyHost, a.privacyHostState)
+	}
+}
+
 func TestPrivacyFailedWriteIsNeverRetriedAndLostHelperIsCleared(t *testing.T) {
 	for _, lost := range []bool{false, true} {
 		h := &fakePrivacyHelper{failMutation: true, failReport: lost}

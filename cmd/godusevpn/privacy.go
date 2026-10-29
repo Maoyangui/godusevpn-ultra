@@ -113,9 +113,21 @@ func (a *App) authorizePrivacyHost(ctx context.Context, explicit bool) error {
 		a.privacyMu.Unlock()
 		return errors.New("管理员授权正在进行或界面已关闭；没有重复请求")
 	}
-	if a.privacyHost != nil {
+	// A helper object can remain non-nil after its session has been marked lost
+	// or cancelled (for example, when a transport failure races the UI retry).
+	// Treat that object as stale and close it before starting a fresh session;
+	// otherwise the old pointer suppresses reauthorization while the state is no
+	// longer connected.
+	var stale privacyHelper
+	if a.privacyHost != nil && a.privacyHostState == "connected" {
 		a.privacyMu.Unlock()
 		return nil
+	}
+	if a.privacyHost != nil {
+		stale = a.privacyHost
+		a.privacyHost = nil
+		a.privacyHostEpoch++
+		a.privacyEvidenceEpoch++
 	}
 	a.privacyHostState = "authorizing"
 	a.privacyHostError = ""
@@ -125,6 +137,9 @@ func (a *App) authorizePrivacyHost(ctx context.Context, explicit bool) error {
 	epoch := a.privacyHostEpoch
 	a.privacySnapshot, a.privacyExport = nil, nil
 	a.privacyMu.Unlock()
+	if stale != nil {
+		_ = stale.Close()
+	}
 	exe, err := os.Executable()
 	var host privacyHelper
 	if err == nil {
