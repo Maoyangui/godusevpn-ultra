@@ -371,13 +371,15 @@ func (m *Manager) prepare(ctx context.Context, nonce string) {
 		m.reportFailure("backup", ErrConflict, true)
 		return
 	}
-	if j.PortalWasStarted {
-		m.reportFailure("existing_preparation", ErrBusy, true)
-		return
-	}
 	// A prior successful preparation can be reconnected after helper loss using
-	// its machine-DPAPI box. Never stop a portal whose current override is on.
+	// its machine-DPAPI box. Never stop or reconfigure a portal whose current
+	// override is on. The old implementation returned existing_preparation
+	// before reaching this branch, leaving the documented reconnect path dead.
 	if j.PortalWasStarted {
+		if j.Stage != "ready" || j.Pending != "" {
+			m.reportFailure("existing_preparation", ErrBusy, true)
+			return
+		}
 		c, err := m.backend.unseal(ctx, j.CredentialBox, j.Owner, j.TransactionID, j.CertificateSHA256)
 		if err != nil || !validPin(j.CertificateSHA256) {
 			m.reportFailure("credentials", ErrReadback, true)
@@ -388,6 +390,48 @@ func (m *Manager) prepare(ctx context.Context, nonce string) {
 			m.reportFailure("location_restore", ErrOverrideActive, true)
 			return
 		}
+		current, err := m.backend.snapshot(ctx)
+		if err != nil || current != j.Expected || !fixedConfigured(current) || current.Service.State != 4 {
+			m.reportFailure("report_readback", ErrConflict, true)
+			return
+		}
+		gr, err := m.gate.Inspect(ctx)
+		if err != nil || !verifiedGate(gr) {
+			m.reportFailure("gate_readback", ErrReadback, true)
+			return
+		}
+		pin, err := m.backend.certificate(ctx)
+		if err != nil || pin != j.CertificateSHA256 {
+			m.reportFailure("certificate", ErrReadback, true)
+			return
+		}
+		c.CertificateSHA256 = pin
+		if err = m.backend.verifyConnection(ctx, c); err != nil {
+			m.reportFailure("connection", err, true)
+			return
+		}
+		r := m.cached()
+		r.Status = "ready"
+		r.Stage = "complete"
+		r.Busy = false
+		r.Ready = true
+		r.HasBackup = true
+		r.CanRestore = true
+		r.CanPrepare = !m.recovery
+		r.CapabilityInstalled = true
+		r.DeveloperModeEnabled = true
+		r.ServiceRunning = true
+		r.AuthenticationRequired = true
+		r.LoopbackGateVerified = true
+		r.CertificateVerified = true
+		r.Detail = "已有准备记录已重新核对；未重配门户，位置覆盖仍需单独核对。"
+		m.mu.Lock()
+		if !m.closed {
+			m.connection = &c
+		}
+		m.mu.Unlock()
+		m.publish(r)
+		return
 	}
 	fail := func(stage string, err error) bool {
 		if err != nil {

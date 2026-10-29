@@ -166,6 +166,28 @@ func TestPreparationReportAndRestoreRefuseActiveLocationBeforeStopping(t *testin
 		t.Fatal(r)
 	}
 }
+
+func TestPreparationReconnectsReadyJournalWithoutReconfiguringPortal(t *testing.T) {
+	pin := strings.Repeat("a", 64)
+	b := &fakePrepareBackend{state: fakeInitialState(), pin: pin}
+	b.state.Capability = 4
+	b.state.DeveloperMode = registryValue{true, 1}
+	b.state.PortalKeyPresent = true
+	b.state.DynamicPorts = registryValue{true, 0}
+	b.state.HTTPPort = registryValue{true, HTTPPort}
+	b.state.HTTPSPort = registryValue{true, HTTPSPort}
+	b.state.Authorizer = registryValue{true, 1}
+	b.state.Service = serviceState{true, 4, 4}
+	b.cfg = locationportal.Config{Port: HTTPSPort, Username: portalSecretUser, Password: strings.Repeat("b", 64)}
+	s := &fakePrepareStore{j: &journal{Version: 1, Owner: "S-1-5-21-42", TransactionID: strings.Repeat("1", 64), Stage: "ready", Before: fakeInitialState(), Expected: b.state, CertificateSHA256: pin, CredentialBox: []byte("box:" + pin), PortalWasStarted: true}}
+	g := &fakePrepareGate{report: fakeVerifiedGate()}
+	m := newManager("S-1-5-21-42", false, b, g, func(bool) (store, error) { return s, nil })
+	r := waitReport(t, m, "ready")
+	if r.Status != "ready" || !r.Ready || m.Connection() == nil || b.stopped || b.sealCount != 0 {
+		t.Fatalf("ready journal was reconfigured instead of reconnected: report=%+v stopped=%v seals=%d", r, b.stopped, b.sealCount)
+	}
+}
+
 func TestPreparationCloseCancelsLateOperationAndReportNeverClaimsReady(t *testing.T) {
 	b := &fakePrepareBackend{state: fakeInitialState(), pin: strings.Repeat("a", 64)}
 	s := &fakePrepareStore{}
