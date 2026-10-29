@@ -7,11 +7,11 @@
 | 范围 | 证据 |
 | --- | --- |
 | 浏览器配置交互 | 四种网页环境预设、OS 版本/视口、UA 生成与手改、GPU/WebGL 字段、代理草稿、内核下载/校验/删除、预览失效和启动前复核；DOM QA 全部通过 |
-| 隐私中心/检测中心 | 状态分层、未知/有限/计划中不升级、问号帮助、失败和恢复文案、检测快照筛选/导出、键盘与窄屏布局；Edge smoke 像素回归 8 张，0 error、0 outbound |
+| 隐私中心/检测中心 | 状态分层、未知/有限/计划中不升级、减少重复帮助标记、紧凑本地时间、页内错误反馈、检测快照筛选/导出、键盘与窄屏布局；最终 Edge smoke 像素回归 8 张，0 error、0 outbound；截图目录 `C:\\Temp\\ultra-trial-ui-qa\\final-audit-7` |
 | 开源集成 | sing-box、WFP/WireGuard 规则、ExifTool、WebView2 SDK/宿主、Chrome/Firefox 下载校验链均有源码入口、固定版本/许可证或哈希说明；对应 Go/Node 测试通过 |
 | Win10 实机 | Azure 临时资源组 `ultra-browser-qa-20261030` 的 Windows 10 Enterprise LTSC 2021 x64（VM build 19044）；公开 beta 包 SHA-256 `23001359a412fb7a04ca8a61624114d95725ef8cf353a8bac5e92c336f443991`、服务 Running/Auto、WebView2 156.0.4314.50、CLI status/diag/privacy report 均实测 |
 | 真实订阅/隧道 | 在该 VM 内设置用户提供的测试订阅并刷新 18 个节点，connect 退出码 0，状态 `connected`、`TUN=true`、`strict=true`；通过 TUN 访问 ipify 和 ipwho.is 得到同一出口 `104.28.222.43`（Singapore），disconnect 后状态恢复 `disconnected` |
-| 清理 | VM、OS 磁盘、NIC、公共 IP、专用 NSG、专用 VNET 已删除；资源组只保留原有 Bastion/快照资源；临时 gists 与本地分片已删除 |
+| 清理 | 临时资源组 `ultra-browser-qa-20261030` 已在 Azure 通知中确认删除，资源组列表不再显示；其中 VM、Bastion、OS 磁盘、NIC、公共 IP、NSG、VNET 均随组删除，其他原有资源未触碰；临时 gists 与本地分片已删除 |
 
 ## 仍不能标记为完成的项目
 
