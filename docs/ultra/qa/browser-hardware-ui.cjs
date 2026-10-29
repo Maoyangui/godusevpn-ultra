@@ -36,12 +36,12 @@ function fixture() {
     PrivacyHelperStatus: async () => ({state: 'not_requested'}),
     PrivacyTimeReport: async () => ({supported: false, choices: [], status: 'unsupported'}),
     BrowserHostReport: async () => ({supported: true, engines: []}),
-    BrowserProfileDefaults: async () => ({config: clone(defaults), regions: [clone(region)], environmentPresets: [], graphicsPresets: [], identityPreview: plan(defaults), hostAvailable: true}),
+    BrowserProfileDefaults: async () => ({config: clone(defaults), regions: [clone(region)], environmentPresets: [], graphicsPresets: [], identityPreview: plan(defaults), hostAvailable: true, canLaunch: true}),
     BrowserProfileIdentity: async text => {const c = JSON.parse(text); recordCall('webview-identity', c); validateHardware(c); return plan(c);},
-    BrowserProfilePreview: async text => {const c = JSON.parse(text); recordCall('webview-preview', c); validateHardware(c); if (pendingPreview) return pendingPreview.promise; return {config: c, identityPreview: plan(c), hostAvailable: true};},
+    BrowserProfilePreview: async text => {const c = JSON.parse(text); recordCall('webview-preview', c); validateHardware(c); if (pendingPreview) return pendingPreview.promise; return {config: c, identityPreview: plan(c), hostAvailable: true, canLaunch: true};},
     BrowserProfileLaunch: webviewLaunch,
     BrowserProfileLaunchProxy: webviewLaunch,
-    BrowserEngineVersions: async () => {recordCall('inventory', null); return [{engineId: 'chrome-for-testing', version: '156.0.8078.47', treeVerified: true, versionVerified: true}, {engineId: 'firefox', version: '147.0.1', treeVerified: true, versionVerified: true}];},
+    BrowserEngineVersions: async () => {recordCall('inventory', null); return [{engineId: 'chrome-for-testing', version: '156.0.8078.47', treeVerified: true, versionVerified: true, canLaunch: true}, {engineId: 'firefox', version: '147.0.1', treeVerified: true, versionVerified: true, canLaunch: true}];},
     BrowserEngineIdentity: async text => {const c = JSON.parse(text); recordCall('native-identity', c); validateHardware(c); return plan(c);},
     BrowserEngineProfileLaunch: async (text, proxyText) => {
       const c = JSON.parse(text); recordCall('native-launch', c); recordCall('launch-proxy', JSON.parse(proxyText)); validateHardware(c);
