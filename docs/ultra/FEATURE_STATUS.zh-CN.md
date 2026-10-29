@@ -24,7 +24,7 @@
 | 原生启动状态与取消 | 下一候选接 BeginLaunch、匹配 token 的 CancelStart 与 Status 轮询；准备中锁定编辑/新启动，取消请求不冒充完成，未知清理保留 owner 和检查/关闭入口；离页取消原 run，旧 DOM 不取消新 run；Go fake 并发及八类 [DOM 场景](qa/browser-start-ui.cjs) 通过，缺少新接口时保留旧同步调用兼容 | 不在冻结 qa.9；真实下载/进程/WFP 清理、取消与 ready 竞争、UI 退出和原生实例残留仍待 VM，不能用 mock 证明已经撤销规则 |
 | 浏览器独立代理 | SOCKS5 / HTTP / HTTPS、免费 GeoIP；纯测试及 [生产模块 / 认证 relay VM 网络测试](qa/PRODUCT_PROXY_VM_2026-10-26.md) 通过。QA11 普通 Medium 手填单个认证 SOCKS5 后显式测试，出口与已知代理一致；改密码隐藏旧成功结果，错误认证实际失败，见 [GUI 记录](qa/QA11_PROXY_GUI_VM_2026-10-27.md) | 本批仅 probe，未启动浏览器；没有独立抓包证明无直连回退。恢复认证后旧错误提示残留已列 QA12 修复后重验；浏览器真实出口、HTTP / HTTPS 各代理类型、隧道 / WFP 仍待各自验收 |
 | 元数据 | qa.9 普通 Medium 已安装 GUI 实际调用 ExifTool 13.59；两张合成 JPEG/PNG 的七类 EXIF 逐项及全选共 16 副本，独立源哈希/像素/类别选择后验全部通过；默认只显示数量、显式作者查看、取消保留预览和后端拒绝覆盖已实测，见 [真实 GUI 验收](qa/METADATA_REAL_GUI_VM_2026-10-27.md) | 仅两张 4×3 合成图片、七类 EXIF；XMP/IPTC/缩略图、实拍照片及异常矩阵未外推。qa.11 的 1501 个依赖成员与 qa.9 字节一致，仍不代表 qa.11 整包 GUI/UAC 已验收 |
-| 秘密剪贴板 | 默认关闭，可选 5–600 秒；只清理本产品复制且序号 / owner / 内容哈希仍一致的当前内容；纯测试 | 真实剪贴板竞争、退出、历史 / 云同步边界待 VM 验收；不清除云端或已被其他程序读走的副本 |
+| 秘密剪贴板 | 默认关闭，可选 5–600 秒；只清理本产品复制且序号 / owner / 内容哈希仍一致的当前内容；Go/DOM 回归已覆盖替换保留、取消和服务不可用 | 真实剪贴板竞争、退出、历史 / 云同步边界待 VM 验收；不清除云端或已被其他程序读走的副本 |
 | GPS | 上游 locsim 审计、真实能力缺口记录、带 CAS / 独立恢复的事务适配器与纯测试 | 尚无真实 Windows GPS 后端；不能把自建缓存当成系统定位 |
 | 安装 / 卸载 | qa.11 官方升级实际通过：固定包接收核对 1966 文件/17 目录/1965 payload；QA9 官方卸载后服务消失、完整旧树保留；冷 WinPS 5.1 默认 Source 安装后 qa.11 全 payload、Running/LocalSystem、oldFilesRetained/defaultSource=true 读回，见 [证据](qa/QA11_OFFICIAL_UPGRADE_2026-10-27.md) | 仅本次隔离 VM 官方升级；浏览器、网络效果及其他系统/权限组合继续分项验收。历史 QA9/QA10/QA11 包均不回写 |
 
