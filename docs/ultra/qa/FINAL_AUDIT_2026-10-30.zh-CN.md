@@ -7,7 +7,7 @@
 | 范围 | 证据 |
 | --- | --- |
 | 浏览器配置交互 | 四种网页环境预设、OS 版本/视口、UA 生成与手改、GPU/WebGL 字段、代理草稿、内核下载/校验/删除、预览失效和启动前复核；DOM QA 全部通过 |
-| 隐私中心/检测中心 | 状态分层、未知/有限/计划中不升级、减少重复帮助标记、紧凑本地时间、页内错误反馈、检测快照筛选/导出、键盘与窄屏布局；最终 Edge smoke 像素回归 8 张，0 error、0 outbound；截图目录 `C:\\Temp\\ultra-trial-ui-qa\\final-audit-7` |
+| 隐私中心/检测中心 | 状态分层、未知/有限/计划中不升级、减少重复帮助标记、紧凑本地时间、页内错误反馈、检测快照筛选/导出、键盘与窄屏布局；最终 Edge smoke 像素回归 8 张，0 error、0 outbound；截图目录 `C:\\Temp\\ultra-trial-ui-qa\\final-audit-9` |
 | 开源集成 | sing-box、WFP/WireGuard 规则、ExifTool、WebView2 SDK/宿主、Chrome/Firefox 下载校验链均有源码入口、固定版本/许可证或哈希说明；对应 Go/Node 测试通过 |
 | Win10 实机 | Azure 临时资源组 `ultra-browser-qa-20261030` 的 Windows 10 Enterprise LTSC 2021 x64（VM build 19044）；实机运行包 SHA-256 `23001359a412fb7a04ca8a61624114d95725ef8cf353a8bac5e92c336f443991`、服务 Running/Auto、WebView2 156.0.4314.50、CLI status/diag/privacy report 均实测。最新现代 UI beta.5 发布包 SHA-256 为 `e7225ab2e0c1291591beb925a3e3537e76febddd39f7694c64098a879340e8fd`，其 UI/包审计另行通过，未冒充为本轮 VM 运行证据。 |
 | 真实订阅/隧道 | 在该 VM 内设置用户提供的测试订阅并刷新 18 个节点，connect 退出码 0，状态 `connected`、`TUN=true`、`strict=true`；通过 TUN 访问 ipify 和 ipwho.is 得到同一出口 `104.28.222.43`（Singapore），disconnect 后状态恢复 `disconnected` |
@@ -34,6 +34,6 @@
 2026-10-30 在 `6ad868e` 与 `80567db` 后重新执行视觉回归：检测中心时间统一为本地短格式，隐私页取消无意义的重复问号提示，移动窄屏标签改为可横向滚动的单行导航，错误提示上移并限制宽度与换行，避免覆盖内容卡片。
 
 - DOM QA：浏览器环境、UA/GPU、代理草稿、内核管理、错误转义、过期快照与未支持入口全部通过。
-- 像素 QA：420px 窄屏与完整审计组合共 8 张截图，`errors=[]`、`outboundRequests=[]`。
+- 像素 QA：420px 窄屏与完整审计组合共 8 张截图，`errors=[]`、`outboundRequests=[]`；beta.5 发布包重新执行 ZIP/PE/前端资产审计，payload 1997、ZIP 成员 1998，SHA-256 与 GitHub Release sidecar 一致。
 - 视觉结论只代表布局、层级、可读性和交互反馈通过；不升级为浏览器宿主、代理出口或 GPS 运行时通过。
 
