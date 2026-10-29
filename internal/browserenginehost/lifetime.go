@@ -120,8 +120,25 @@ func (l *lifetime) finish() (result error) {
 			if l.code != nil {
 				l.code.Close()
 			}
+			var profileCleanupErr error
 			if l.profile != nil {
 				l.profile.Close()
+				if checker, ok := l.profile.(interface{ CleanupError() error }); ok {
+					profileCleanupErr = checker.CleanupError()
+				}
+			}
+			if profileCleanupErr != nil {
+				result = ErrRefused
+				// The browser process and guard are already closed, but the
+				// ephemeral profile tree could not be proven absent. Keep the
+				// session in the unresolved set and expose that distinction to
+				// the UI instead of reporting a privacy-clean close.
+				unresolvedLifetimes.Lock()
+				unresolvedLifetimes.items[l.session.id] = l
+				unresolvedLifetimes.Unlock()
+				l.state("closing_or_unknown", "浏览器进程已退出；本会话浏览数据未能确认清理，保留本次会话记录。")
+				close(l.session.done)
+				return
 			}
 		}
 		if l.process != nil {

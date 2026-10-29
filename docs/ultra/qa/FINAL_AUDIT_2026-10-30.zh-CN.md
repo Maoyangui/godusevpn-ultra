@@ -9,6 +9,7 @@
 | 浏览器配置交互 | 四种网页环境预设、OS 版本/视口、UA 生成与手改、GPU/WebGL 字段、代理草稿、内核下载/校验/删除、预览失效和启动前复核；DOM QA 全部通过 |
 | 隐私中心/检测中心 | 状态分层、未知/有限/计划中不升级、减少重复帮助标记、紧凑本地时间、页内错误反馈、检测快照筛选/导出、键盘与窄屏布局；beta.6.2 后再次执行 420/900px、浅色/深色共 32 张截图，0 error、0 outbound；截图目录 `C:\\Temp\\ultra-trial-ui-qa\\final-audit-11` |
 | 开源集成 | sing-box、WFP/WireGuard 规则、ExifTool、WebView2 SDK/宿主、Chrome/Firefox 下载校验链均有源码入口、固定版本/许可证或哈希说明；对应 Go/Node 测试通过 |
+| 独立会话数据生命周期 | 浏览器每次启动使用独立会话目录；进程/防火墙收尾后以 `os.Root` 相对路径扫描并删除本次树，拒绝重解析点、异常对象和共享目录，失败保持 `closing_or_unknown`；Windows 交叉编译与纯文件回归见 [会话清理审计](BROWSER_SESSION_CLEANUP_2026-10-30.md) |
 | Win10 实机 | Azure 临时资源组 `ultra-browser-qa-20261030` 的 Windows 10 Enterprise LTSC 2021 x64（VM build 19044）；实机运行包 SHA-256 `23001359a412fb7a04ca8a61624114d95725ef8cf353a8bac5e92c336f443991`、服务 Running/Auto、WebView2 156.0.4314.50、CLI status/diag/privacy report 均实测。最新现代 UI beta.6.1 发布包 SHA-256 为 `0f2bc0742459b04eefe9084ff8294adc7b5abf950e50e1d88823724df6bf0019`，其 UI/包审计另行通过，未冒充为本轮 VM 运行证据。 |
 | 真实订阅/隧道 | 在该 VM 内设置用户提供的测试订阅并刷新 18 个节点，connect 退出码 0，状态 `connected`、`TUN=true`、`strict=true`；通过 TUN 访问 ipify 和 ipwho.is 得到同一出口 `104.28.222.43`（Singapore），disconnect 后状态恢复 `disconnected` |
 | 清理 | 临时资源组 `ultra-browser-qa-20261030` 已在 Azure 通知中确认删除，资源组列表不再显示；其中 VM、Bastion、OS 磁盘、NIC、公共 IP、NSG、VNET 均随组删除，其他原有资源未触碰；临时 gists 与本地分片已删除 |
@@ -20,6 +21,7 @@
 | --- | --- |
 | 真实内置浏览器窗口 | 普通构建已进入受控 native Start 严格链路；本轮 VM 的 Azure Run Command SYSTEM 会话得到固定 `start_refused`。Developer Bastion 已部署，但 Bastion 表单在提交后反复回到 `Value is required`，Windows RDP 仍停在本地不受信任证书确认页；当前临时 Windows 规格还受 Azure 订阅配额限制，因此没有把窗口、导航或代理出口写成通过 |
 | Chrome/Firefox 多版本原生启动 | Windows amd64/arm64 普通构建已进入受控 native Start 严格链路；下载/完整树校验、CDP/BiDi 和启动门禁通过。真实进程矩阵、窗口、导航、代理出口、WebRTC/WebGPU/OOPIF/Worker 读回仍未在普通用户 VM 完成 |
+| 会话数据删除的真实效果 | 代码已保证只处理本次生成的 `BrowserInstances/<session-id>`，但真实浏览器退出、异常进程、重启以及跨 Win10/Win11 版本的磁盘读回尚未完成；不能以纯文件回归替代 VM 证据 |
 | 每浏览器 SOCKS/HTTP/HTTPS 浏览器出口 | 代理配置、relay 和 probe 已实现/测试；本轮只实测 Ultra TUN 出口，未取得普通用户浏览器实际导航抓包证据 |
 | GPS/Windows Location Provider | Win10 build 19044 低于 GeolocationProvider 23504 门禁，UI 正确显示不可用；Win11 只提供“可能支持”检查。现有代码是只读观察与恢复边界，没有可证明的系统位置写入、独立读回和冲突恢复闭环 |
 | CEF/uBlock | 仓库只有候选/审计记录，没有可运行集成和更新/权限流程 |

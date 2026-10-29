@@ -4,9 +4,47 @@ package browserenginehost
 
 import (
 	"golang.org/x/sys/windows"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 	"unsafe"
 )
+
+func TestRemoveSessionTreeOnlyRemovesGeneratedSession(t *testing.T) {
+	base := t.TempDir()
+	instances := filepath.Join(base, "BrowserInstances")
+	if err := os.Mkdir(instances, 0700); err != nil {
+		t.Fatal(err)
+	}
+	sessionID := strings.Repeat("a", 64)
+	session := filepath.Join(instances, sessionID)
+	if err := os.MkdirAll(filepath.Join(session, "profile", "Default"), 0700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(session, "profile", "Default", "Preferences"), []byte("private session data"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	sentinel := filepath.Join(instances, "sentinel")
+	if err := os.WriteFile(sentinel, []byte("keep"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := removeSessionTree(session); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(session); !os.IsNotExist(err) {
+		t.Fatalf("session remains or stat failed: %v", err)
+	}
+	if data, err := os.ReadFile(sentinel); err != nil || string(data) != "keep" {
+		t.Fatalf("sibling was modified: %v %q", err, data)
+	}
+}
+
+func TestRemoveSessionTreeRejectsNonGeneratedPath(t *testing.T) {
+	if err := removeSessionTree(filepath.Join(t.TempDir(), "BrowserInstances", "not-a-session")); err == nil {
+		t.Fatal("non-generated session path was accepted")
+	}
+}
 
 func TestPrivateProfileDescriptorRequiresExactOwnerAndInheritableACL(t *testing.T) {
 	const sid = "S-1-5-21-11-22-33-1001"

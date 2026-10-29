@@ -3,10 +3,14 @@
 package browserenginehost
 
 import (
+	"encoding/hex"
+	"errors"
 	"os"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
+	"sync"
 	"unsafe"
 
 	"github.com/Maoyangui/godusevpn/internal/browserengine"
@@ -18,15 +22,155 @@ type profileLease struct {
 	directory, sessionRoot string
 	files                  []*os.File
 	release                func()
+	once                   sync.Once
+	cleanupErr             error
 }
 
 func (p *profileLease) Close() {
-	for i := len(p.files) - 1; i >= 0; i-- {
-		p.files[i].Close()
+	if p == nil {
+		return
 	}
-	if p.release != nil {
-		p.release()
+	p.once.Do(func() {
+		for i := len(p.files) - 1; i >= 0; i-- {
+			_ = p.files[i].Close()
+		}
+		if p.release != nil {
+			p.release()
+		}
+		// BrowserInstances contains only this session's profile and freshly
+		// downloaded engine tree.  Remove that exact tree after the process and
+		// code lease have been closed; never touch the shared engine cache or a
+		// saved BrowserProfiles record.  A failed or suspicious cleanup remains
+		// visible to lifetime.go instead of being reported as a clean close.
+		p.cleanupErr = removeSessionTree(p.sessionRoot)
+	})
+}
+
+func (p *profileLease) CleanupError() error {
+	if p == nil {
+		return errors.New("profile lease is nil")
 	}
+	return p.cleanupErr
+}
+
+const maxSessionCleanupNodes = 100000
+
+func validSessionID(value string) bool {
+	if len(value) != 64 {
+		return false
+	}
+	_, err := hex.DecodeString(value)
+	return err == nil && strings.ToLower(value) == value
+}
+
+// removeSessionTree deletes a single generated BrowserInstances/<sessionID>
+// tree using os.Root-relative operations. It scans before mutating so a
+// symlink/reparse point or an unexpectedly huge tree fails closed without a
+// partial cleanup.
+func removeSessionTree(sessionRoot string) error {
+	if !filepath.IsAbs(sessionRoot) || filepath.Clean(sessionRoot) != sessionRoot || !validSessionID(filepath.Base(sessionRoot)) || filepath.Base(filepath.Dir(sessionRoot)) != "BrowserInstances" {
+		return ErrRefused
+	}
+	parent, err := os.OpenRoot(filepath.Dir(sessionRoot))
+	if err != nil {
+		return err
+	}
+	defer parent.Close()
+	info, err := parent.Lstat(filepath.Base(sessionRoot))
+	if err != nil {
+		return err
+	}
+	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
+		return ErrRefused
+	}
+	tree, err := parent.OpenRoot(filepath.Base(sessionRoot))
+	if err != nil {
+		return err
+	}
+	files := make([]string, 0, 256)
+	dirs := make([]string, 0, 64)
+	seen := 0
+	var scan func(string) error
+	scan = func(rel string) error {
+		directory, err := tree.Open(rel)
+		if err != nil {
+			return err
+		}
+		entries, err := directory.ReadDir(-1)
+		closeErr := directory.Close()
+		if err != nil {
+			return err
+		}
+		if closeErr != nil {
+			return closeErr
+		}
+		for _, entry := range entries {
+			name := entry.Name()
+			if name == "" || name == "." || name == ".." || strings.ContainsAny(name, `/\\:*?"<>|\x00`) {
+				return ErrRefused
+			}
+			child := name
+			if rel != "." {
+				child = filepath.Join(rel, name)
+			}
+			childInfo, err := tree.Lstat(child)
+			if err != nil {
+				return err
+			}
+			seen++
+			if seen > maxSessionCleanupNodes || childInfo.Mode()&os.ModeSymlink != 0 {
+				return ErrRefused
+			}
+			if childInfo.IsDir() {
+				dirs = append(dirs, child)
+				if err := scan(child); err != nil {
+					return err
+				}
+			} else if childInfo.Mode().IsRegular() {
+				files = append(files, child)
+			} else {
+				return ErrRefused
+			}
+		}
+		return nil
+	}
+	err = scan(".")
+	if err != nil {
+		tree.Close()
+		return err
+	}
+	// Remove children first. Sorting by depth also makes the operation
+	// deterministic if the profile contains nested browser data.
+	sort.Strings(files)
+	for _, name := range files {
+		if err := tree.Remove(name); err != nil {
+			tree.Close()
+			return err
+		}
+	}
+	sort.Slice(dirs, func(i, j int) bool {
+		left, right := strings.Count(dirs[i], string(filepath.Separator)), strings.Count(dirs[j], string(filepath.Separator))
+		return left > right || left == right && dirs[i] > dirs[j]
+	})
+	for _, name := range dirs {
+		if err := tree.Remove(name); err != nil {
+			tree.Close()
+			return err
+		}
+	}
+	if err := tree.Close(); err != nil {
+		return err
+	}
+	if err := parent.Remove(filepath.Base(sessionRoot)); err != nil {
+		return err
+	}
+	if _, err := parent.Lstat(filepath.Base(sessionRoot)); !os.IsNotExist(err) {
+		if err == nil {
+			return ErrRefused
+		}
+		return err
+	}
+	return nil
 }
 
 type unicodeString struct {
