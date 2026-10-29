@@ -2,11 +2,11 @@
 
 ## 视觉核验
 
-- Chrome headless，420×760 与 900×900，浅色主题，使用本地 `web/dist` 和后端返回的可领取状态。
+- Chrome headless，420×760 与 900×900，浅色/深色主题，使用本地 `web/dist` 和后端返回的可领取状态；beta.6.2 候选包再次复跑。
 - 试用卡片显示标题、说明、状态和两颗按钮：`免费试用`、`购买节点`。
 - 页面横向尺寸：`scrollWidth=420`、`clientWidth=420`，无横向溢出。
 - 卡片改为白色层级、品牌色左边线和轻量图标，按钮在窄窗口保持同一行；状态文本使用小圆点区分信息层级。
-- 视觉快照保存在本轮临时验收目录 `C:\Temp\ultra-trial-ui-qa\trial-card.png`，未写入应用目录。
+- 视觉快照保存在本轮临时验收目录 `C:\Temp\ultra-trial-ui-qa\trial-card-beta62.png` 与 `final-audit-11`，未写入应用目录；实拍检查确认试用卡片无重复长文案、两按钮同排、窄屏无横向溢出。
 
 执行脚本：
 
@@ -14,7 +14,7 @@
 node C:\Temp\ultra-trial-ui-qa\trial-card.cjs
 ```
 
-结果：`card=true`、`buttons=2`、`status=本月可领取`、无横向溢出。
+结果：`card=true`、`buttons=2`、`status=本月可领取`、无横向溢出；beta.6.2 快照正文为“每台设备每月一次，开通后自动加入订阅”，状态与按钮各只出现一次。
 
 ## 功能核验
 
