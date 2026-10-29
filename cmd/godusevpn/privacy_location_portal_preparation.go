@@ -73,7 +73,11 @@ func (a *App) PrivacyLocationPortalPrepare() (prep.Report, error) {
 	a.invalidatePrivacyEvidence()
 	defer a.invalidatePrivacyEvidence()
 	a.privacyMu.Lock()
-	needs := a.privacyHost == nil && a.privacyHostState != "connected"
+	// Reauthorize whenever the current helper is absent or its session state is
+	// no longer connected. A stale helper pointer can survive a transport loss;
+	// checking only the nil case would make the preparation button stay stuck
+	// at helper_required until the application restarts.
+	needs := a.privacyHost == nil || a.privacyHostState != "connected"
 	a.privacyMu.Unlock()
 	if needs {
 		ctx := a.ctx

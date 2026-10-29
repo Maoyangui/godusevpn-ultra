@@ -3,10 +3,12 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"github.com/Maoyangui/godusevpn/internal/locationportal"
-	prep "github.com/Maoyangui/godusevpn/internal/locationportalprepare"
 	"strings"
 	"testing"
+
+	"github.com/Maoyangui/godusevpn/internal/identity"
+	"github.com/Maoyangui/godusevpn/internal/locationportal"
+	prep "github.com/Maoyangui/godusevpn/internal/locationportalprepare"
 )
 
 type fakePortalPreparationHelper struct {
@@ -14,10 +16,11 @@ type fakePortalPreparationHelper struct {
 	report prep.Report
 	config *locationportal.Config
 	onCall func()
+	closed bool
 }
 
 func (*fakePortalPreparationHelper) Call(context.Context, string, any, any) error { return nil }
-func (*fakePortalPreparationHelper) Close() error                                 { return nil }
+func (f *fakePortalPreparationHelper) Close() error                               { f.closed = true; return nil }
 func (f *fakePortalPreparationHelper) LocationPortalPreparation(context.Context, string) (prep.Report, *locationportal.Config, error) {
 	f.calls++
 	if f.onCall != nil {
@@ -54,5 +57,28 @@ func TestLocationPortalPreparationReportNeverAuthorizes(t *testing.T) {
 	a := &App{}
 	if r, e := a.PrivacyLocationPortalPreparationReport(); e == nil || r.Status != "helper_required" || a.privacyHost != nil {
 		t.Fatal("readonly report unexpectedly authorized")
+	}
+}
+
+func TestLocationPortalPrepareReauthorizesStaleHelper(t *testing.T) {
+	if !identity.Ultra {
+		t.Skip("Ultra helper is Windows-only")
+	}
+	old := launchPrivacyHelper
+	t.Cleanup(func() { launchPrivacyHelper = old })
+	stale := &fakePortalPreparationHelper{}
+	config := &locationportal.Config{Port: 58443, CertificateSHA256: strings.Repeat("a", 64), Username: "private-user", Password: "private-password"}
+	fresh := &fakePortalPreparationHelper{report: prep.Report{Status: "ready", Ready: true, AuthenticationRequired: true, LoopbackGateVerified: true, CertificateVerified: true, ServiceRunning: true, HTTPSPort: 58443}, config: config}
+	launches := 0
+	launchPrivacyHelper = func(context.Context, string) (privacyHelper, error) {
+		launches++
+		return fresh, nil
+	}
+	a := &App{ctx: context.Background(), privacyHost: stale, privacyHostState: "lost", locationPortal: &fakeLocationPortal{}}
+	if r, err := a.PrivacyLocationPortalPrepare(); err != nil || r.Status != "ready" {
+		t.Fatalf("stale helper blocked preparation: report=%+v err=%v", r, err)
+	}
+	if launches != 1 || !stale.closed || a.privacyHost != fresh || a.privacyHostState != "connected" {
+		t.Fatalf("stale helper was not replaced: launches=%d staleClosed=%v host=%T state=%s", launches, stale.closed, a.privacyHost, a.privacyHostState)
 	}
 }
