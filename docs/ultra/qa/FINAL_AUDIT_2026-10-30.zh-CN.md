@@ -23,7 +23,7 @@
 | GPS/Windows Location Provider | Win10 build 19044 低于 GeolocationProvider 23504 门禁，UI 正确显示不可用；Win11 只提供“可能支持”检查。现有代码是只读观察与恢复边界，没有可证明的系统位置写入、独立读回和冲突恢复闭环 |
 | CEF/uBlock | 仓库只有候选/审计记录，没有可运行集成和更新/权限流程 |
 | Win10 1809/LTSC 2019/22H2 与 Win11 多版本 | 本轮只真实验收 build 19044；其余版本仍需各自 VM/接口矩阵证据 |
-| godusevpn.org 线上免费试用 | m-ui 后端代码、接口和测试已完成（`go test -tags with_utls ./...` 全部通过），但线上 `https://godusevpn.org/app/api/trial/status` 与 `/app/api/trial/claim` 当前仍返回 404；Cloudflare 账户可见站点/Workers，但没有可直接运行该 Go/SQLite 面板的已部署服务或明确生产部署凭据，因此不能声称已上线 |
+| godusevpn.org 线上免费试用 | m-ui 后端代码、接口和测试已完成（`go test -tags with_utls ./...` 全部通过），但线上 status 接口当前返回 404，claim POST 返回 405（未提供可用试用业务响应）；Cloudflare 账户可见站点/Workers，但没有可直接运行该 Go/SQLite 面板的已部署服务或明确生产部署凭据，因此不能声称已上线 |
 
 ## 结论
 
