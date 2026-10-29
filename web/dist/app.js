@@ -339,8 +339,13 @@ function bindTrialCard(root) {
     try {
       const s = await api.TrialStatus();
       purchaseURL = trialURL(s && s.purchaseUrl) || TRIAL_PURCHASE_FALLBACK;
-      if (!s || !s.enabled || s.status === 'plan_missing' || s.status === 'disabled') { setStatus('trial.unavailable'); claim.disabled = true; return; }
-      if (s.claimed) { setStatus('trial.limit'); claim.disabled = true; return; }
+      if (!s || !s.enabled || s.status === 'plan_missing' || s.status === 'disabled' || s.status === 'unavailable') { setStatus('trial.unavailable'); claim.disabled = true; return; }
+      if (s.claimed || s.status === 'already_claimed') { setStatus('trial.limit'); claim.disabled = true; return; }
+      // A concurrent claim reserves the monthly key before it asks the panel
+      // to create the user. Keep the action disabled while that short-lived
+      // reservation is visible; presenting "available" here would invite a
+      // second click that can only receive a confusing 409.
+      if (s.status === 'processing') { setStatus('trial.claimingHint'); claim.disabled = true; return; }
       setStatus('trial.ready'); claim.disabled = false;
     } catch (_) { setStatus('trial.checkFailed'); claim.disabled = true; }
   };

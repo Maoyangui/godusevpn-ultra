@@ -23,11 +23,11 @@
 | GPS/Windows Location Provider | Win10 build 19044 低于 GeolocationProvider 23504 门禁，UI 正确显示不可用；Win11 只提供“可能支持”检查。现有代码是只读观察与恢复边界，没有可证明的系统位置写入、独立读回和冲突恢复闭环 |
 | CEF/uBlock | 仓库只有候选/审计记录，没有可运行集成和更新/权限流程 |
 | Win10 1809/LTSC 2019/22H2 与 Win11 多版本 | 本轮只真实验收 build 19044；其余版本仍需各自 VM/接口矩阵证据 |
-| godusevpn.org 线上免费试用 | m-ui 后端代码、接口和测试已完成（`go test -tags with_utls ./...` 全部通过），但线上 status 接口当前返回 404，claim POST 返回 405（未提供可用试用业务响应）；Cloudflare 账户可见站点/Workers，但没有可直接运行该 Go/SQLite 面板的已部署服务或明确生产部署凭据，因此不能声称已上线 |
+| godusevpn.org 线上免费试用 | 已通过 Cloudflare Worker 路由 `godusevpn.org/app/api/trial/*` → 站点服务端生产网关（Vercel `liumeiti.vip`）上线；服务端只保存设备 HMAC 摘要并以 Redis 月份键限额，再由服务端调用面板创建 `free` 用户，客户端不接触令牌。实测 status 200、claim 200 返回真实 `hk.joinvip.vip:2056` 订阅、同设备再次 status 为 `already_claimed`、再次 claim 为 HTTP 409，OPTIONS 为 204，恶意 Origin 不返回允许跨域头；测试用户备注带“来源：佛跳墙内置免费试用”。 |
 
 ## 结论
 
-源码、UI、包、订阅隧道和 Win10 21H2 实测已形成可复核证据；整体 H01–H41 仍未闭环。发布说明、客户端状态和最终答复必须继续保留上述“待实机/未集成/未上线”边界，不能用说明卡、mock 或静态载荷充数。
+源码、UI、包、订阅隧道、生产试用网关和 Win10 21H2 实测已形成可复核证据；整体 H01–H41 仍未闭环。发布说明、客户端状态和最终答复必须继续保留上述“待实机/未集成”边界，不能用说明卡、mock 或静态载荷充数。
 
 ## 视觉标准复核（现代 App UI）
 
