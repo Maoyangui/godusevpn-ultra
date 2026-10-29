@@ -901,7 +901,7 @@ function renderPrivacy(el, arg) {
       const status = method === 'PrivacyFirewallRemove' && result && result.verified ? '规则已移除。' : method === 'PrivacyFirewallApply' && result && result.applied ? '过滤器已安装，流量待验证。' : result && result.message || '操作已返回，正在重新检查。';
       toast(status);
       if (warning) model.actionNote = '范围说明：' + warning;
-    } catch (error) { model.error = '操作未完成：' + errText(error); toast(model.error, 'err'); }
+    } catch (error) { model.error = '操作未完成：' + errText(error); }
     model.busy = false;
     // Preserve the error while reading current state; no navigation or connection changes.
     const priorError = model.error;
@@ -944,7 +944,7 @@ function renderPrivacy(el, arg) {
       const report = await api(method);
       if (report && report.format) { model.dataReport = report; model.dataAction = action; model.dataChecked = new Date().toLocaleString(); toast(action === '清理' ? '副本已另存，请检查显示方向和剩余信息。' : '已完成本地检查，仅显示块类型与大小。'); }
       else toast('已取消文件选择；没有处理新的图片。');
-    } catch (error) { model.error = '图片' + action + '未完成：' + errText(error); toast(model.error, 'err'); }
+    } catch (error) { model.error = '图片' + action + '未完成：' + errText(error); }
     model.busy = false; draw();
   }
   draw();
@@ -994,7 +994,8 @@ function privacyDecorateHelp(el) {
     'privacy-program': '选择目标可执行文件路径。此时尚未修改联网权限，点击确认添加后才生效。',
     'privacy-firewall-mode': '待应用。局域网规则限制指定地址范围；发现规则仅覆盖 IPv4/IPv6 组播和 IPv4 有限广播；不含定向广播、单播发现、蓝牙和系统代发。直接连接限制不保护回环、代理和转发路径。详细边界由后端报告说明。',
     'privacy-firewall-add': '保存并应用刚才选择的程序和范围。选择框本身不修改防火墙；不会修改原有隧道配置。',
-    'privacy-probe': '只检查当前内嵌 WebView。无法据此推断 Chrome、Edge 或其他应用的实际暴露情况。'
+    'privacy-probe': '只检查当前内嵌 WebView。无法据此推断 Chrome、Edge 或其他应用的实际暴露情况。',
+    'detection-export': '导出当前检测快照，文件只保存在本机，不会自动上传。'
   };
   el.querySelectorAll('button:not(.privacy-help), input, select, summary').forEach(control => {
     if (control.tagName === 'SUMMARY' && control.querySelector('.privacy-help')) return;
@@ -1006,9 +1007,14 @@ function privacyDecorateHelp(el) {
     if (!text && control.hasAttribute('data-privacy-restore')) text = '恢复此项目记录的原值，可能重新允许信息读取；遇到外部变化时不强制覆盖。';
     if (!text && control.hasAttribute('data-privacy-settings')) text = '打开固定的 Windows 设置页面；打开页面不代表设置已经修改。';
     if (!text && control.hasAttribute('data-privacy-remove-rule')) text = '只移除这个程序的规则，程序的访问权限仍取决于其他防火墙与隧道规则。';
-    if (!text && control.hasAttribute('data-privacy-tab')) text = '查看“' + control.textContent.trim() + '”功能，不自动启用或修改任何保护。';
+    // Tabs are navigation, not actions. They do not need a help marker beside
+    // every label; the selected panel and its heading already explain scope.
+    if (!text && control.hasAttribute('data-privacy-tab')) return;
     if (!text && control.tagName === 'SUMMARY') text = '展开此项目的实际生效范围、副作用以及恢复方式。';
-    if (!text) text = '此操作仅作用于当前项目。修改设置前会显示明确操作；筛选和输入不会自动应用。';
+    // Do not add generic '?' markers to every input and button. They create a
+    // noisy, repetitive row of icons that competes with the primary action.
+    // Keep help only for controls with an explicit scope or side-effect note.
+    if (!text) return;
     const card = control.closest('article,.privacy-card'), heading = card && card.querySelector('h2');
     const contextName = heading ? heading.textContent.replace(/\?/g, '').trim() + ' / ' : '';
     control.insertAdjacentHTML('afterend', privacyHelp(text, contextName + (control.getAttribute('aria-label') || control.textContent.trim() || control.id)));
@@ -1101,6 +1107,13 @@ function renderPrivacyDetection(el) {
   const audienceNames={website:'网站',websites:'网站',web:'网站',browser:'网站',app:'应用',apps:'应用',application:'应用',native:'应用',network:'网络'};
   const findings=()=>model.report && Array.isArray(model.report.findings)?model.report.findings:[];
   const audience=item=>audienceNames[item.audience] || item.audience || '未分类';
+  const formatDetectionTime=value=>{
+    if(!value)return '尚未检测';
+    const parsed=Date.parse(value);
+    if(!Number.isFinite(parsed))return String(value);
+    try{return new Intl.DateTimeFormat('zh-CN',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(parsed));}
+    catch(_){return String(value);}
+  };
   const visible=()=>findings().filter(f=>(!model.audience || audience(f)===model.audience) && (!model.category || (f.category || '其他')===model.category) && (!model.search || [f.title,f.summary,f.evidence,f.scope].join(' ').toLowerCase().includes(model.search.toLowerCase())) && (!model.filter || (model.filter==='exposed'?['observed','allowed','possible'].includes(f.status):!!(f.controlId || f.settingsId))));
   const expired=()=>!!model.expiresAt && (!Number.isFinite(Date.parse(model.expiresAt)) || Date.now()>=Date.parse(model.expiresAt));
   const currentButton=button=>alive() && !!button && el.contains(button) && !model.loading && !model.exporting;
@@ -1109,11 +1122,11 @@ function renderPrivacyDetection(el) {
   function discardPreview(){model.preview=null;model.textPreview=null;model.previewSequence++;}
   function overview(){
     const pending=model.stale?findings().length:findings().filter(f=>!statusNames[f.status] || ['unknown','manual'].includes(f.status)).length;
-    return `<div class="privacy-summary" aria-label="检测事实概览"><div class="privacy-summary-item"><strong>${findings().length}</strong><span>${model.stale?'历史观察项':'本次观察项'}</span></div><div class="privacy-summary-item${pending?' attention':''}"><strong>${pending}</strong><span>待确认项目</span></div><div class="privacy-summary-item privacy-summary-time"><strong>${esc(model.report && model.report.generatedAt || '尚未检测')}</strong><span>快照生成时间</span></div></div>`;
+    return `<div class="privacy-summary" aria-label="检测事实概览"><div class="privacy-summary-item"><strong>${findings().length}</strong><span>${model.stale?'历史观察项':'本次观察项'}</span></div><div class="privacy-summary-item${pending?' attention':''}"><strong>${pending}</strong><span>待确认项目</span></div><div class="privacy-summary-item privacy-summary-time"><strong>${esc(formatDetectionTime(model.report && model.report.generatedAt))}</strong><span>快照生成时间（本地）</span></div></div>`;
   }
   function findingCard(f){
     const source={policies:'系统策略',firewall:'程序规则',network:'服务状态',facts:'只读环境事实','browser-session':'专用浏览器管理器'}[f.source] || '本地来源';
-    return `<article class="privacy-card" data-detection-finding="${esc(f.id)}"><div class="privacy-card-head"><h2>${esc(f.title || f.id)}</h2><span class="privacy-badge ${model.stale || !statusNames[f.status] || f.status==='unknown'?'attention':''}">${esc(model.stale?'历史结果，当前未确认':statusNames[f.status] || '无法确认')}</span></div><div class="privacy-scope">${esc(audience(f))} · ${esc(f.category || '其他')}</div><p>${model.stale?'上次结果：':''}${esc(brief(f.summary))}</p><details><summary>证据与范围</summary><dl>${brief(f.summary)!==f.summary?`<dt>完整观察</dt><dd>${esc(f.summary)}</dd>`:''}<dt>检查依据</dt><dd>${esc(f.evidence || '没有可验证证据。')}</dd><dt>范围</dt><dd>${esc(f.scope || '未确认')}</dd><dt>读取来源</dt><dd>${esc(source)}</dd><dt>来源读取完成</dt><dd>${esc(f.detectedAt || '未提供；此项为范围说明，或来源读取未完成。')}</dd></dl></details><div class="privacy-actions">${f.controlId?`<button class="btn sm" data-detection-control="${esc(f.controlId)}">${esc(f.actionLabel || '查看可用保护')}</button>`:''}${f.settingsId?`<button class="btn sm" data-detection-settings="${esc(f.settingsId)}">${f.settingsId==='browser'?'查看专用浏览器与自测入口':'打开设置引导'}</button>`:''}</div></article>`;
+    return `<article class="privacy-card" data-detection-finding="${esc(f.id)}"><div class="privacy-card-head"><h2>${esc(f.title || f.id)}</h2><span class="privacy-badge ${model.stale || !statusNames[f.status] || f.status==='unknown'?'attention':''}">${esc(model.stale?'历史结果，当前未确认':statusNames[f.status] || '无法确认')}</span></div><div class="privacy-scope">${esc(audience(f))} · ${esc(f.category || '其他')}</div><p>${model.stale?'上次结果：':''}${esc(brief(f.summary))}</p><details><summary>证据与范围</summary><dl>${brief(f.summary)!==f.summary?`<dt>完整观察</dt><dd>${esc(f.summary)}</dd>`:''}<dt>检查依据</dt><dd>${esc(f.evidence || '没有可验证证据。')}</dd><dt>范围</dt><dd>${esc(f.scope || '未确认')}</dd><dt>读取来源</dt><dd>${esc(source)}</dd><dt>来源读取完成</dt><dd>${esc(f.detectedAt ? formatDetectionTime(f.detectedAt) : '未提供；此项为范围说明，或来源读取未完成。')}</dd></dl></details><div class="privacy-actions">${f.controlId?`<button class="btn sm" data-detection-control="${esc(f.controlId)}">${esc(f.actionLabel || '查看可用保护')}</button>`:''}${f.settingsId?`<button class="btn sm" data-detection-settings="${esc(f.settingsId)}">${f.settingsId==='browser'?'查看专用浏览器与自测入口':'打开设置引导'}</button>`:''}</div></article>`;
   }
   function draw(){
     if(!alive())return;
@@ -1225,7 +1238,7 @@ function renderPrivacyDetection(el) {
     if(!reviewedCurrent(preview,sequence,epoch))return;
     model.exporting=true;model.error='';draw();
     try{const saved=await api('PrivacyExportDetection',preview.previewId);if(reviewedCurrent(preview,sequence,epoch)){toast(saved?'已保存审阅的同一份快照。分享前仍请核对上下文。':'已取消保存。');if(saved)discardPreview();}}
-    catch(error){if(reviewedCurrent(preview,sequence,epoch)){model.error='保存未完成：'+errText(error);toast(model.error,'err');}}
+    catch(error){if(reviewedCurrent(preview,sequence,epoch)){model.error='保存未完成：'+errText(error);}}
     finally{model.exporting=false;draw();}
   }
   draw();refresh();

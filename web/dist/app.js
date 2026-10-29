@@ -118,6 +118,12 @@ function toast(msg, kind = '') {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => { el.classList.remove('show'); }, 2400);
 }
+function clearToast() {
+  const el = $('#toast');
+  if (el) el.classList.remove('show');
+  clearTimeout(toastTimer);
+  toastTimer = null;
+}
 function tween(el, from, to, fmt, ms = 500) {
   const key = el.id || el;
   if (tweens[key]) cancelAnimationFrame(tweens[key]);
@@ -284,6 +290,7 @@ function setTop(title, back) {
 function nav(name, arg) {
   diagnosticsFlow++;
   closeDialog(false);
+  clearToast();
   const stage = $('#stage');
   // 把已有的页面全部清掉(可能不止一个:引导页加订阅后自己 nav 一次,状态事件又 nav 一次,叠在一起就是两个首页)
   for (const old of stage.querySelectorAll('.view')) {

@@ -1,5 +1,5 @@
 /* Privacy is an additive Windows page. Shared UI and tunnel styles are untouched. */
-.privacy { line-height: 1.65; }
+.privacy { line-height: 1.65; padding-bottom: 72px; }
 .privacy-export-json { max-height:300px; overflow:auto; white-space:pre-wrap; word-break:break-word; background:var(--bg); border:1px solid var(--line); padding:10px; border-radius:8px; font:11px/1.6 Consolas,monospace; user-select:text; }
 .privacy-check { display:block; font-size:12px; margin:8px 0; }
 .privacy-check input { vertical-align:middle; }
