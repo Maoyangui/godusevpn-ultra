@@ -17,8 +17,9 @@
 .privacy-hero .privacy-toolbar .btn.sm { padding:6px 8px; font-size:11px; }
 .privacy-action-option { display:inline-flex; align-items:center; max-width:100%; gap:3px; }
 .privacy-action-option > .privacy-help { margin:0; }
-.privacy-tabs { display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--line); margin: 16px 0 12px; padding-bottom: 7px; }
-.privacy-tab-option { display: inline-flex; align-items: center; margin: 2px 3px 2px 0; }
+.privacy-tabs { display: flex; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--line); margin: 16px 0 12px; padding-bottom: 7px; }
+.privacy-tabs::-webkit-scrollbar { display: none; }
+.privacy-tab-option { display: inline-flex; align-items: center; flex: 0 0 auto; margin: 2px 3px 2px 0; }
 .privacy-tabs button { border: 0; border-radius: 9px; padding: 8px 11px; background: transparent; color: var(--muted); white-space: nowrap; margin-right: 3px; }
 .privacy-tabs button.active { color: var(--brand2); background: rgba(47,139,255,.09); font-weight: 600; }
 .privacy-tabs .privacy-help { padding: 0; width: 18px; height: 18px; margin: 0 3px; }
