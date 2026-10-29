@@ -1,4 +1,5 @@
 /dist/
+/tools/qa/node_modules/
 *.exe
 *.log
 *.db
@@ -12,3 +13,7 @@ android/keystore.jks
 android/local.properties
 # 站点产物,CI 现生成
 site/dist/
+# Temporary VPS transfer material; never publish or package.
+/qa-transfer-*/
+# Local compiler/SDK caches and browser-host test binaries.
+/.codex/

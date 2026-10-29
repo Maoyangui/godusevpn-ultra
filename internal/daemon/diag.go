@@ -1,21 +1,11 @@
 package daemon
 
 import (
-	"archive/zip"
-	"encoding/json"
 	"fmt"
 	"net/url"
 	"os"
-	"os/exec"
-	"path/filepath"
 	"regexp"
-	"runtime"
 	"strings"
-	"time"
-
-	"github.com/Maoyangui/godusevpn/internal/buildinfo"
-	"github.com/Maoyangui/godusevpn/internal/logx"
-	"github.com/Maoyangui/godusevpn/internal/paths"
 )
 
 // 诊断包:日志、脱敏后的配置与设置、路由表、网卡信息。凭据类字段一律打码,订阅地址只留主机名。
@@ -107,76 +97,6 @@ func redactCredential(m string) string {
 	return key + sep + "***"
 }
 
-func cmdOut(name string, args ...string) string {
-	out, err := exec.Command(name, args...).CombinedOutput()
-	if err != nil {
-		return fmt.Sprintf("(%s %s: %v)\n%s", name, strings.Join(args, " "), err, out)
-	}
-	return string(out)
-}
-
-// exportDiag 生成 zip,返回路径。
-func (d *Daemon) exportDiag() (string, error) {
-	dir := filepath.Join(paths.DataDir(), "diag")
-	if err := os.MkdirAll(dir, 0o700); err != nil {
-		return "", err
-	}
-	path := filepath.Join(dir, "godusevpn-diag-"+time.Now().Format("20060102-150405")+".zip")
-	f, err := os.Create(path)
-	if err != nil {
-		return "", err
-	}
-	defer f.Close()
-	zw := zip.NewWriter(f)
-	add := func(name, content string) {
-		w, err := zw.Create(name)
-		if err == nil {
-			_, _ = w.Write([]byte(redactText(content)))
-		}
-	}
-	view := d.stateView()
-	info := map[string]any{"version": buildinfo.Version, "os": runtime.GOOS + "/" + runtime.GOARCH, "time": time.Now().Format(time.RFC3339), "state": view}
-	if _, p := d.activeProfile(); p != nil {
-		info["servers"] = p.Servers()
-	}
-	// Marshal into a detached JSON tree before redaction: state contains
-	// structs and slices that may share backing data with the live settings.
-	b, err := json.Marshal(info)
-	if err != nil {
-		return "", err
-	}
-	var detached any
-	if err := json.Unmarshal(b, &detached); err != nil {
-		return "", err
-	}
-	b, err = json.MarshalIndent(redact(detached), "", "  ")
-	if err != nil {
-		return "", err
-	}
-	add("info.json", string(b))
-	if raw, err := os.ReadFile(paths.Config()); err == nil {
-		var cfg any
-		if json.Unmarshal(raw, &cfg) == nil {
-			rb, _ := json.MarshalIndent(redact(cfg), "", "  ")
-			add("config.redacted.json", string(rb))
-		}
-	}
-	add("service.log", strings.Join(logx.Tail(d.log.Path(), 500), "\n"))
-	add("core.log", strings.Join(logx.Tail(d.coreLog.Path(), 500), "\n"))
-	// 崩溃记录(Windows 服务 / Linux / macOS 的 CaptureCrashes,Android 上 Go / Kotlin 侧)。.1 是启动时超过 1MB
-	// 挪走的那份 —— 轮转恰恰发生在一次崩溃把文件推过 1MB 之后,现场在那里。
-	for _, name := range []string{"crash.log", "crash.log.1"} {
-		if s := crashExcerpt(filepath.Join(paths.Logs(), name)); s != "" {
-			add(name, s)
-		}
-	}
-	sysDiag(add)
-	if err := zw.Close(); err != nil {
-		return "", err
-	}
-	return path, nil
-}
-
 // crashExcerpt 崩溃记录摘要。每段(以"== … 启动"抬头分开)的原因行在最前面("fatal error: …"、"Exception 0x…"、
 // "panic: …"),后面跟着全部 goroutine 的栈,动辄上千行;只取整个文件的最后几百行会把原因截掉。
 // 只挑有内容的段(抬头以外还有非空行),取最后 3 段,每段超过 200 行就留头 150 行、尾 50 行:每次正常启动都会写
@@ -187,7 +107,11 @@ func crashExcerpt(path string) string {
 	if err != nil || len(b) == 0 {
 		return ""
 	}
-	lines := strings.Split(strings.ReplaceAll(string(b), "\r\n", "\n"), "\n")
+	return crashTextExcerpt(string(b))
+}
+
+func crashTextExcerpt(text string) string {
+	lines := strings.Split(strings.ReplaceAll(text, "\r\n", "\n"), "\n")
 	var starts []int
 	for i, l := range lines {
 		if strings.HasPrefix(l, "== ") {

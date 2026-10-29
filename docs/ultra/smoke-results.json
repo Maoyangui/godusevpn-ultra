@@ -1,0 +1,6 @@
+{
+  "readOnlySmoke": "pass",
+  "fixedPolicyItems": 26,
+  "findings": 42,
+  "notes": "Read-only CLI only. No GUI, UAC, helper, service install or network connection."
+}

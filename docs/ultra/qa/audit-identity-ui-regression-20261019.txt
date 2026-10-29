@@ -1,0 +1,1 @@
+{"scope":"isolated DOM mock only","identityUnknown":true,"responseResultUnknown":true,"staleProtectionHidden":true,"noAutomaticMutations":true}

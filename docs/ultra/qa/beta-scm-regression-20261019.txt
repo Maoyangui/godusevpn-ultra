@@ -1,0 +1,34 @@
+ok  	github.com/Maoyangui/godusevpn/internal/appfirewall	1.097s
+?   	github.com/Maoyangui/godusevpn/internal/autostart	[no test files]
+ok  	github.com/Maoyangui/godusevpn/internal/builder	0.674s
+?   	github.com/Maoyangui/godusevpn/internal/buildinfo	[no test files]
+?   	github.com/Maoyangui/godusevpn/internal/clash	[no test files]
+ok  	github.com/Maoyangui/godusevpn/internal/cli	0.038s
+ok  	github.com/Maoyangui/godusevpn/internal/core	3.827s
+ok  	github.com/Maoyangui/godusevpn/internal/daemon	8.579s
+ok  	github.com/Maoyangui/godusevpn/internal/detection	0.100s
+?   	github.com/Maoyangui/godusevpn/internal/guardfix	[no test files]
+ok  	github.com/Maoyangui/godusevpn/internal/identity	0.027s
+ok  	github.com/Maoyangui/godusevpn/internal/ipc	0.095s
+ok  	github.com/Maoyangui/godusevpn/internal/localstate	0.065s
+ok  	github.com/Maoyangui/godusevpn/internal/logx	0.105s
+ok  	github.com/Maoyangui/godusevpn/internal/maintenance	0.068s
+ok  	github.com/Maoyangui/godusevpn/internal/netmode	0.163s
+ok  	github.com/Maoyangui/godusevpn/internal/netmode/wfp	0.303s
+ok  	github.com/Maoyangui/godusevpn/internal/paths	0.104s
+ok  	github.com/Maoyangui/godusevpn/internal/privacy	0.776s
+ok  	github.com/Maoyangui/godusevpn/internal/privacydata	0.392s
+ok  	github.com/Maoyangui/godusevpn/internal/privacyhost	0.145s
+ok  	github.com/Maoyangui/godusevpn/internal/profile	0.108s
+ok  	github.com/Maoyangui/godusevpn/internal/ruleset	0.187s
+ok  	github.com/Maoyangui/godusevpn/internal/settings	0.090s
+ok  	github.com/Maoyangui/godusevpn/internal/state	1.147s
+ok  	github.com/Maoyangui/godusevpn/internal/svc	0.296s
+ok  	github.com/Maoyangui/godusevpn/internal/timeprivacy	0.514s
+ok  	github.com/Maoyangui/godusevpn/internal/tlsroots	0.102s
+ok  	github.com/Maoyangui/godusevpn/internal/uiapi	0.084s
+ok  	github.com/Maoyangui/godusevpn/internal/update	0.131s
+ok  	github.com/Maoyangui/godusevpn/internal/web	0.081s
+?   	github.com/Maoyangui/godusevpn/cmd/godusevpn-cli	[no test files]
+?   	github.com/Maoyangui/godusevpn/cmd/godusevpn-svc	[no test files]
+ok  	github.com/Maoyangui/godusevpn/web	0.078s

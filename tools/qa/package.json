@@ -1,0 +1,10 @@
+{
+  "name": "godusevpn-ultra-qa",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Development-only DOM and visual checks; not bundled with the application",
+  "devDependencies": {
+    "jsdom": "26.1.0",
+    "playwright": "1.62.1"
+  }
+}

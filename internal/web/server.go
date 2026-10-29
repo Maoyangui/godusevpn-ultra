@@ -12,14 +12,11 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/Maoyangui/godusevpn/internal/buildinfo"
-	"github.com/Maoyangui/godusevpn/internal/paths"
 	"github.com/Maoyangui/godusevpn/internal/uiapi"
 	"github.com/Maoyangui/godusevpn/web"
 )
@@ -307,7 +304,9 @@ func (s *Server) Handler() http.Handler {
 		case name == "events":
 			s.handleEvents(w, r)
 		case strings.HasPrefix(name, "diag/"):
-			s.handleDiagDownload(w, r, strings.TrimPrefix(name, "diag/"))
+			// Legacy path downloads could expose older, unreviewed archives.
+			// Never read a service file based on a download URL.
+			writeJSON(w, http.StatusGone, map[string]any{"error": "旧诊断下载已停用；请使用最小诊断摘要或 Windows Ultra 客户端的审阅导出"})
 		case r.Method == http.MethodPost:
 			var args []json.RawMessage
 			_ = json.NewDecoder(http.MaxBytesReader(w, r.Body, 4<<20)).Decode(&args)
@@ -315,11 +314,6 @@ func (s *Server) Handler() http.Handler {
 			if err != nil {
 				writeJSON(w, 200, map[string]any{"error": err.Error()})
 				return
-			}
-			if name == "ExportDiag" { // 页面在浏览器里打开这个地址即下载
-				if p, ok := res.(string); ok {
-					res = "/api/diag/" + filepath.Base(p)
-				}
 			}
 			writeJSON(w, 200, map[string]any{"result": res})
 		default:
@@ -344,18 +338,4 @@ func isLoopback(r *http.Request) bool {
 func sameOrigin(origin, host string) bool {
 	o := strings.TrimPrefix(strings.TrimPrefix(origin, "http://"), "https://")
 	return strings.EqualFold(o, host)
-}
-
-func (s *Server) handleDiagDownload(w http.ResponseWriter, r *http.Request, name string) {
-	if strings.ContainsAny(name, "/\\") || !strings.HasSuffix(name, ".zip") {
-		http.NotFound(w, r)
-		return
-	}
-	p := filepath.Join(paths.Diag(), name)
-	if _, err := os.Stat(p); err != nil {
-		http.NotFound(w, r)
-		return
-	}
-	w.Header().Set("Content-Disposition", "attachment; filename="+name)
-	http.ServeFile(w, r, p)
 }

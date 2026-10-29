@@ -4,6 +4,8 @@
   --brand1: #6a44f2; --brand2: #2f8bff; --brand3: #18e3e8; --ok: #16a34a; --warn: #d97706; --danger: #e11d48;
   --ring-bg: #e7eaf1; --sheet: #ffffff; --shadow: 0 8px 30px rgba(15, 23, 42, .12); --topbar: rgba(243, 245, 249, .9);
   --radius: 18px; --ease: cubic-bezier(.2, .8, .2, 1);
+  --ultra-ink: #606b88;
+  --ultra-signature-start: #6550cc; --ultra-signature-end: #367de5;
   /* 只翻 CSS 变量翻不动系统自绘的那部分:<select> 展开的弹层、密码框的光标与自动填充底色、
      WebView2 的默认滚动条。声明 color-scheme 才跟着走。
      要 Chrome 81,电视那种老内核上会被静默丢弃 —— 那正是渐进增强的本意:老内核照旧按浅色画系统控件,
@@ -15,12 +17,16 @@
   color-scheme: dark;
   --bg: #0c0f15; --bg2: #12161e; --card: #161b24; --line: #232a36; --text: #e7eaf0; --muted: #98a2b3; --muted2: #6b7280;
   --ring-bg: #1f2632; --sheet: #161b24; --shadow: 0 10px 40px rgba(0, 0, 0, .5); --topbar: rgba(12, 15, 21, .85);
+  --ultra-ink: #abb6d0;
+  --ultra-signature-start: #b89bff; --ultra-signature-end: #81bcff;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
     --bg: #0c0f15; --bg2: #12161e; --card: #161b24; --line: #232a36; --text: #e7eaf0; --muted: #98a2b3; --muted2: #6b7280;
     --ring-bg: #1f2632; --sheet: #161b24; --shadow: 0 10px 40px rgba(0, 0, 0, .5); --topbar: rgba(12, 15, 21, .85);
+    --ultra-ink: #abb6d0;
+    --ultra-signature-start: #b89bff; --ultra-signature-end: #81bcff;
   }
 }
 * { box-sizing: border-box; }
@@ -39,6 +45,7 @@ button { font: inherit; color: inherit; cursor: default; }
 .topbar { --wails-draggable: drag; height: 52px; display: flex; align-items: center; padding: 0 6px 0 8px; gap: 4px; background: var(--topbar); backdrop-filter: blur(12px); position: relative; z-index: 5; }
 .nogap .topbar > *:not([hidden]) + *:not([hidden]) { margin-left: 4px; }
 .topbar-title { position: absolute; left: 0; right: 0; text-align: center; font-weight: 600; letter-spacing: .3px; padding: 0 88px; pointer-events: none; }
+body.has-maximize .topbar-title { padding: 0 126px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .win { margin-left: auto; }
 .icon-btn { --wails-draggable: no-drag; width: 38px; height: 38px; border: 0; background: transparent; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; transition: background .15s; }
 .icon-btn svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
@@ -342,6 +349,18 @@ body.android .icon-btn.xs { width: 36px; height: 36px; border-radius: 10px; } bo
 .dialog-text { font-size: 14px; line-height: 1.55; white-space: pre-wrap; }
 .dialog-card input { margin-top: 12px; }
 #dialog-backdrop { z-index: 11; }
+.diagnostic-dialog .dialog-card { max-width: 480px; max-height: calc(100vh - 64px); overflow-y: auto; }
+.diagnostic-dialog h2 { font-size: 16px; margin: 0 0 10px; }
+.diagnostic-dialog p { font-size: 12px; line-height: 1.6; margin: 8px 0; }
+.diag-choices { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 8px 0; margin: 12px 0; }
+.diag-choice { display: flex; align-items: flex-start; gap: 6px; font-size: 12px; margin: 10px 0; }
+.nogap .diag-choice > *:not([hidden]) + *:not([hidden]) { margin-left: 6px; }
+.diag-choice label { flex: 1; line-height: 1.6; cursor: pointer; }
+.diag-choice input[type=checkbox] { width: auto; margin: 0 4px 0 0; vertical-align: middle; }
+.diag-warning { color: var(--warn); }
+.diag-file { border-top: 1px solid var(--line); padding: 9px 0; font-size: 12px; }
+.diag-file summary { cursor: pointer; overflow-wrap: anywhere; }
+.diag-text { background: var(--bg); border-radius: 8px; padding: 10px; font-size: 11px; max-height: 220px; white-space: pre-wrap; overflow: auto; overflow-wrap: anywhere; user-select: text; -webkit-user-select: text; }
 body.tv .dialog-card { max-width: 520px; padding: 24px; } body.tv .dialog-text { font-size: 17px; }
 
 /* ---- 地区牌子:首页出口卡片与节点列表共用 ---- */
@@ -416,6 +435,21 @@ body.tv .drawer-brand b { font-size: 22px; }
 
 /* 虚线的"添加"卡:订阅页与规则页共用 */
 .addcard { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; margin: 14px 0 4px; padding: 14px 16px; border: 1px dashed var(--line); border-radius: var(--radius); background: transparent; transition: border-color .15s, background .15s; }
+.trial-card { margin: 0 0 14px; padding: 15px 16px 14px; border: 1px solid var(--line); border-left: 3px solid var(--brand2); border-radius: var(--radius); background: var(--card); box-shadow: 0 5px 18px rgba(28, 55, 100, .06); }
+.trial-head { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.nogap .trial-head > *:not([hidden]) + *:not([hidden]) { margin-left: 10px; }
+.trial-symbol { display: inline-grid; place-items: center; flex: none; width: 30px; height: 30px; border-radius: 9px; color: #fff; background: linear-gradient(135deg, var(--brand1), var(--brand2)); box-shadow: 0 5px 12px rgba(47, 139, 255, .22); }
+.trial-symbol svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+.trial-copy { min-width: 0; }
+.trial-kicker { color: var(--brand2); font-size: 11px; font-weight: 700; letter-spacing: .25px; }
+.trial-copy h3 { margin: 2px 0 0; font-size: 15px; line-height: 1.25; }
+.trial-desc { margin: 10px 0 8px; color: var(--muted); font-size: 12px; line-height: 1.55; }
+.trial-status { display: flex; align-items: center; min-height: 18px; color: var(--muted); font-size: 12px; line-height: 1.4; }
+.trial-status::before { content: ''; width: 6px; height: 6px; flex: none; margin-right: 7px; border-radius: 50%; background: currentColor; opacity: .7; }
+.trial-actions { display: flex; gap: 8px; align-items: center; margin-top: 11px; }
+.trial-actions .btn { min-height: 32px; padding: 6px 13px; }
+.nogap .trial-actions > *:not([hidden]) + *:not([hidden]) { margin-left: 8px; }
+@media (max-width: 560px) { .trial-card { padding: 14px 14px 13px; } }
 .nogap .addcard > *:not([hidden]) + *:not([hidden]) { margin-left: 12px; }
 .addcard:hover { border-color: #2f8bff; background: var(--card); }
 .addic { width: 36px; height: 36px; border-radius: 12px; background: var(--bg2); display: flex; align-items: center; justify-content: center; flex: none; }
@@ -636,3 +670,23 @@ body.tv .drawer-brand b { font-size: 22px; }
   body.tv .drawer-state { padding: 8px 11px; margin-bottom: 8px; }
   body.tv .drawer-foot { padding: 6px 12px 0; }
 }
+
+/* Native, finely hinted letterforms; no surrounding shape or synthetic slant. */
+.ultra-mark {
+  display: block; flex: none; color: var(--ultra-ink); white-space: nowrap;
+  font-family: "Segoe UI Variable Display", "Segoe UI", sans-serif;
+  font-size: 10px; font-weight: 300; font-style: normal; line-height: 12px; letter-spacing: .8px;
+}
+.ultra-logo { position: relative; display: inline-flex; flex: none; width: 80px; height: 80px; }
+.ultra-logo > .logo { display: block; width: 100%; height: 100%; }
+.ultra-signature-start { stop-color: var(--ultra-signature-start); }
+.ultra-signature-end { stop-color: var(--ultra-signature-end); }
+/* One square composition contains the centered original glyph and wordmark. */
+.onboard .ultra-logo { align-self: center; margin: 0 auto; }
+.onboard .ultra-logo > .logo { width: 100%; height: 100%; margin: 0; }
+.drawer-brand > svg { flex: none; }
+.drawer-brand-copy { flex: 1; min-width: 0; }
+.drawer-brand-title { display: flex; align-items: center; gap: 6px; }
+.drawer-brand-title > b { white-space: nowrap; }
+.drawer-brand-title > .ultra-mark { font-size: 9.5px; }
+.nogap .drawer-brand-title > *:not([hidden]) + *:not([hidden]) { margin-left: 6px; }

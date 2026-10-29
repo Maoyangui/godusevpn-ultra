@@ -1,6 +1,38 @@
 佛跳墙(godusevpn)用到的第三方素材与代码,出处与许可列在这里。
 程序本体是 GPL-3.0(见 LICENSE)。
 
+Ultra 独立浏览器宿主新增依赖:
+  Microsoft.Web.WebView2 SDK 1.0.4314.35
+  https://www.nuget.org/packages/Microsoft.Web.WebView2/1.0.4314.35
+  Copyright (C) Microsoft Corporation. All rights reserved.
+  SDK 包 SHA256: 90778deb1b77e36292828b4b5833c9255c27533f40e0ddd55891ae718944edc4
+  随 x64 包分发 Core/WinForms DLL 及 WebView2Loader; 完整许可随附于
+  browser-host/Microsoft.Web.WebView2.LICENSE.txt。SDK 许可与单独安装的
+  Microsoft Edge WebView2 Runtime 分开; Ultra 不把 SDK 当作已安装运行时。
+  本目录 browser-host 下本项目新增源码沿用项目 GPL-3.0 许可。
+
+Ultra 元数据组件:
+  ExifTool 13.59, https://exiftool.org/
+  上游源码 https://github.com/exiftool/exiftool
+  固定源码提交 2200871d9cef988051d2a99d67df3bda6cbb30a8
+  Windows x64 配套发行 https://oliverbetz.de/cms/files/Artikel/ExifTool-for-Windows/exiftool-13.59_64.zip
+  归档 SHA256: 577257dd22baebe77157d905792d6ed2c5916cd03aa627f40b2175db12110ac6
+  完整配套文件、原 LICENSE/README/META 及 Strawberry Perl 许可随
+  metadata-tool/exiftool-13.59 分发; 不把此组件描述为单个免依赖 EXE。
+  上游 LICENSE 为 GPL-3.0，Perl 同许可的说明与差异见包内原文及
+  docs/ultra/qa/METADATA_UPSTREAM_REVIEW_2026-10-26.md。
+
+Ultra 可选浏览器版本下载器:
+  github.com/bodgit/sevenzip v1.6.5 及其新增/更新的间接依赖，
+  完整原许可分别位于 third-party-notices/browserengine。
+  版本目录和浏览器归档从 Chrome for Testing / Mozilla 官方来源按需下载;
+  Ultra 安装包不内置 Chrome 或 Firefox，不把缓存校验当成浏览器实测。
+
+Ultra 浏览器独立代理的主动出口测试:
+  https://country.is/ (接口 https://api.country.is/?fields=city,subdivision)
+  仅在用户明确测试时经所选代理调用免密钥接口，返回出口 IP 与 GeoIP;
+  归属地不等于 GPS，接口结果不证明整个浏览器的所有流量均走此路径。
+
 ---
 
 sing-box —— 内嵌的代理内核

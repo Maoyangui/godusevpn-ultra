@@ -1,0 +1,32 @@
+ok  	github.com/Maoyangui/godusevpn/internal/appfirewall	0.594s
+?   	github.com/Maoyangui/godusevpn/internal/autostart	[no test files]
+ok  	github.com/Maoyangui/godusevpn/internal/builder	0.554s
+?   	github.com/Maoyangui/godusevpn/internal/buildinfo	[no test files]
+?   	github.com/Maoyangui/godusevpn/internal/clash	[no test files]
+?   	github.com/Maoyangui/godusevpn/internal/cli	[no test files]
+ok  	github.com/Maoyangui/godusevpn/internal/core	3.616s
+ok  	github.com/Maoyangui/godusevpn/internal/daemon	7.890s
+ok  	github.com/Maoyangui/godusevpn/internal/detection	0.059s
+?   	github.com/Maoyangui/godusevpn/internal/guardfix	[no test files]
+ok  	github.com/Maoyangui/godusevpn/internal/identity	0.051s
+ok  	github.com/Maoyangui/godusevpn/internal/ipc	0.077s
+ok  	github.com/Maoyangui/godusevpn/internal/logx	0.122s
+ok  	github.com/Maoyangui/godusevpn/internal/netmode	0.166s
+ok  	github.com/Maoyangui/godusevpn/internal/netmode/wfp	0.522s
+ok  	github.com/Maoyangui/godusevpn/internal/paths	0.175s
+ok  	github.com/Maoyangui/godusevpn/internal/privacy	0.472s
+ok  	github.com/Maoyangui/godusevpn/internal/privacydata	0.280s
+ok  	github.com/Maoyangui/godusevpn/internal/privacyhost	0.131s
+ok  	github.com/Maoyangui/godusevpn/internal/profile	0.099s
+ok  	github.com/Maoyangui/godusevpn/internal/ruleset	0.190s
+ok  	github.com/Maoyangui/godusevpn/internal/settings	0.081s
+ok  	github.com/Maoyangui/godusevpn/internal/state	1.124s
+ok  	github.com/Maoyangui/godusevpn/internal/svc	0.261s
+ok  	github.com/Maoyangui/godusevpn/internal/timeprivacy	0.386s
+ok  	github.com/Maoyangui/godusevpn/internal/tlsroots	0.095s
+ok  	github.com/Maoyangui/godusevpn/internal/uiapi	0.073s
+ok  	github.com/Maoyangui/godusevpn/internal/update	0.130s
+?   	github.com/Maoyangui/godusevpn/internal/web	[no test files]
+?   	github.com/Maoyangui/godusevpn/cmd/godusevpn-svc	[no test files]
+?   	github.com/Maoyangui/godusevpn/cmd/godusevpn-cli	[no test files]
+ok  	github.com/Maoyangui/godusevpn/web	0.070s

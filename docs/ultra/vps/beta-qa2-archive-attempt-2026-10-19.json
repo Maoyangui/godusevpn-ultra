@@ -1,0 +1,44 @@
+{
+  "schema": "ultra-beta-archive-attempt-and-readback-v1",
+  "date": "2026-10-19",
+  "archiveWrapperSha256": "f79e38f3765af9b42838b9cc4834380a87fa463c1bd659932628caf0cac845c8",
+  "attempt": {
+    "status": "review_required",
+    "systemToken": true,
+    "preflightPassed": true,
+    "moveAttempted": true,
+    "filesVerifiedAfterMove": 0,
+    "error": "archive_check_failed",
+    "productExecuted": false,
+    "aclModified": false,
+    "objectsDeleted": false,
+    "rollbackAttempted": false
+  },
+  "independentReadback": {
+    "status": "completed",
+    "sourceExists": true,
+    "sourceHealthyCanonicalEmpty": true,
+    "sourceFiles": 2,
+    "lockBytes": 0,
+    "legacyAllowCount": 1,
+    "targetExists": false,
+    "allFourPolicyValuesAbsent": true,
+    "productExecuted": false,
+    "moveRequested": false
+  },
+  "followingPolicyBatchStarted": false,
+  "automaticRetry": false,
+  "localTempReproduction": {
+    "directoryMoveWithHeldParentPins": "sharing_violation",
+    "win32Error": 32,
+    "sourceStillExists": true,
+    "targetExists": false,
+    "productExecuted": false
+  },
+  "notes": [
+    "The four-policy batch was stopped after the archive result required review.",
+    "Independent remote readback found the original healthy empty store at its original location and no archive target.",
+    "A fresh local Temp-only fixture independently reproduced parent read-share pins preventing Directory.Move. This diagnosis is not a fabricated successful remote move.",
+    "The failed wrapper is frozen; any corrected operation requires separate source review and preflight, without deletion or ACL takeover."
+  ]
+}

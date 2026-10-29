@@ -1,6 +1,7 @@
 package netmode
 
 import (
+	"github.com/Maoyangui/godusevpn/internal/paths"
 	"os"
 	"path/filepath"
 	"testing"
@@ -17,7 +18,7 @@ func TestMain(m *testing.M) {
 	for _, sub := range []string{"data", "conf"} {
 		_ = os.MkdirAll(filepath.Join(dir, sub), 0o755)
 	}
-	os.Setenv("GODUSEVPN_DATA", filepath.Join(dir, "data"))
+	os.Setenv(paths.DataEnvironment, filepath.Join(dir, "data"))
 	os.Setenv("GODUSEVPN_CONF", filepath.Join(dir, "conf"))
 	code := m.Run()
 	os.RemoveAll(dir)

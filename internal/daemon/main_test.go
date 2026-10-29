@@ -1,6 +1,7 @@
 package daemon
 
 import (
+	"github.com/Maoyangui/godusevpn/internal/paths"
 	"os"
 	"path/filepath"
 	"testing"
@@ -9,9 +10,12 @@ import (
 // TestMain 整个包的测试都把数据目录 / 配置目录指到临时目录。
 // 守护进程的代码处处读写数据目录(状态、设置、网卡备份);测试绝不能碰装了产品的机器上的真实文件。
 func TestMain(m *testing.M) {
+	// Tests never change real ACLs or elevate. This seam exists only in the test
+	// binary; NoListen and DATA do not disable production trust validation.
+	prepareServiceStore = prepareTemporaryTestStore
 	// crash_test 的子进程:数据目录由父进程给(它会崩,走不到下面的清理,不能再建一个临时目录留在那里)
 	if dir := os.Getenv("GODUSEVPN_CRASH_CHILD"); dir != "" {
-		os.Setenv("GODUSEVPN_DATA", dir)
+		os.Setenv(paths.DataEnvironment, dir)
 		os.Setenv("GODUSEVPN_CONF", filepath.Join(dir, "conf"))
 		os.Exit(m.Run())
 	}
@@ -22,9 +26,18 @@ func TestMain(m *testing.M) {
 	for _, sub := range []string{"data", "conf"} {
 		_ = os.MkdirAll(filepath.Join(dir, sub), 0o755)
 	}
-	os.Setenv("GODUSEVPN_DATA", filepath.Join(dir, "data"))
+	os.Setenv(paths.DataEnvironment, filepath.Join(dir, "data"))
 	os.Setenv("GODUSEVPN_CONF", filepath.Join(dir, "conf"))
 	code := m.Run()
 	os.RemoveAll(dir)
 	os.Exit(code)
+}
+
+func prepareTemporaryTestStore() (func(), error) {
+	for _, dir := range []string{paths.ConfDir(), paths.DataDir(), paths.Logs(), paths.RuleSets(), paths.Diag(), filepath.Join(paths.DataDir(), "profiles")} {
+		if err := os.MkdirAll(dir, 0o700); err != nil {
+			return nil, err
+		}
+	}
+	return func() {}, nil
 }

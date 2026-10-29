@@ -2,5 +2,10 @@
 
 package paths
 
-// secureDataDir 非 Windows 上目录本来就是 0700 建出来的(见 Ensure),没有额外要做的。
-func secureDataDir(string) error { return nil }
+// PrepareServiceStore preserves the existing non-Windows 0700 layout.
+func PrepareServiceStore() (func(), error) {
+	if err := ensureDirectories(); err != nil {
+		return nil, err
+	}
+	return func() {}, nil
+}

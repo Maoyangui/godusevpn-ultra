@@ -1,0 +1,50 @@
+{
+  "version": "0.1.0-ultra.1",
+  "architecture": "amd64",
+  "verification": "read-only PE resources and binary hashes; no process launched",
+  "unsignedDeclared": true,
+  "binaries": [
+    {
+      "name": "godusevpn.exe",
+      "bytes": 15922688,
+      "sha256": "49e0ad45cadb7f8833a9c7e4af65f3807e743f2269671b64f54dc55426ef883f",
+      "machine": "amd64",
+      "executionLevel": "asInvoker",
+      "assemblyIdentity": "godusevpn-ultra"
+    },
+    {
+      "name": "godusevpn-svc.exe",
+      "bytes": 43045376,
+      "sha256": "5386a6c92ee7aca38359574635dcaacd871e4ae6be5085741b3b0e377acd3d62",
+      "machine": "amd64",
+      "executionLevel": "asInvoker",
+      "assemblyIdentity": "godusevpn-ultra-svc"
+    },
+    {
+      "name": "godusevpn-cli.exe",
+      "bytes": 8488960,
+      "sha256": "bf728ab1a000b4a8aae5329d7ba76cc25aae4c7a87667fecc0bfdf4d9f5ffaa1",
+      "machine": "amd64",
+      "executionLevel": "asInvoker",
+      "assemblyIdentity": "godusevpn-ultra-cli"
+    }
+  ],
+  "frontend": [
+    {
+      "path": "web/dist/privacy.js",
+      "currentSourceEmbedded": true
+    },
+    {
+      "path": "web/dist/privacy.css",
+      "currentSourceEmbedded": true
+    },
+    {
+      "path": "web/dist/app.js",
+      "currentSourceEmbedded": true
+    },
+    {
+      "path": "web/dist/index.html",
+      "currentSourceEmbedded": true
+    }
+  ]
+}

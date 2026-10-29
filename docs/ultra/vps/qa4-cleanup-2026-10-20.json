@@ -1,0 +1,9 @@
+{
+  "schema": "ultra-qa4-cleanup-v1",
+  "date": "2026-10-20",
+  "temporaryTransferGistsDeleted": true,
+  "localTransferDirectoryRemoved": true,
+  "temporaryAzureResourceGroupDeletionRequested": true,
+  "temporaryAzureResourceGroupExistsAfterWait": false,
+  "productOrUserDataRetained": false
+}

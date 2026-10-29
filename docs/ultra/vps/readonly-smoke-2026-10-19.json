@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "targetAlias": "Windows-QA-1",
+  "date": "2026-10-19",
+  "packageSha256": "a8717578892160bf45576882cf242fce48ccb8759726878ff3c6a00f08cda746",
+  "cliSha256": "bf728ab1a000b4a8aae5329d7ba76cc25aae4c7a87667fecc0bfdf4d9f5ffaa1",
+  "launcherSha256": "bf876f3ee342f235dbc912f89e8d095971fb594b8ba9288863ab034256cf6fdf",
+  "expand": {
+    "status": "completed",
+    "observer": "SYSTEM",
+    "zipSha256Match": true,
+    "entryCountVerified": 32,
+    "checksumsVerified": 30,
+    "extractedFileCount": 3,
+    "cliSha256Match": true,
+    "smokeReady": true,
+    "productExecuted": false
+  },
+  "smoke": {
+    "status": "completed",
+    "commands": ["version", "privacy report"],
+    "cliHashMatched": true,
+    "localPathsChecked": true,
+    "token": {
+      "kind": "SYSTEM",
+      "elevated": true,
+      "interactiveSid": false,
+      "userScope": "current_token_HKCU_and_APPDATA_only_not_GUI_user",
+      "helperStarted": false
+    },
+    "version": "0.1.0-ultra.1",
+    "report": {
+      "platform": "windows",
+      "observerElevated": true,
+      "observerAdmin": true,
+      "backupHealthyForCurrentTokenUserJournal": true,
+      "expectedPolicyCount": 26,
+      "recognizedPolicyCount": 26,
+      "missingPolicyCount": 0,
+      "guidanceOrOtherCount": 10,
+      "managedCount": 0,
+      "canApplyCount": 0,
+      "statusCounts": {
+        "available": 0,
+        "manual": 26,
+        "configured": 0,
+        "policy_conflict": 0,
+        "unknown": 0,
+        "recovery_pending": 0,
+        "external_change": 0,
+        "unsupported": 0,
+        "requires_admin": 0,
+        "error": 0,
+        "other": 0
+      },
+      "readStatusCounts": {
+        "not_checked": 26,
+        "different": 0,
+        "match": 0,
+        "machine_override": 0,
+        "unknown": 0,
+        "other": 0
+      },
+      "runtimeProtection": "not_tested",
+      "machineBackupInspection": "not_performed",
+      "browserAcceptance": "not_tested"
+    }
+  },
+  "scope": {
+    "serviceInstalled": false,
+    "guiLaunched": false,
+    "privacySettingsApplied": false,
+    "networkSettingsChanged": false,
+    "testSubscriptionImported": false,
+    "runtimePrivacyProtectionVerified": false,
+    "appliesToNewerUiBuild": false
+  },
+  "note": "This is a hash-bound v1 CLI check under SYSTEM, not proof of the interactive user's protection or any browser, VPN, WFP, UAC, installation or recovery behavior. No raw report, host, address, account, cloud identifiers or credentials are retained."
+}

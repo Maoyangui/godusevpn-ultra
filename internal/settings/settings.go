@@ -12,6 +12,8 @@ import (
 	"os"
 	"slices"
 	"strings"
+
+	"github.com/Maoyangui/godusevpn/internal/identity"
 )
 
 const Schema = 4
@@ -75,8 +77,8 @@ type Settings struct {
 func Default() Settings {
 	return Settings{
 		Schema: Schema, Mode: ModeRule, TUN: true, DisableNICIPv6: true, TUNStack: "mixed", StrictRoute: true, NoDirect: true, LANBypass: true,
-		MixedPort: 2080, RemoteDNS: "1.1.1.1", LocalDNS: "223.5.5.5", FakeIP: true, IPv6: false,
-		UpdateHours: 6, ProbeMinutes: 3, LogLevel: "info", LogDays: 7, ClashPort: 9090, WebListen: defaultWebListen(),
+		MixedPort: identity.MixedPort, RemoteDNS: "1.1.1.1", LocalDNS: "223.5.5.5", FakeIP: true, IPv6: false,
+		UpdateHours: 6, ProbeMinutes: 3, LogLevel: "info", LogDays: 7, ClashPort: identity.ClashPort, WebListen: defaultWebListen(),
 		NetMode: NetLocal, DNSHijack: true, DefaultRules: FactoryDefaultRules(),
 	}
 }

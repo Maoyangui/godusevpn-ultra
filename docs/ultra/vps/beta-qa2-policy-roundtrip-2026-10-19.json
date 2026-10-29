@@ -1,0 +1,76 @@
+{
+  "schema": "ultra-beta-machine-roundtrip-v1",
+  "candidate": "0.01-beta-qa.2",
+  "status": "completed",
+  "systemToken": true,
+  "cliHashMatched": true,
+  "commandsStarted": 8,
+  "resultUnknown": false,
+  "terminationUnknown": false,
+  "roundtrip": {
+    "status": "completed",
+    "initialAbsentCount": 4,
+    "initialJournalClean": true,
+    "completed": 4,
+    "results": [
+      {
+        "id": "windows-advertising-id",
+        "status": "completed",
+        "applyConfirmed": true,
+        "backupObserved": true,
+        "lockObserved": true,
+        "readMatched": true,
+        "restoreAttempted": true,
+        "restoreConfirmed": true,
+        "initialAbsent": true,
+        "recordRemoved": true,
+        "error": ""
+      },
+      {
+        "id": "windows-online-speech",
+        "status": "completed",
+        "applyConfirmed": true,
+        "backupObserved": true,
+        "lockObserved": true,
+        "readMatched": true,
+        "restoreAttempted": true,
+        "restoreConfirmed": true,
+        "initialAbsent": true,
+        "recordRemoved": true,
+        "error": ""
+      },
+      {
+        "id": "windows-clipboard-history",
+        "status": "completed",
+        "applyConfirmed": true,
+        "backupObserved": true,
+        "lockObserved": true,
+        "readMatched": true,
+        "restoreAttempted": true,
+        "restoreConfirmed": true,
+        "initialAbsent": true,
+        "recordRemoved": true,
+        "error": ""
+      },
+      {
+        "id": "windows-clipboard-cloud",
+        "status": "completed",
+        "applyConfirmed": true,
+        "backupObserved": true,
+        "lockObserved": true,
+        "readMatched": true,
+        "restoreAttempted": true,
+        "restoreConfirmed": true,
+        "initialAbsent": true,
+        "recordRemoved": true,
+        "error": ""
+      }
+    ],
+    "error": ""
+  },
+  "error": "",
+  "settingsScope": "four_fixed_HKLM_values",
+  "runtimeBehaviorTested": false,
+  "networkChangesRequested": false,
+  "guiOrServiceStarted": false
+}

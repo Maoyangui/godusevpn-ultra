@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "targetAlias": "Windows-QA-1",
+  "date": "2026-10-19",
+  "phase": "single_policy_roundtrip_completed",
+  "interactiveEvidence": "interactive-readonly-2026-10-19.json",
+  "policyRoundtripEvidence": "policy-roundtrip-2026-10-19.json",
+  "preflightEvidence": "preflight-2026-10-19.json",
+  "recovery": {
+    "serialConsoleAuthenticated": true,
+    "serialCommandAfterReconnectSucceeded": true,
+    "serialAdminCheckMarker": "QA_ADMIN=TRUE",
+    "serialVersionCommand": "10.0.26200.9711",
+    "serialEarlierTokenInteractiveSid": true,
+    "serialEarlierTokenSystem": false,
+    "snapshotCreatedWithUserApproval": true,
+    "snapshotCountCreated": 1,
+    "snapshotSku": "Standard_LRS",
+    "snapshotType": "Full",
+    "snapshotDiskSizeGiB": 127,
+    "snapshotNetworkAccessPolicy": "DenyAll",
+    "snapshotProvisioningState": "Succeeded",
+    "snapshotCompletionPercent": 100,
+    "snapshotSourceMatchedInspectedOsDisk": true,
+    "snapshotRestoreActuallyExercised": false,
+    "productRecoveryActuallyExercised": true,
+    "productRecoveryScope": "one_v1_fixed_machine_policy_interactive_roundtrip_only",
+    "completeRecoveryMatrixVerified": false,
+    "safeForDisruptiveNetworkTests": false,
+    "approvedSnapshotBudgetUsd": 1,
+    "budgetIsBillingHardCap": false,
+    "snapshotRetainedAndBillable": true,
+    "snapshotEvidence": null,
+    "snapshotEvidenceSha256": null
+  },
+  "staging": {
+    "packageBytes": 25963585,
+    "packageSha256": "a8717578892160bf45576882cf242fce48ccb8759726878ff3c6a00f08cda746",
+    "cloudShellZipHashMatched": true,
+    "stagerSourceSha256": "b6cebd78f0e27120ff28021baba33bba91bf88d9e5e5c86df920e9475eae3ca8",
+    "stagerSourceHashCheckedInCloudShell": true,
+    "partsWrittenAndHashMatched": 13,
+    "remoteMergedZipHashMatched": true,
+    "productExtracted": true,
+    "productInstalled": false,
+    "productExecuted": true
+  },
+  "pending": {
+    "expand": "completed",
+    "cliVersionAndPrivacyReport": "completed_v1_SYSTEM_and_interactive_scopes_separately",
+    "registryPolicyChanges": "one_v1_clipboard_history_roundtrip_completed_and_independently_rechecked",
+    "vpnAndWfpTrafficTests": "not_executed",
+    "testSubscriptionImported": false
+  },
+  "limitations": [
+    "A stale serial console session initially stopped echoing; reconnect restored short command execution. Session continuity is not a recovery guarantee.",
+    "An ad hoc Cloud Shell orchestration command failed Python parsing before invoking az. It caused no remote extraction; it is being replaced by a syntax-checked launcher.",
+    "Snapshot completion proves the snapshot resource is available, not that a VM restoration or application recovery has succeeded.",
+    "The 1 USD approval is a spending budget, not an automatically enforced Azure billing cap; the retained snapshot continues accruing storage charges.",
+    "No cloud account, tenant, subscription ID, resource ID, host, address, login credential, test subscription URL or raw report is saved here."
+  ]
+}

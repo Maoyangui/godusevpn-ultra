@@ -1,3 +1,5 @@
+#error This Ultra fork must be packaged with build-ultra.ps1. The upstream installer IDs and process-name cleanup are unsafe for side-by-side installation.
+; Retained as upstream reference only. The original project is not changed.
 ; 佛跳墙 安装包(Inno Setup 6)
 ;   iscc /DAppVersion=0.2.0 /DArch=amd64 /DBinDir=..\dist\amd64 godusevpn.iss
 ;   离线完整版:再加 /DOfflineWebView2=1,并把 MicrosoftEdgeWebView2RuntimeInstallerX64.exe 放到 deps\

@@ -1,0 +1,50 @@
+{
+  "schema": "ultra-vps-candidate-files-v1",
+  "date": "2026-10-19",
+  "candidate": "0.01-beta-qa.2",
+  "scope": "transfer_file_reconstruction_and_package_assembly_only",
+  "transfer": {
+    "parts": 8,
+    "partsSha256Matched": true,
+    "mergedSha256Matched": true,
+    "bytes": 16013722,
+    "sha256": "af5513ea94de4118e2f72bc650da4fee2d18610925a38a3b17dc421b6f885b7f"
+  },
+  "reconstruction": {
+    "wrapperSha256": "d141eb20c54afd3f75d1464e53dbb59bfe480b6988235a0faf670257b4010efd",
+    "ready": true,
+    "stage": "complete",
+    "files": 3,
+    "hashesMatched": 3,
+    "sha256Match": true,
+    "privateChecked": true,
+    "decoderExecuted": true,
+    "terminationUnknown": false,
+    "productExecuted": false
+  },
+  "packageAssembly": {
+    "wrapperSha256": "60be1700086fd8bc9e6b1b3eab1881abac6f224a5dd4a814440521ff043cce4e",
+    "supportZipSha256": "99f81bce6e6a432c7be28267627f7f8e7ab36e3b3de886cc0f7894e2d95d4131",
+    "manifestSha256": "9f4d7836cefd477fed1b1f16247ae1c389aa7eed818c11f18a9185c8fc8eaf6d",
+    "ready": true,
+    "stage": "complete",
+    "files": 303,
+    "copiedEXEs": 3,
+    "supportFiles": 300,
+    "sha256Match": true,
+    "staticVersionsMatched": 3,
+    "privateChecked": true,
+    "productExecuted": false,
+    "installerExecuted": false
+  },
+  "guiExecuted": false,
+  "installerExecuted": false,
+  "productCommandsExecuted": 0,
+  "runtimeProtectionTested": false,
+  "notes": [
+    "The fixed delta decoder ran only to reconstruct files, followed by independent disk hash and private ACL checks.",
+    "All five support-transfer parts and the merged support ZIP matched; the assembled package has the exact original candidate manifest and payload bytes.",
+    "This receipt does not establish runtime version, policy behavior, GUI, service, browser, or tunnel acceptance.",
+    "No VM address, credentials, cloud resource identifiers, account SID, or machine fingerprint is included."
+  ]
+}

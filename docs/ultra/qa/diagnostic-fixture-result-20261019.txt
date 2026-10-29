@@ -1,0 +1,2 @@
+ok  	github.com/Maoyangui/godusevpn/internal/daemon	0.090s
+PASS: original settings-copy test with synthetic system diagnostics and a network-disabled fetch; real diagnostic privacy is not certified.

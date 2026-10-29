@@ -193,7 +193,7 @@ func TestDistCSSRunsOnOldWebView(t *testing.T) {
 			if r.chrome <= minChrome {
 				continue
 			}
-			for _, at := range offsets(css, r.pat) {
+			for _, at := range cssFeatureOffsets(css, r.pat) {
 				if r.fallback != "" && ruleAt(css, at, r.pat) != "" && declBefore(css, at, r.pat, r.fallback) {
 					continue
 				}
@@ -202,6 +202,31 @@ func TestDistCSSRunsOnOldWebView(t *testing.T) {
 					fallbackHint(r.fallback))
 			}
 		}
+	}
+}
+
+// CSS function names are complete identifiers: max() is not the max suffix
+// inside the much older grid minmax(). Keep the guard for real max()/min().
+func cssFeatureOffsets(css, pattern string) []int {
+	var result []int
+	for _, at := range offsets(css, pattern) {
+		if strings.HasSuffix(pattern, "(") && at > 0 {
+			previous := css[at-1]
+			if previous >= 'a' && previous <= 'z' || previous >= 'A' && previous <= 'Z' || previous >= '0' && previous <= '9' || previous == '_' || previous == '-' {
+				continue
+			}
+		}
+		result = append(result, at)
+	}
+	return result
+}
+
+func TestCSSFunctionFeatureBoundaries(t *testing.T) {
+	if len(cssFeatureOffsets("grid-template-columns:repeat(2,minmax(0,1fr));width:max(1px,2px)", "max(")) != 1 {
+		t.Fatal("grid minmax must not count as max; real max must remain guarded")
+	}
+	if len(cssFeatureOffsets("width:min(1px,2px);width:clamp(1px,2px,3px)", "min(")) != 1 || len(cssFeatureOffsets("width:clamp(1px,2px,3px)", "clamp(")) != 1 {
+		t.Fatal("real unsupported CSS functions must remain guarded")
 	}
 }
 

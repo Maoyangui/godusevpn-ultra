@@ -1,0 +1,194 @@
+name: Windows Beta
+
+on:
+  push:
+    branches: [main]
+    tags: ['v0.01-beta']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ultra-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CGO_ENABLED: '0'
+  GODUSEVPN_WFP_LIVE: '0'
+  GODUSEVPN_WFP_KEEP: '0'
+  GODUSEVPN_ULTRA_REGISTRY_LIVE: '0'
+  TAGS: with_quic,with_utls,with_clash_api,with_gvisor
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+      - name: Choose exact version
+        id: version
+        shell: pwsh
+        run: |
+          $version = '0.01-beta-ci.' + $env:GITHUB_SHA.Substring(0, 7)
+          if ($env:GITHUB_REF_TYPE -eq 'tag') {
+            if ($env:GITHUB_REF_NAME -cne 'v0.01-beta') { throw 'This workflow only releases v0.01-beta.' }
+            $version = '0.01-beta'
+          }
+          if ($version -cnotmatch '^(?:0\.01-beta|0\.01-beta-ci\.[a-f0-9]{7})$') { throw 'Unexpected beta or CI version.' }
+          "version=$version" >> $env:GITHUB_OUTPUT
+      - name: Source publication audit
+        run: node tools/audit-publication.cjs
+      - name: Package verifier synthetic regression
+        shell: pwsh
+        run: |
+          node tools/audit-built-package.test.cjs
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          ./docs/ultra/qa/version-compatibility.ps1
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          ./installer/ultra/Package-Hash.Tests.ps1
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          ./installer/ultra/Package-LocationConsumer.Tests.ps1
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          ./installer/ultra/Package-Entry.Tests.ps1
+      - name: Go regression and vet
+        shell: pwsh
+        run: |
+          go test -count=1 -tags $env:TAGS ./internal/... ./cmd/godusevpn-cli ./cmd/godusevpn-svc ./web
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          go vet -tags $env:TAGS ./internal/... ./cmd/godusevpn-cli ./cmd/godusevpn-svc ./web
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          go test -count=1 -tags desktop,production ./cmd/godusevpn
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          go vet -tags desktop,production ./cmd/godusevpn
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+      - name: Install pinned QA dependencies
+        run: npm ci --ignore-scripts --prefix tools/qa --registry=https://registry.npmjs.org
+      - name: Browser helper and isolated UI regression
+        shell: pwsh
+        run: |
+          $jsdom = Join-Path $env:GITHUB_WORKSPACE 'tools/qa/node_modules/jsdom'
+          node browser-extension/tests.cjs
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          node browser-extension/coordinator-tests.cjs
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          node browser-extension/ui-tests.cjs $jsdom
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          node browser-extension/panel-tests.cjs $jsdom
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          node docs/ultra/qa/ipc-identity-ui.cjs $jsdom
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          node docs/ultra/qa/diagnostic-ui.cjs $jsdom
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          node docs/ultra/qa/privacy-centers-ui.cjs $jsdom
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          node docs/ultra/qa/privacy-help-ui.cjs $jsdom
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          node docs/ultra/qa/region-ui.cjs $jsdom
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          node docs/ultra/qa/browser-profile-ui.cjs $jsdom
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          node docs/ultra/qa/browser-identity-ui.cjs $jsdom
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          node docs/ultra/qa/browser-engine-ui.cjs $jsdom
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          node docs/ultra/qa/browser-engine-delete-ui.cjs $jsdom
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          node docs/ultra/qa/browser-proxy-dirty-ui.cjs $jsdom
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          node docs/ultra/qa/browser-start-ui.cjs $jsdom
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          node docs/ultra/qa/browser-saved-profiles-ui.cjs $jsdom
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          node docs/ultra/qa/browser-hardware-ui.cjs $jsdom
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          node docs/ultra/qa/module-form-ui.cjs $jsdom
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          node docs/ultra/qa/window-controls-ui.cjs $jsdom
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          node docs/ultra/qa/clipboard-ui.cjs $jsdom
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          node docs/ultra/qa/metadata-ui.cjs $jsdom
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+      - name: Visual regression in isolated Edge
+        shell: pwsh
+        run: |
+          $playwright = Join-Path $env:GITHUB_WORKSPACE 'tools/qa/node_modules/playwright'
+          $edge = Join-Path ${env:ProgramFiles(x86)} 'Microsoft/Edge/Application/msedge.exe'
+          if (-not (Test-Path -LiteralPath $edge)) { throw 'Hosted Edge is unavailable; visual gate was not run.' }
+          node docs/ultra/qa/brand-square-qa.cjs $playwright $edge
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          node docs/ultra/qa/audit-qa.cjs $playwright $edge
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          node docs/ultra/qa/privacy-audit-qa.cjs $playwright $edge
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          node docs/ultra/qa/diagnostic-pixel-qa.cjs $playwright $edge
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+      - name: Build reviewed Windows package
+        shell: pwsh
+        env:
+          ULTRA_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          go install github.com/tc-hib/go-winres@v0.3.3
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          ./browser-host/Build.ps1 -Version $env:ULTRA_VERSION -RunPureTests
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          ./build-ultra.ps1 -Version $env:ULTRA_VERSION -SkipTests
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          ./installer/ultra/Package-Metadata.Tests.ps1 -WhatIf
+      - name: Audit built payload and embedded frontend
+        shell: pwsh
+        env:
+          ULTRA_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          $package = Join-Path $env:GITHUB_WORKSPACE "dist/godusevpn-ultra-$env:ULTRA_VERSION-windows-amd64"
+          node tools/audit-built-package.cjs $package
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          & (Join-Path $package 'Install-Ultra.ps1') -WhatIf
+          & (Join-Path $package 'Uninstall-Ultra.ps1') -WhatIf -ValidationPackage $package
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ultra-windows-${{ steps.version.outputs.version }}
+          if-no-files-found: error
+          path: |
+            dist/*.zip
+            dist/*.zip.sha256
+
+  prerelease:
+    if: github.event_name == 'push' && github.ref == 'refs/tags/v0.01-beta'
+    needs: windows
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ultra-windows-${{ needs.windows.outputs.version }}
+          path: release-artifacts
+      - name: Publish beta with checksums
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ULTRA_VERSION: ${{ needs.windows.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd release-artifacts
+          sha256sum --check *.sha256
+          cd ..
+          gh release create "$GITHUB_REF_NAME" --verify-tag --prerelease --latest=false \
+            --title "v${ULTRA_VERSION/-/ }" --notes-file docs/ultra/releases/v0.01-beta.md release-artifacts/*

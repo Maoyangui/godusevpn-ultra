@@ -1,0 +1,25 @@
+{
+  "schema": "ultra-legacy-empty-archive-v2",
+  "wrapperSha256": "60d0ecf4b308be1ac4ada1d1f86768ef44990bebedb9069eff570a3717103fc4",
+  "status": "completed",
+  "systemToken": true,
+  "archive": {
+    "status": "completed",
+    "preflightPassed": true,
+    "parentPinsReleased": true,
+    "moveAttempted": true,
+    "files": 2,
+    "hashesMatch": true,
+    "aclMatch": true,
+    "emptyControls": true,
+    "sourceAbsent": true,
+    "policiesAbsent": true,
+    "error": ""
+  },
+  "productExecuted": false,
+  "aclModified": false,
+  "objectsDeleted": false,
+  "productionMigration": false,
+  "rollbackAttempted": false,
+  "error": ""
+}

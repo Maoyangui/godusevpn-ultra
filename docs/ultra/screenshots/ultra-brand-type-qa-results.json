@@ -1,0 +1,151 @@
+{
+  "scope": "Native light typography, 1x/2x local mock review",
+  "checks": [
+    {
+      "theme": "light",
+      "scale": 1,
+      "geometry": {
+        "contentCenter": 210,
+        "glyphCenter": 210,
+        "wordWidth": 31.1875,
+        "wordHeight": 12,
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px",
+        "shadow": "none",
+        "family": "\"Segoe UI Variable Display\", \"Segoe UI\", sans-serif",
+        "weight": "300",
+        "size": "10px",
+        "spacing": "0.8px",
+        "style": "normal"
+      },
+      "font": [
+        {
+          "family": "Segoe UI Light",
+          "postScriptName": "SegoeUI-Light",
+          "glyphs": 5
+        }
+      ],
+      "drawer": {
+        "centerDelta": 0,
+        "gap": 6,
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px",
+        "shadow": "none",
+        "weight": "300",
+        "size": "9.5px",
+        "ariaLabel": "Ultra 版本"
+      },
+      "keyboardOpenClose": true
+    },
+    {
+      "theme": "dark",
+      "scale": 1,
+      "geometry": {
+        "contentCenter": 210,
+        "glyphCenter": 210,
+        "wordWidth": 31.1875,
+        "wordHeight": 12,
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px",
+        "shadow": "none",
+        "family": "\"Segoe UI Variable Display\", \"Segoe UI\", sans-serif",
+        "weight": "300",
+        "size": "10px",
+        "spacing": "0.8px",
+        "style": "normal"
+      },
+      "font": [
+        {
+          "family": "Segoe UI Light",
+          "postScriptName": "SegoeUI-Light",
+          "glyphs": 5
+        }
+      ],
+      "drawer": {
+        "centerDelta": 0,
+        "gap": 6,
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px",
+        "shadow": "none",
+        "weight": "300",
+        "size": "9.5px",
+        "ariaLabel": "Ultra 版本"
+      },
+      "keyboardOpenClose": true
+    },
+    {
+      "theme": "light",
+      "scale": 2,
+      "geometry": {
+        "contentCenter": 210,
+        "glyphCenter": 210,
+        "wordWidth": 31.1875,
+        "wordHeight": 12,
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px",
+        "shadow": "none",
+        "family": "\"Segoe UI Variable Display\", \"Segoe UI\", sans-serif",
+        "weight": "300",
+        "size": "10px",
+        "spacing": "0.8px",
+        "style": "normal"
+      },
+      "font": [
+        {
+          "family": "Segoe UI Light",
+          "postScriptName": "SegoeUI-Light",
+          "glyphs": 5
+        }
+      ],
+      "drawer": {
+        "centerDelta": 0,
+        "gap": 6,
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px",
+        "shadow": "none",
+        "weight": "300",
+        "size": "9.5px",
+        "ariaLabel": "Ultra 版本"
+      },
+      "keyboardOpenClose": true
+    },
+    {
+      "theme": "dark",
+      "scale": 2,
+      "geometry": {
+        "contentCenter": 210,
+        "glyphCenter": 210,
+        "wordWidth": 31.1875,
+        "wordHeight": 12,
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px",
+        "shadow": "none",
+        "family": "\"Segoe UI Variable Display\", \"Segoe UI\", sans-serif",
+        "weight": "300",
+        "size": "10px",
+        "spacing": "0.8px",
+        "style": "normal"
+      },
+      "font": [
+        {
+          "family": "Segoe UI Light",
+          "postScriptName": "SegoeUI-Light",
+          "glyphs": 5
+        }
+      ],
+      "drawer": {
+        "centerDelta": 0,
+        "gap": 6,
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px",
+        "shadow": "none",
+        "weight": "300",
+        "size": "9.5px",
+        "ariaLabel": "Ultra 版本"
+      },
+      "keyboardOpenClose": true
+    }
+  ],
+  "errors": [],
+  "outboundRequests": []
+}

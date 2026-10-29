@@ -1,6 +1,7 @@
 package daemon
 
 import (
+	"github.com/Maoyangui/godusevpn/internal/paths"
 	"testing"
 
 	"github.com/Maoyangui/godusevpn/internal/settings"
@@ -14,7 +15,7 @@ import (
 // syncGuard / syncNICIPv6 会去读 machine.Wanted() 而空指针崩掉 —— 所以这条测试能抓住"检查被删掉"的回退,
 // 而且崩在任何系统调用之前,不会碰本机的闸和网卡。数据目录指到临时目录,多一层保险。
 func TestGuardAndNICUntouchedWhileShuttingDown(t *testing.T) {
-	t.Setenv("GODUSEVPN_DATA", t.TempDir())
+	t.Setenv(paths.DataEnvironment, t.TempDir())
 	t.Setenv("GODUSEVPN_CONF", t.TempDir())
 	d := &Daemon{}
 	d.settingsOK = true

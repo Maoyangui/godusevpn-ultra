@@ -1,6 +1,6 @@
 #!/bin/sh
 # 佛跳墙 macOS 真机验收。以 root 跑:
-#   sudo sh macos-test.sh "https://面板/sub/用户名" [/usr/local/bin/godusevpn]
+#   sudo sh macos-test.sh "https://panel.example.invalid/sub/EXAMPLE" [/usr/local/bin/godusevpn]
 # 步骤:装服务(launchd)→ 设订阅 → 连接 → 查 utun、路由、fake-ip、出口、IPv6 是否真被拦住 → 三态 → 页面接口 → 断开清理。
 # macOS 与 Linux 的差别:隧道网卡是内核分配的 utunN(不是配置里的名字),命令换成 ifconfig / netstat / route / dscacheutil。
 # 跑之前先布一个"死人开关":420 秒内没跑完就自动停服务,免得改坏路由后连不上机器。

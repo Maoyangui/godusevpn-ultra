@@ -1,0 +1,1 @@
+Browser extension regression passed; no real browser settings changed.

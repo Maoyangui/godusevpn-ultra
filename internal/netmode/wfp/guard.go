@@ -33,19 +33,22 @@ type baseObjects struct {
 
 // 固定 GUID:换进程、换版本都不变,恢复命令与卸载程序靠它找对象。
 //
-// 这是**第二代**(0.7.4 起)。第一代(…2c / …2d)在 m29 那几版(0.6.25-m29 ~ 0.7.1)被绑上了服务名
+// Ultra uses its own reserved GUIDs (…10/11 and …12/13). They never match
+// upstream's …2c/2d/2e/2f, including in legacy cleanup. The algorithm below is
+// inherited; the following history describes upstream, not Ultra live tests.
+// 上游这是**第二代**(0.7.4 起)。第一代(…2c / …2d)在 m29 那几版(0.6.25-m29 ~ 0.7.1)被绑上了服务名
 // (为什么不绑见 baseProvider),而 WFP 的提供者建好就改不了,只能删了重建;删提供者得先删掉引用它的子层,
 // 删子层得先删光子层里的过滤器 —— 全按同一个 GUID 做,中间必然有一段没有闸,以前只能等用户下次
 // 断开时才换。换一代 GUID 就没有这个问题:建新提供者、新子层、装新过滤器、删旧过滤器放在**同一个事务**里,
 // BFE 原子地提交;旧子层与旧提供者此时已没人引用,随后再收掉(dropLegacyBase)。两代的过滤器 ourFilters 都认。
 var (
-	providerKey = windows.GUID{Data1: 0x6f6d9e2e, Data2: 0x3a41, Data3: 0x4b8e, Data4: [8]byte{0x9d, 0x55, 0x67, 0x6f, 0x64, 0x75, 0x73, 0x65}}
-	sublayerKey = windows.GUID{Data1: 0x6f6d9e2f, Data2: 0x3a41, Data3: 0x4b8e, Data4: [8]byte{0x9d, 0x55, 0x67, 0x6f, 0x64, 0x75, 0x73, 0x65}}
+	providerKey = windows.GUID{Data1: 0x8a1b0e12, Data2: 0x3a41, Data3: 0x4b8e, Data4: [8]byte{0x9d, 0x55, 0x67, 0x6f, 0x64, 0x75, 0x73, 0x65}}
+	sublayerKey = windows.GUID{Data1: 0x8a1b0e13, Data2: 0x3a41, Data3: 0x4b8e, Data4: [8]byte{0x9d, 0x55, 0x67, 0x6f, 0x64, 0x75, 0x73, 0x65}}
 	base        = &baseObjects{provider: providerKey, filters: sublayerKey}
 
 	// 第一代的 GUID:只用来认出并收掉旧对象,绝不再往它名下装任何东西。
-	legacyProviderKey = windows.GUID{Data1: 0x6f6d9e2c, Data2: 0x3a41, Data3: 0x4b8e, Data4: [8]byte{0x9d, 0x55, 0x67, 0x6f, 0x64, 0x75, 0x73, 0x65}}
-	legacySublayerKey = windows.GUID{Data1: 0x6f6d9e2d, Data2: 0x3a41, Data3: 0x4b8e, Data4: [8]byte{0x9d, 0x55, 0x67, 0x6f, 0x64, 0x75, 0x73, 0x65}}
+	legacyProviderKey = windows.GUID{Data1: 0x8a1b0e10, Data2: 0x3a41, Data3: 0x4b8e, Data4: [8]byte{0x9d, 0x55, 0x67, 0x6f, 0x64, 0x75, 0x73, 0x65}}
+	legacySublayerKey = windows.GUID{Data1: 0x8a1b0e11, Data2: 0x3a41, Data3: 0x4b8e, Data4: [8]byte{0x9d, 0x55, 0x67, 0x6f, 0x64, 0x75, 0x73, 0x65}}
 )
 
 // isOurs 一条过滤器是不是我们的:挂在两代任一子层下、或提供者是两代任一。

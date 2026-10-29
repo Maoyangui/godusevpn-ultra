@@ -1,0 +1,34 @@
+{
+  "schema": "ultra-mv3-chrome-live-v1",
+  "status": "not_tested",
+  "error": "extension_worker_unavailable",
+  "scope": "current_host_fresh_temp_headless_chrome_only",
+  "mockBrowserAPI": false,
+  "browserVersion": "156.0.8078.35",
+  "manifestVersion": 3,
+  "extensionWorkerLoaded": false,
+  "productCoordinatorUsed": false,
+  "profileRetained": true,
+  "profileLeaf": "ultra-mv3-chrome-live-Nwc4wH",
+  "pageRequestCounts": {
+    "extension": 0,
+    "blank": 0,
+    "otherBlocked": 0
+  },
+  "pageRequestsAreNotWholeProcessTraffic": true,
+  "remoteNavigationPerformed": false,
+  "windowsPolicyModified": false,
+  "existingProfileUsed": false,
+  "hardwareOrWebRTCProbeRun": false,
+  "cases": [],
+  "queue": {
+    "status": "not_tested"
+  },
+  "sourceSHA256": {
+    "manifest.json": "23e815d8024a58efcd2569ada109b67bca26c61b7eea45fbd0fc09fba9ebba04",
+    "core.js": "4b4b917d3e67839eb86facec9f6cd28d48fe0967b1ca40e16616683999bd8b21",
+    "background.js": "393c8cece465c9862526e8013d85de083557773b087288b326759098bb473053",
+    "panel.html": "2f352646cce3f5dba1c4e9b112eeb46cdbbdca29fc13082324c457fb6d201fce",
+    "panel.js": "cb85ad3468b8b5a01c33dcb23aaba143f7fa3ade317cc54831c94aa1a495c228"
+  }
+}

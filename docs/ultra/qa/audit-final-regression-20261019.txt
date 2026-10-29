@@ -1,0 +1,33 @@
+ok  	github.com/Maoyangui/godusevpn/internal/appfirewall	0.799s
+?   	github.com/Maoyangui/godusevpn/internal/autostart	[no test files]
+ok  	github.com/Maoyangui/godusevpn/internal/builder	0.712s
+?   	github.com/Maoyangui/godusevpn/internal/buildinfo	[no test files]
+?   	github.com/Maoyangui/godusevpn/internal/clash	[no test files]
+ok  	github.com/Maoyangui/godusevpn/internal/cli	0.050s
+ok  	github.com/Maoyangui/godusevpn/internal/core	3.691s
+ok  	github.com/Maoyangui/godusevpn/internal/daemon	7.509s
+ok  	github.com/Maoyangui/godusevpn/internal/detection	0.077s
+?   	github.com/Maoyangui/godusevpn/internal/guardfix	[no test files]
+ok  	github.com/Maoyangui/godusevpn/internal/identity	0.028s
+ok  	github.com/Maoyangui/godusevpn/internal/ipc	0.072s
+ok  	github.com/Maoyangui/godusevpn/internal/localstate	0.075s
+ok  	github.com/Maoyangui/godusevpn/internal/logx	0.108s
+ok  	github.com/Maoyangui/godusevpn/internal/netmode	0.155s
+ok  	github.com/Maoyangui/godusevpn/internal/netmode/wfp	0.287s
+ok  	github.com/Maoyangui/godusevpn/internal/paths	0.084s
+ok  	github.com/Maoyangui/godusevpn/internal/privacy	0.713s
+ok  	github.com/Maoyangui/godusevpn/internal/privacydata	0.257s
+ok  	github.com/Maoyangui/godusevpn/internal/privacyhost	0.130s
+ok  	github.com/Maoyangui/godusevpn/internal/profile	0.097s
+ok  	github.com/Maoyangui/godusevpn/internal/ruleset	0.172s
+ok  	github.com/Maoyangui/godusevpn/internal/settings	0.082s
+ok  	github.com/Maoyangui/godusevpn/internal/state	1.160s
+ok  	github.com/Maoyangui/godusevpn/internal/svc	0.268s
+ok  	github.com/Maoyangui/godusevpn/internal/timeprivacy	0.439s
+ok  	github.com/Maoyangui/godusevpn/internal/tlsroots	0.092s
+ok  	github.com/Maoyangui/godusevpn/internal/uiapi	0.069s
+ok  	github.com/Maoyangui/godusevpn/internal/update	0.121s
+?   	github.com/Maoyangui/godusevpn/internal/web	[no test files]
+?   	github.com/Maoyangui/godusevpn/cmd/godusevpn-cli	[no test files]
+?   	github.com/Maoyangui/godusevpn/cmd/godusevpn-svc	[no test files]
+ok  	github.com/Maoyangui/godusevpn/web	0.067s

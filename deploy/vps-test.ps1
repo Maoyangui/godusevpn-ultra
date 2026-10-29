@@ -1,5 +1,5 @@
-﻿# 佛跳墙 真机验收脚本(在 Windows VPS 上以管理员 PowerShell 运行)
-#   .\vps-test.ps1 -Sub "https://面板/sub/用户名" [-Bin "C:\godusevpn"]
+# 佛跳墙 真机验收脚本(在 Windows VPS 上以管理员 PowerShell 运行)
+#   .\vps-test.ps1 -Sub "https://panel.example.invalid/sub/EXAMPLE" [-Bin "C:\godusevpn"]
 # 步骤:装服务 → 设订阅 → 连接 → 检查 TUN 网卡、默认路由、fake-ip、DNS 劫持、出口 IP、IPv6 阻断、三态模式 → 断开 → 检查清理。
 # 给了 -LegacyBin(0.6.25-m29 ~ 0.7.1 的裸二进制目录)再多跑一段:装旧版、连上严格全局、不断开直接原地升级,
 # 验闸换到新一代提供者、升级前后都拦着直连、停服务闸仍在。

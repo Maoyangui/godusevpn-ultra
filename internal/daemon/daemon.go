@@ -94,9 +94,14 @@ type Daemon struct {
 	nicHold      bool
 	settingsOpMu sync.Mutex // privacy-setting transactions cannot overlap
 	releaseTun   func()     // 见 Options.ReleaseTun
+	releaseStore func()     // pins checked Windows store directories until Close
 	machine      *state.Machine
 	server       *ipc.Server
 	secret       string
+	diagMu       sync.Mutex
+	diagCache    []cachedDiagnostic // <= 2 bounded, five-minute preview snapshots
+	diagTimer    *time.Timer
+	diagClosed   bool
 	http         *http.Client
 	delays       map[string]int // 最近一次全节点测速结果
 	ping         int            // 当前节点最近一次测得的延迟(毫秒):健康检查本来就要测一次,顺手记下来给界面用
@@ -133,10 +138,17 @@ type Options struct {
 // New 读设置与订阅缓存,装配各部件;不启动任何东西。
 func New() (*Daemon, error) { return NewWithOptions(Options{}) }
 
+// Tests replace this function in TestMain with a TEMP-only fake. NoListen is
+// deliberately not a permission/trust bypass in production.
+var prepareServiceStore = paths.PrepareServiceStore
+
 // NewWithOptions 带平台选项的装配。
 func NewWithOptions(o Options) (*Daemon, error) {
-	if err := paths.Ensure(); err != nil {
-		return nil, fmt.Errorf("建数据目录: %w", err)
+	releaseStore, err := prepareServiceStore()
+	if err != nil {
+		// This precedes ruleset installation, logs and every settings/cache read.
+		// Do not clear persistent guards or restore network state on this path.
+		return nil, fmt.Errorf("服务数据存储验证失败；现有网络保护保持不变: %w", err)
 	}
 	// 内置规则集先铺好。内核在启动阶段就要把规则集全读进来,读不到整个起不来 ——
 	// 早先客户端让内核自己去 GitHub 现下,一台全新设备只要第一次下不动就永远连不上(见 internal/ruleset)。
@@ -144,19 +156,15 @@ func NewWithOptions(o Options) (*Daemon, error) {
 	installErr := ruleset.Install(paths.RuleSets())
 	d := &Daemon{
 		noListen: o.NoListen, releaseTun: o.ReleaseTun,
-		log:      logx.New(filepath.Join(paths.Logs(), "service.log"), 5<<20, 3),
-		coreLog:  logx.New(filepath.Join(paths.Logs(), "core.log"), 5<<20, 3),
-		http:     &http.Client{Timeout: 30 * time.Second},
-		profiles: map[string]*profile.Profile{},
-		fetchErr: map[string]string{}, fetchLink: map[string]string{},
+		releaseStore: releaseStore,
+		log:          logx.New(filepath.Join(paths.Logs(), "service.log"), 5<<20, 3),
+		coreLog:      logx.New(filepath.Join(paths.Logs(), "core.log"), 5<<20, 3),
+		http:         &http.Client{Timeout: 30 * time.Second},
+		profiles:     map[string]*profile.Profile{},
+		fetchErr:     map[string]string{}, fetchLink: map[string]string{},
 	}
 	if installErr != nil {
 		d.logf("内置规则集铺不下去(少几条规则,连接不受影响): %v", installErr)
-	}
-	// 数据目录里有节点凭据、订阅地址、面板密码哈希,还有一层规则集会被内核当路由依据读进去,
-	// 默认从 %ProgramData% 继承来的权限是"同机任何标准用户都能读、还能往里新建文件"。每次启动都收一遍。
-	if err := paths.Harden(); err != nil {
-		d.logf("数据目录权限没收紧(里面有节点凭据,建议用管理员身份装一次): %v", err)
 	}
 	d.coreLevel.Store(core.LevelOf(d.settings.LogLevel))
 	d.core = core.New(core.Writer{Printf: d.coreLog.Printf, Level: &d.coreLevel})
@@ -249,15 +257,20 @@ func (d *Daemon) loadProfileCaches() {
 
 // Close 放掉守护进程占着的文件(两份日志)。Run 结束之后调;进程要退出时不调也行,系统会收。
 func (d *Daemon) Close() error {
+	d.clearDiagnosticCache()
 	err := d.log.Close()
 	if err2 := d.coreLog.Close(); err == nil {
 		err = err2
+	}
+	if d.releaseStore != nil {
+		d.releaseStore()
 	}
 	return err
 }
 
 // Run 起控制接口,按上次状态自动连接,定时刷新订阅;ctx 结束时全部停掉。
 func (d *Daemon) Run(ctx context.Context) error {
+	defer d.Close()
 	d.logf("%s 服务启动 v%s (%s/%s)", DisplayName, buildinfo.Version, runtime.GOOS, runtime.GOARCH)
 	if !d.noListen {
 		if err := d.server.Listen(); err != nil {
@@ -1557,12 +1570,22 @@ func (d *Daemon) registerHandlers() {
 	h(ipc.MGetClashInfo, func(json.RawMessage) (any, error) {
 		return ipc.ClashInfo{Port: d.activeClashPort(), Secret: d.secret, Running: d.core.Running()}, nil
 	})
-	h(ipc.MExportDiag, func(json.RawMessage) (any, error) {
-		p, err := d.exportDiag()
+	h(ipc.MPreviewDiag, func(raw json.RawMessage) (any, error) {
+		options, err := diagnosticOptions(raw)
 		if err != nil {
 			return nil, err
 		}
-		return map[string]string{"path": p}, nil
+		return d.previewDiag(options)
+	})
+	h(ipc.MExportDiag, func(raw json.RawMessage) (any, error) {
+		var in ipc.DiagnosticExportRequest
+		if err := decodeDiagnosticRequest(raw, &in); err != nil {
+			return nil, err
+		}
+		if in.PreviewID == "" {
+			return d.exportDiag()
+		}
+		return d.exportPreview(in.PreviewID, time.Now())
 	})
 	h(ipc.MConnect, func(json.RawMessage) (any, error) {
 		// 连接与断开互斥:两个并发调用会各自 savePersisted(同一个 .tmp 路径)并交错调用状态机,
@@ -2126,16 +2149,5 @@ func (d *Daemon) registerHandlers() {
 		}
 		return logx.Tail(path, in.Lines), nil
 	})
-	h(ipc.MDiagnose, func(json.RawMessage) (any, error) {
-		_, p := d.activeProfile()
-		out := map[string]any{
-			"version": buildinfo.Version, "os": runtime.GOOS + "/" + runtime.GOARCH,
-			"state": d.stateView(), "dataDir": paths.DataDir(),
-			"serviceLog": logx.Tail(d.log.Path(), 100), "coreLog": logx.Tail(d.coreLog.Path(), 100),
-		}
-		if p != nil {
-			out["servers"] = p.Servers()
-		}
-		return out, nil
-	})
+	h(ipc.MDiagnose, func(json.RawMessage) (any, error) { return d.minimalDiagnostic(), nil })
 }

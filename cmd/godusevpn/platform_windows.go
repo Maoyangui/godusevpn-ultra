@@ -21,6 +21,7 @@ func tuneOptions(o *options.App, _ *App) {
 		Theme:                             woptions.SystemDefault,
 		DisableFramelessWindowDecorations: false, // 保留系统阴影与圆角
 	}
+	configureInitialWindowsWindow(o)
 }
 
 // userConfigDir 当前用户的配置目录(界面偏好放这儿)。
@@ -37,7 +38,12 @@ func desktopDir() string { return filepath.Join(os.Getenv("USERPROFILE"), "Deskt
 func revealFile(path string) { _ = exec.Command("explorer.exe", "/select,", path).Start() }
 
 // OpenLogs 打开日志目录。
-func (a *App) OpenLogs() error { return exec.Command("explorer.exe", paths.Logs()).Start() }
+func (a *App) OpenLogs() error {
+	if !windows.GetCurrentProcessToken().IsElevated() {
+		return errors.New("服务日志目录仅供管理员本机查看；普通客户端请在本页查看日志或预览诊断")
+	}
+	return exec.Command("explorer.exe", paths.Logs()).Start()
+}
 
 // serviceBinary 后台服务的可执行文件,跟客户端装在同一个目录。
 func serviceBinary(dir string) (string, error) {

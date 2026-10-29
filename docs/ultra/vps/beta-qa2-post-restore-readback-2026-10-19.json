@@ -1,0 +1,28 @@
+{
+  "schema": "ultra-archive-readback-v1",
+  "candidate": "0.01-beta-qa.2",
+  "status": "completed",
+  "source": {
+    "exists": true,
+    "healthyEmpty": true,
+    "files": 2,
+    "lockBytes": 0,
+    "legacyAllowCount": 0,
+    "canonicalBytesMatched": true,
+    "readError": ""
+  },
+  "target": {
+    "exists": true,
+    "healthyEmpty": true,
+    "files": 2,
+    "lockBytes": 0,
+    "legacyAllowCount": 1,
+    "canonicalBytesMatched": true,
+    "readError": ""
+  },
+  "policiesAbsent": true,
+  "productExecuted": false,
+  "moveRequested": false,
+  "error": "",
+  "scope": "Independent read-only check after the four QA2 policy roundtrips. The source is the newly created private empty machine store. The target is the preserved legacy empty store below the private QA ancestor. No OS application behavior or network traffic was tested."
+}

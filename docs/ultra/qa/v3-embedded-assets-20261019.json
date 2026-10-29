@@ -1,0 +1,42 @@
+{
+  "version": "0.1.0-ultra.3",
+  "verification": "read-only binary/source comparison; no product launched",
+  "assets": [
+    {
+      "name": "app.js",
+      "bytes": 123084,
+      "sha256": "a252f93785249476a2cec729e99a8765697a0c92dafe36cd7b739e85aabc88dc",
+      "embedded": true
+    },
+    {
+      "name": "index.html",
+      "bytes": 7324,
+      "sha256": "2f51d56c1c9592dc6925b86ba3498d3e594f9c8b26da024cbc4cb78c976aaf3a",
+      "embedded": true
+    },
+    {
+      "name": "style.css",
+      "bytes": 57806,
+      "sha256": "5a8f3ff985249690b473bd637284518b302859936473c3788ab7929743d2fe97",
+      "embedded": true
+    },
+    {
+      "name": "privacy.js",
+      "bytes": 54620,
+      "sha256": "18b02ba7d1528840f28f8da579d149e5464f4d75f5bf043b60546a779945925a",
+      "embedded": true
+    },
+    {
+      "name": "privacy.css",
+      "bytes": 5910,
+      "sha256": "a426f726aced69cb04d64c253c61efd5e6e65213e5fee6a4f1513697032fcbc4",
+      "embedded": true
+    },
+    {
+      "name": "i18n.js",
+      "bytes": 35969,
+      "sha256": "2bdc7f564d96da049bbcf1f16768023dac4d85b5a54de78731479c057dcf5c4e",
+      "embedded": true
+    }
+  ]
+}

@@ -18,6 +18,10 @@ const crashLogMax = 1 << 20
 // crashFile Windows 服务模式下标准错误句柄指着它,不能被关、也不能被垃圾回收(os.File 的终结器会关句柄)。
 var crashFile *os.File
 
+// Crash output can outlive normal daemon shutdown; keep its store directories
+// pinned for this process too. The OS releases these handles on process exit.
+var crashStoreRelease func()
+
 // CaptureCrashes 让进程崩溃时的输出落进 logs/crash.log。服务 / 守护进程没有控制台,标准错误没人看:以前进程
 // 崩了、被服务管理器几秒后拉起,现场什么都不剩。诊断包本来就会带上这个文件(diag.go)。
 // 每次启动写一行抬头,崩溃记录前面那一行就能对上是哪次启动、哪个版本。
@@ -34,10 +38,19 @@ var crashFile *os.File
 // 错误,前台 run 模式留给控制台。Entware(梅林)的启动脚本把标准错误丢进 /dev/null,那里原因行仍会丢、
 // 只剩栈 —— 已知,要改 Entware 的启停脚本(和它的卸载问题一起)。
 func CaptureCrashes(service bool) {
-	dir := paths.Logs()
-	if err := os.MkdirAll(dir, 0o700); err != nil {
+	release, err := prepareServiceStore()
+	if err != nil {
+		// Never create/rotate/open a crash log in an untrusted store. New reports
+		// the fatal startup error without reading that store or changing guards.
 		return
 	}
+	keepStore := false
+	defer func() {
+		if !keepStore {
+			release()
+		}
+	}()
+	dir := paths.Logs()
 	p := filepath.Join(dir, "crash.log")
 	rotateCrashLog(p)
 	f, err := os.OpenFile(p, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o600)
@@ -47,10 +60,15 @@ func CaptureCrashes(service bool) {
 	fmt.Fprintf(f, "== %s 启动 v%s pid=%d\n", time.Now().Format("2006-01-02 15:04:05.000"), buildinfo.Version, os.Getpid())
 	if service && redirectStderr(f) {
 		crashFile = f
+		crashStoreRelease = release
+		keepStore = true
 		return
 	}
 	// SetCrashOutput 自己复制了一份句柄(崩溃时写那一份),这里的 f 就可以关了
-	_ = debug.SetCrashOutput(f, debug.CrashOptions{})
+	if err := debug.SetCrashOutput(f, debug.CrashOptions{}); err == nil {
+		crashStoreRelease = release
+		keepStore = true
+	}
 	_ = f.Close()
 }
 

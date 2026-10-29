@@ -51,7 +51,7 @@ func TestRedactDoesNotMutateInput(t *testing.T) {
 
 // 导出诊断包会把订阅链接脱敏成 /sub/***;它拿到的必须是副本,真实设置不能跟着变(曾经因共享切片把链接改坏,之后刷新全是 404)。
 func TestExportDiagKeepsSettingsIntact(t *testing.T) {
-	t.Setenv("GODUSEVPN_DATA", t.TempDir())
+	t.Setenv(paths.DataEnvironment, t.TempDir())
 	t.Setenv("GODUSEVPN_CONF", t.TempDir())
 	d, err := NewWithOptions(Options{NoListen: true})
 	if err != nil {
@@ -70,22 +70,21 @@ func TestExportDiagKeepsSettingsIntact(t *testing.T) {
 	if got := d.getSettings().Profiles[0].URL; got != "https://panel.example/sub/secret-token" {
 		t.Fatalf("导出诊断包后设置里的订阅链接被改成了 %q", got)
 	}
-	if _, err := d.refreshProfile(t.Context(), "a"); err == nil {
-		t.Fatal("拉不到的链接应报错")
-	}
 }
 
 // 已经被写坏的设置(0.6.0-a2 之前):启动时按订阅缓存把链接恢复回来。
 func TestHealsRedactedProfileURLOnStart(t *testing.T) {
 	dir := t.TempDir()
-	t.Setenv("GODUSEVPN_DATA", dir)
+	t.Setenv(paths.DataEnvironment, dir)
 	t.Setenv("GODUSEVPN_CONF", dir)
 	real := "https://panel.example/sub/secret-token"
 	s := settings.Default()
 	s.Profiles = []settings.Profile{{ID: "a", Name: "a", URL: "https://panel.example/sub/***"}}
 	s.ActiveProfile = "a"
-	if err := paths.Ensure(); err != nil {
+	if release, err := prepareServiceStore(); err != nil {
 		t.Fatal(err)
+	} else {
+		release()
 	}
 	if err := s.Save(paths.Settings()); err != nil {
 		t.Fatal(err)

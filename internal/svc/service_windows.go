@@ -10,15 +10,17 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/Maoyangui/godusevpn/internal/identity"
+
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/svc"
 	"golang.org/x/sys/windows/svc/mgr"
 )
 
 const (
-	Name        = "godusevpn"
-	DisplayName = "佛跳墙"
-	Description = "佛跳墙 后台服务:运行内核、管理 TUN 网卡、路由与 DNS。"
+	Name        = identity.AppName
+	DisplayName = identity.DisplayName
+	Description = "GodUseVPN Ultra 后台服务:运行内核、管理 TUN 网卡、路由与 DNS。"
 )
 
 type handler struct {
@@ -320,7 +322,7 @@ func QueryStatus() string {
 	defer windows.CloseServiceHandle(m)
 	s, err := windows.OpenService(m, windows.StringToUTF16Ptr(Name), windows.SERVICE_QUERY_STATUS)
 	if err != nil {
-		return "not-installed"
+		return serviceLookupState(err)
 	}
 	defer windows.CloseServiceHandle(s)
 	var st windows.SERVICE_STATUS
@@ -339,6 +341,13 @@ func QueryStatus() string {
 	default:
 		return "unknown"
 	}
+}
+
+func serviceLookupState(err error) string {
+	if errors.Is(err, windows.ERROR_SERVICE_DOES_NOT_EXIST) {
+		return "not-installed"
+	}
+	return "unknown"
 }
 
 // Status 服务状态文本:not-installed / stopped / running / …

@@ -47,6 +47,8 @@ func Main(args []string) int {
 	cmd, args := args[0], args[1:]
 	var err error
 	switch cmd {
+	case "privacy":
+		return privacyMain(args)
 	case "status":
 		err = status(ctx)
 	case "connect":
@@ -347,4 +349,6 @@ func printProfile(p *ipc.ProfileView) {
 func Usage() {
 	fmt.Println(buildinfo.DisplayName, buildinfo.Version)
 	fmt.Println("用法: " + Name + " status | connect | disconnect | mode <rule|global|direct> | nodes | select <节点> | test [节点|all] | profile [地址] | refresh | settings [k=v …] | rules | devices | device <MAC> <follow|proxy|direct|reject> [名字] | logs [n] [core] | diag | guard clear|status")
+	fmt.Println("隐私: " + Name + " privacy report | detection | apply <ID> | restore <ID> | restore-all | firewall-list | firewall-remove <ID> | cleanup-machine | uninstall-machine")
+	fmt.Println("时区: " + Name + " privacy timezone-report | timezone-restore（在原用户终端单独恢复，不包含在机器清理中）")
 }

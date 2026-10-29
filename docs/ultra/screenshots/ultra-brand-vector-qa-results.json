@@ -1,0 +1,57 @@
+{
+  "scope": "Custom vector wordmark, pure local Wails mock",
+  "checks": [
+    {
+      "theme": "light",
+      "geometry": {
+        "contentCenter": 210,
+        "glyphCenter": 210,
+        "markWidth": 36,
+        "markHeight": 12,
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px",
+        "shadow": "none",
+        "textNodes": "",
+        "vectorPaths": 1
+      },
+      "drawer": {
+        "centerDelta": 0,
+        "width": 33,
+        "height": 11,
+        "gap": 6,
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px",
+        "shadow": "none",
+        "ariaLabel": "Ultra 版本"
+      },
+      "keyboardOpenClose": true
+    },
+    {
+      "theme": "dark",
+      "geometry": {
+        "contentCenter": 210,
+        "glyphCenter": 210,
+        "markWidth": 36,
+        "markHeight": 12,
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px",
+        "shadow": "none",
+        "textNodes": "",
+        "vectorPaths": 1
+      },
+      "drawer": {
+        "centerDelta": 0,
+        "width": 33,
+        "height": 11,
+        "gap": 6,
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px",
+        "shadow": "none",
+        "ariaLabel": "Ultra 版本"
+      },
+      "keyboardOpenClose": true
+    }
+  ],
+  "errors": [],
+  "outboundRequests": []
+}

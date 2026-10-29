@@ -1,6 +1,6 @@
 #!/bin/sh
 # 模拟器冒烟(Git Bash / Linux 都能跑):装 APK → 预授权 VPN → 预置订阅 → 打开界面截图 → 点连接 → 看状态与 VPN 网卡 → 截图。
-#   sh deploy/android-emu-test.sh "https://面板/sub/用户名" [APK 路径] [序列号]
+#   sh deploy/android-emu-test.sh "https://panel.example.invalid/sub/EXAMPLE" [APK 路径] [序列号]
 export MSYS_NO_PATHCONV=1
 SUB="$1"; APK="$2"; SERIAL="${3:-emulator-5554}"
 [ -n "$SUB" ] || { echo "用法: $0 <订阅地址> [APK] [序列号]"; exit 2; }

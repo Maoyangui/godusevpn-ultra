@@ -1,0 +1,81 @@
+{
+  "scope": "Only fields/help/navigation affected by the final UI audit",
+  "screenshots": [
+    "audit-onboard-420-light.png",
+    "audit-read-evidence-420-light.png",
+    "audit-probe-420-light.png",
+    "audit-capabilities-420-light.png",
+    "audit-unknown-filters-420-light.png",
+    "audit-onboard-420-dark.png",
+    "audit-read-evidence-420-dark.png",
+    "audit-probe-420-dark.png",
+    "audit-capabilities-420-dark.png",
+    "audit-unknown-filters-420-dark.png",
+    "audit-onboard-900-light.png",
+    "audit-read-evidence-900-light.png",
+    "audit-probe-900-light.png",
+    "audit-capabilities-900-light.png",
+    "audit-unknown-filters-900-light.png",
+    "audit-onboard-900-dark.png",
+    "audit-read-evidence-900-dark.png",
+    "audit-probe-900-dark.png",
+    "audit-capabilities-900-dark.png",
+    "audit-unknown-filters-900-dark.png"
+  ],
+  "checks": [
+    {
+      "width": 420,
+      "theme": "light",
+      "onboardHelp": true,
+      "manualControlNavigation": true,
+      "readEvidenceSeparated": true,
+      "unknownStateNotSafe": true,
+      "probeItemHelp": true,
+      "capabilityTranslation": true,
+      "unknownFilterHelp": true,
+      "snapshotExportPreview": true,
+      "noPrivilegedCalls": true
+    },
+    {
+      "width": 420,
+      "theme": "dark",
+      "onboardHelp": true,
+      "manualControlNavigation": true,
+      "readEvidenceSeparated": true,
+      "unknownStateNotSafe": true,
+      "probeItemHelp": true,
+      "capabilityTranslation": true,
+      "unknownFilterHelp": true,
+      "snapshotExportPreview": true,
+      "noPrivilegedCalls": true
+    },
+    {
+      "width": 900,
+      "theme": "light",
+      "onboardHelp": true,
+      "manualControlNavigation": true,
+      "readEvidenceSeparated": true,
+      "unknownStateNotSafe": true,
+      "probeItemHelp": true,
+      "capabilityTranslation": true,
+      "unknownFilterHelp": true,
+      "snapshotExportPreview": true,
+      "noPrivilegedCalls": true
+    },
+    {
+      "width": 900,
+      "theme": "dark",
+      "onboardHelp": true,
+      "manualControlNavigation": true,
+      "readEvidenceSeparated": true,
+      "unknownStateNotSafe": true,
+      "probeItemHelp": true,
+      "capabilityTranslation": true,
+      "unknownFilterHelp": true,
+      "snapshotExportPreview": true,
+      "noPrivilegedCalls": true
+    }
+  ],
+  "errors": [],
+  "outboundRequests": []
+}

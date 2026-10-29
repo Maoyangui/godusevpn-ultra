@@ -1,0 +1,21 @@
+{
+  "schema": "ultra-qa-remote-session-v1",
+  "date": "2026-10-19",
+  "explicitUserApproval": true,
+  "resourceCreated": true,
+  "skuObserved": "Developer",
+  "provisioningStateObserved": "Succeeded",
+  "paidSkuFallbackUsed": false,
+  "browserDesktopConnected": true,
+  "windowsTemporaryProfileWarningObserved": true,
+  "windowsCommandPromptOpened": true,
+  "administratorWindowTitleObserved": true,
+  "actualTokenIntegrityVerified": false,
+  "uacConfigurationVerified": false,
+  "productExecutedThroughDesktop": false,
+  "clipboardReadOnlyCommandExecutionConfirmed": false,
+  "desktopAcceptanceCompleted": false,
+  "sessionIssue": "The remote web page stopped responding while its Clipboard dialog was being edited. Automatic page reload and close returned focus-emulation timeouts. Do not infer that a command ran or that UAC failed. Manual closure of only this remote-desktop tab was requested; Cloud Shell remained usable.",
+  "recoveryBoundary": "Browser RDP is network-dependent. This connection does not establish an out-of-band recovery channel or prove that whole-device guard tests can recover.",
+  "resourceLifecycle": "The Developer resource persists after disconnect. No resource deletion, paid upgrade, or VM user-profile repair was performed."
+}

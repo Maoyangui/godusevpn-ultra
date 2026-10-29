@@ -1,0 +1,7 @@
+ok  	github.com/Maoyangui/godusevpn/internal/appfirewall	0.287s
+ok  	github.com/Maoyangui/godusevpn/internal/netmode	0.106s
+ok  	github.com/Maoyangui/godusevpn/internal/netmode/wfp	0.240s
+ok  	github.com/Maoyangui/godusevpn/internal/builder	0.559s
+ok  	github.com/Maoyangui/godusevpn/internal/paths	0.106s
+ok  	github.com/Maoyangui/godusevpn/internal/svc	0.234s
+?   	github.com/Maoyangui/godusevpn/internal/cli	[no test files]

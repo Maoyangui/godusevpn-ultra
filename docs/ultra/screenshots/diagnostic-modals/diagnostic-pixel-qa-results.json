@@ -1,0 +1,65 @@
+{
+  "scope": "isolated fixed diagnostic modals only",
+  "screenshots": [
+    "diagnostic-selection-420-light.png",
+    "diagnostic-review-420-light.png",
+    "diagnostic-review-footer-420-light.png",
+    "diagnostic-selection-420-dark.png",
+    "diagnostic-review-420-dark.png",
+    "diagnostic-review-footer-420-dark.png",
+    "diagnostic-selection-900-light.png",
+    "diagnostic-review-900-light.png",
+    "diagnostic-review-footer-900-light.png",
+    "diagnostic-selection-900-dark.png",
+    "diagnostic-review-900-dark.png",
+    "diagnostic-review-footer-900-dark.png"
+  ],
+  "checks": [
+    {
+      "width": 420,
+      "theme": "light",
+      "selectionHelp": 7,
+      "noHorizontalOverflow": true,
+      "detailsRequireAcknowledgement": true,
+      "textScroll": true,
+      "footerReachable": true,
+      "keyboardHelp": true,
+      "noExport": true
+    },
+    {
+      "width": 420,
+      "theme": "dark",
+      "selectionHelp": 7,
+      "noHorizontalOverflow": true,
+      "detailsRequireAcknowledgement": true,
+      "textScroll": true,
+      "footerReachable": true,
+      "keyboardHelp": true,
+      "noExport": true
+    },
+    {
+      "width": 900,
+      "theme": "light",
+      "selectionHelp": 7,
+      "noHorizontalOverflow": true,
+      "detailsRequireAcknowledgement": true,
+      "textScroll": true,
+      "footerReachable": true,
+      "keyboardHelp": true,
+      "noExport": true
+    },
+    {
+      "width": 900,
+      "theme": "dark",
+      "selectionHelp": 7,
+      "noHorizontalOverflow": true,
+      "detailsRequireAcknowledgement": true,
+      "textScroll": true,
+      "footerReachable": true,
+      "keyboardHelp": true,
+      "noExport": true
+    }
+  ],
+  "errors": [],
+  "blockedRequests": []
+}

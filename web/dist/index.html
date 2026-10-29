@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>佛跳墙</title>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="privacy.css">
 <script>
 /* 白屏自曝。老设备(比如中国版小米电视,WebView 常年停在 Chrome 66)遇到页面里的新语法,会整份脚本解析失败、
    什么都不显示,用户和我们都看不到任何线索。这段负责把原因直接打在屏幕上,截个图就能定位。
@@ -92,6 +93,7 @@
     <div class="topbar-title" id="topbar-title">佛跳墙</div>
     <div class="win">
       <button class="icon-btn" id="min-btn" title="最小化"><svg viewBox="0 0 24 24"><path d="M6 12h12"/></svg></button>
+      <button class="icon-btn" id="max-btn" title="最大化" aria-label="最大化" aria-pressed="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h12v12H6z"/></svg></button>
       <button class="icon-btn" id="close-btn" title="收到托盘"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
   </header>
@@ -101,7 +103,7 @@
   <nav class="drawer" id="drawer">
     <div class="drawer-brand">
       <svg viewBox="-16 -50 400 400" width="34" height="34" aria-hidden="true"><defs><linearGradient id="g" gradientUnits="userSpaceOnUse" x1="70" y1="70" x2="310" y2="270"><stop offset="0" stop-color="#6a44f2"/><stop offset=".55" stop-color="#2f8bff"/><stop offset="1" stop-color="#18e3e8"/></linearGradient></defs><g fill="none" stroke="url(#g)" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"><path d="M86 248V84l146 124v52"/><path d="M332 78l-88 96"/></g><path fill="url(#g)" d="M118 192l52 30-52 30z"/></svg>
-      <div><b>佛跳墙</b><div class="muted small" id="drawer-ver"></div><div class="upd-hint" id="drawer-upd" hidden></div></div>
+      <div class="drawer-brand-copy"><div class="drawer-brand-title"><b>佛跳墙</b><span class="ultra-mark" aria-label="Ultra 版本" title="Ultra 版本">ultra</span></div><div class="muted small" id="drawer-ver"></div><div class="upd-hint" id="drawer-upd" hidden></div></div>
     </div>
     <div class="drawer-state" id="drawer-state" hidden></div>
     <div class="drawer-items" id="drawer-items"></div>
@@ -125,6 +127,8 @@
 <script src="api.js"></script>
 <script src="i18n.js"></script>
 <script src="flags.js"></script>
+  <script src="privacy-region.js"></script>
+<script src="privacy.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

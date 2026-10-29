@@ -3,10 +3,16 @@ package paths
 import (
 	"os"
 	"path/filepath"
+
+	"github.com/Maoyangui/godusevpn/internal/identity"
 )
 
 // AppName 目录名与服务名,三端一致。
-const AppName = "godusevpn"
+const AppName = identity.AppName
+
+// DataEnvironment deliberately differs on Windows so a developer's original
+// GODUSEVPN_DATA override cannot redirect Ultra into the original data folder.
+const DataEnvironment = identity.DataEnvironment
 
 func Settings() string { return filepath.Join(ConfDir(), "settings.json") }
 
@@ -27,10 +33,16 @@ func Diag() string     { return filepath.Join(DataDir(), "diag") }
 // UIPrefs 面板偏好(语言、外观);Windows 客户端另有每用户的 ui.json,这个给 Linux 的 Web 面板用。
 func UIPrefs() string { return filepath.Join(ConfDir(), "ui.json") }
 
-// Ensure 建好设置目录、数据目录与子目录。建不出来是致命的。
+// Ensure prepares a trusted service store before creating any Windows files.
 func Ensure() error {
-	// diag 也先建出来:数据目录会被收紧成只有管理员能进(见 Harden),而 diag 要单独放开只读给界面复制诊断包。
-	// 等用到时才建的话,它会继承到收紧后的权限上,界面就再也拿不到诊断包了。
+	release, err := PrepareServiceStore()
+	if err == nil {
+		release()
+	}
+	return err
+}
+
+func ensureDirectories() error {
 	for _, d := range []string{ConfDir(), DataDir(), Logs(), RuleSets(), Diag(), filepath.Join(DataDir(), "profiles")} {
 		if err := os.MkdirAll(d, 0o700); err != nil {
 			return err
@@ -39,10 +51,6 @@ func Ensure() error {
 	return nil
 }
 
-// Harden 把数据目录的权限收紧到"只有管理员与系统能进"(Windows 上才有实际动作,见 secure_windows.go)。
-//
-// **每次启动都做一遍**,不是只在首次建目录时:老版本装出来的目录、手工建的目录、被别的程序改过权限的,
-// 都得在这一次修回来,否则老用户永远修不上。
-//
-// 收不动不算致命(便携方式或非管理员身份跑的时候本来就收不动),调用方记一行日志就行。
-func Harden() error { return secureDataDir(DataDir()) }
+// Harden also validates ownership, ancestry and existing entries on Windows.
+// A failure is fatal for privileged store consumers; it must not be logged and ignored.
+func Harden() error { return Ensure() }

@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Maoyangui/godusevpn/internal/identity"
 	"github.com/Maoyangui/godusevpn/internal/profile"
 	"github.com/Maoyangui/godusevpn/internal/ruleset"
 	"github.com/Maoyangui/godusevpn/internal/settings"
@@ -45,13 +46,13 @@ type Input struct {
 
 const (
 	TestURL  = "http://www.gstatic.com/generate_204"
-	TunName  = "godusevpn"
-	TunAddr4 = "172.19.0.1/30"
+	TunName  = identity.TunName
+	TunAddr4 = identity.TunAddr4
 	// HijackDNS macOS 上接管系统 DNS 时填的地址。走的是"进了隧道就被 hijack-dns 接住"这条路,
 	// 所以填什么地址都一样(只要不是被排除在隧道外的私网段,也不能是 TUN 自己的地址 —— 那会被内核当本机地址回环)。
 	// 挑一个国内外都能用的公共解析器:万一哪次崩溃没来得及还原,机器照样能解析,不至于打不开网页。
 	HijackDNS     = "223.5.5.5"
-	TunAddr6      = "fdfe:dcba:9876::1/126"
+	TunAddr6      = identity.TunAddr6
 	fakeIP4       = "198.18.0.0/15"
 	fakeIP6       = "fc00::/18"
 	ruleSetBase   = "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/"

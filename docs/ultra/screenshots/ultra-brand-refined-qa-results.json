@@ -1,0 +1,183 @@
+{
+  "scope": "Refined edition lettering, pure local Wails mock",
+  "checks": [
+    {
+      "width": 320,
+      "theme": "light",
+      "logoFont": {
+        "computed": {
+          "family": "\"Segoe UI\", Arial, sans-serif",
+          "size": "9px",
+          "weight": "600",
+          "spacing": "0.4px",
+          "border": "0px",
+          "background": "rgba(0, 0, 0, 0)",
+          "color": "rgb(108, 95, 136)",
+          "tabIndex": -1
+        },
+        "actualFonts": [
+          {
+            "family": "Segoe UI Semibold",
+            "postScriptName": "SegoeUI-Semibold",
+            "glyphs": 5
+          }
+        ]
+      },
+      "drawerFont": {
+        "computed": {
+          "family": "\"Segoe UI\", Arial, sans-serif",
+          "size": "10px",
+          "weight": "600",
+          "spacing": "0.4px",
+          "border": "0px",
+          "background": "rgba(0, 0, 0, 0)",
+          "color": "rgb(108, 95, 136)",
+          "tabIndex": -1
+        },
+        "actualFonts": [
+          {
+            "family": "Segoe UI Semibold",
+            "postScriptName": "SegoeUI-Semibold",
+            "glyphs": 5
+          }
+        ]
+      },
+      "keyboardOpenClose": true,
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "logoFont": {
+        "computed": {
+          "family": "\"Segoe UI\", Arial, sans-serif",
+          "size": "9px",
+          "weight": "600",
+          "spacing": "0.4px",
+          "border": "0px",
+          "background": "rgba(0, 0, 0, 0)",
+          "color": "rgb(179, 168, 202)",
+          "tabIndex": -1
+        },
+        "actualFonts": [
+          {
+            "family": "Segoe UI Semibold",
+            "postScriptName": "SegoeUI-Semibold",
+            "glyphs": 5
+          }
+        ]
+      },
+      "drawerFont": {
+        "computed": {
+          "family": "\"Segoe UI\", Arial, sans-serif",
+          "size": "10px",
+          "weight": "600",
+          "spacing": "0.4px",
+          "border": "0px",
+          "background": "rgba(0, 0, 0, 0)",
+          "color": "rgb(179, 168, 202)",
+          "tabIndex": -1
+        },
+        "actualFonts": [
+          {
+            "family": "Segoe UI Semibold",
+            "postScriptName": "SegoeUI-Semibold",
+            "glyphs": 5
+          }
+        ]
+      },
+      "keyboardOpenClose": true,
+      "overflow": false
+    },
+    {
+      "width": 420,
+      "theme": "light",
+      "logoFont": {
+        "computed": {
+          "family": "\"Segoe UI\", Arial, sans-serif",
+          "size": "9px",
+          "weight": "600",
+          "spacing": "0.4px",
+          "border": "0px",
+          "background": "rgba(0, 0, 0, 0)",
+          "color": "rgb(108, 95, 136)",
+          "tabIndex": -1
+        },
+        "actualFonts": [
+          {
+            "family": "Segoe UI Semibold",
+            "postScriptName": "SegoeUI-Semibold",
+            "glyphs": 5
+          }
+        ]
+      },
+      "drawerFont": {
+        "computed": {
+          "family": "\"Segoe UI\", Arial, sans-serif",
+          "size": "10px",
+          "weight": "600",
+          "spacing": "0.4px",
+          "border": "0px",
+          "background": "rgba(0, 0, 0, 0)",
+          "color": "rgb(108, 95, 136)",
+          "tabIndex": -1
+        },
+        "actualFonts": [
+          {
+            "family": "Segoe UI Semibold",
+            "postScriptName": "SegoeUI-Semibold",
+            "glyphs": 5
+          }
+        ]
+      },
+      "keyboardOpenClose": true,
+      "overflow": false
+    },
+    {
+      "width": 420,
+      "theme": "dark",
+      "logoFont": {
+        "computed": {
+          "family": "\"Segoe UI\", Arial, sans-serif",
+          "size": "9px",
+          "weight": "600",
+          "spacing": "0.4px",
+          "border": "0px",
+          "background": "rgba(0, 0, 0, 0)",
+          "color": "rgb(179, 168, 202)",
+          "tabIndex": -1
+        },
+        "actualFonts": [
+          {
+            "family": "Segoe UI Semibold",
+            "postScriptName": "SegoeUI-Semibold",
+            "glyphs": 5
+          }
+        ]
+      },
+      "drawerFont": {
+        "computed": {
+          "family": "\"Segoe UI\", Arial, sans-serif",
+          "size": "10px",
+          "weight": "600",
+          "spacing": "0.4px",
+          "border": "0px",
+          "background": "rgba(0, 0, 0, 0)",
+          "color": "rgb(179, 168, 202)",
+          "tabIndex": -1
+        },
+        "actualFonts": [
+          {
+            "family": "Segoe UI Semibold",
+            "postScriptName": "SegoeUI-Semibold",
+            "glyphs": 5
+          }
+        ]
+      },
+      "keyboardOpenClose": true,
+      "overflow": false
+    }
+  ],
+  "errors": [],
+  "outboundRequests": []
+}

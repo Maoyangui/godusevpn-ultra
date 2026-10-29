@@ -199,7 +199,7 @@ func TestCheckNowStaleKickDroppedOnConnect(t *testing.T) {
 	f := &kickDeps{}
 	m := New(f.deps())
 	f.m = m
-	m.CheckNow() // 没在连:token 留在通道里
+	m.CheckNow() // 没在连:请求直接丢弃
 	m.Connect()
 	defer m.Disconnect()
 	waitUntil(t, func() bool { return m.Snapshot().Status == Connected }, "没连上")

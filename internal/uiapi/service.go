@@ -19,8 +19,10 @@ import (
 	"github.com/Maoyangui/godusevpn/internal/buildinfo"
 	"github.com/Maoyangui/godusevpn/internal/clash"
 	"github.com/Maoyangui/godusevpn/internal/ipc"
+	"github.com/Maoyangui/godusevpn/internal/paths"
 	"github.com/Maoyangui/godusevpn/internal/settings"
 	"github.com/Maoyangui/godusevpn/internal/svc"
+	"github.com/Maoyangui/godusevpn/internal/trial"
 	"github.com/Maoyangui/godusevpn/internal/update"
 )
 
@@ -425,6 +427,14 @@ func (s *Service) Call(name string, args []json.RawMessage) (any, error) {
 		return view(ipc.MSelectProfile, map[string]string{"id": arg[string](args, 0)})
 	case "UpdateProfile":
 		return profiles(ipc.MRenameProfile, map[string]string{"id": arg[string](args, 0), "name": arg[string](args, 1), "url": strings.TrimSpace(arg[string](args, 2))})
+	case "TrialStatus":
+		ctx, cancel := context.WithTimeout(s.ctx, 15*time.Second)
+		defer cancel()
+		return trial.New(trial.DefaultEndpoint, s.trialDataDir()).Status(ctx)
+	case "TrialClaim":
+		ctx, cancel := context.WithTimeout(s.ctx, 20*time.Second)
+		defer cancel()
+		return trial.New(trial.DefaultEndpoint, s.trialDataDir()).Claim(ctx)
 	case "GetDevices":
 		return devices(ipc.MGetDevices, nil)
 	case "SetDevice": // (mac, name, mode, ip)
@@ -463,12 +473,16 @@ func (s *Service) Call(name string, args []json.RawMessage) (any, error) {
 		}
 		b, _ := json.MarshalIndent(out, "", "  ")
 		return string(b), nil
-	case "ExportDiag": // 返回 zip 路径;各平台外壳再决定怎么交给用户(下载 / 分享)
-		var r struct {
-			Path string `json:"path"`
+	case "PreviewDiag":
+		options := arg[ipc.DiagnosticOptions](args, 0)
+		if options.Logs || options.Config || options.Crashes || options.Network {
+			return nil, errors.New("此 Web/Android 桥仅提供最小诊断摘要；详细诊断与审阅导出请使用 Windows Ultra 客户端")
 		}
-		err := s.dispatch(ipc.MExportDiag, nil, &r)
-		return r.Path, err
+		var out ipc.DiagnosticPreview
+		err := s.dispatch(ipc.MPreviewDiag, ipc.DiagnosticOptions{}, &out)
+		return out, err
+	case "ExportDiag", "ExportDiagPreview":
+		return nil, errors.New("此构建不支持诊断 ZIP 审阅导出；可查看最小诊断摘要，或使用 Windows Ultra 客户端")
 	case "GetConnections":
 		return s.connections(ctx)
 	case "CloseConnection":
@@ -518,6 +532,16 @@ func (s *Service) Call(name string, args []json.RawMessage) (any, error) {
 		return nil, errors.New("这个环境不支持这个操作")
 	}
 	return nil, fmt.Errorf("没有这个方法: %s", name)
+}
+
+// trialDataDir is user-writable on mobile/WebView hosts. The service's
+// ProgramData directory is intentionally ACL-protected and must not be used by
+// a standard UI process to persist the random installation key.
+func (s *Service) trialDataDir() string {
+	if s.o.PrefsPath != "" {
+		return filepath.Dir(s.o.PrefsPath)
+	}
+	return paths.DataDir()
 }
 
 func (s *Service) savePrefs() {

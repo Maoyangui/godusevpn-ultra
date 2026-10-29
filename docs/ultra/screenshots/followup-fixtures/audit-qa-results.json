@@ -1,0 +1,27 @@
+{
+  "scope": "Only fields/help/navigation affected by the final UI audit",
+  "screenshots": [
+    "audit-onboard-420-light.png",
+    "audit-read-evidence-420-light.png",
+    "audit-probe-420-light.png",
+    "audit-capabilities-420-light.png",
+    "audit-unknown-filters-420-light.png"
+  ],
+  "checks": [
+    {
+      "width": 420,
+      "theme": "light",
+      "onboardHelp": true,
+      "manualControlNavigation": true,
+      "readEvidenceSeparated": true,
+      "unknownStateNotSafe": true,
+      "probeItemHelp": true,
+      "capabilityTranslation": true,
+      "unknownFilterHelp": true,
+      "snapshotExportPreview": true,
+      "noPrivilegedCalls": true
+    }
+  ],
+  "errors": [],
+  "outboundRequests": []
+}

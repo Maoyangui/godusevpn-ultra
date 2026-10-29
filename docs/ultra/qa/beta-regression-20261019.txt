@@ -1,0 +1,40 @@
+ok  	github.com/Maoyangui/godusevpn/internal/appfirewall	0.493s
+?   	github.com/Maoyangui/godusevpn/internal/autostart	[no test files]
+ok  	github.com/Maoyangui/godusevpn/internal/builder	0.665s
+?   	github.com/Maoyangui/godusevpn/internal/buildinfo	[no test files]
+?   	github.com/Maoyangui/godusevpn/internal/clash	[no test files]
+ok  	github.com/Maoyangui/godusevpn/internal/cli	0.071s
+ok  	github.com/Maoyangui/godusevpn/internal/core	3.663s
+ok  	github.com/Maoyangui/godusevpn/internal/daemon	8.546s
+ok  	github.com/Maoyangui/godusevpn/internal/detection	0.110s
+?   	github.com/Maoyangui/godusevpn/internal/guardfix	[no test files]
+ok  	github.com/Maoyangui/godusevpn/internal/identity	0.051s
+ok  	github.com/Maoyangui/godusevpn/internal/ipc	0.095s
+ok  	github.com/Maoyangui/godusevpn/internal/localstate	0.065s
+ok  	github.com/Maoyangui/godusevpn/internal/logx	0.123s
+ok  	github.com/Maoyangui/godusevpn/internal/maintenance	0.077s
+ok  	github.com/Maoyangui/godusevpn/internal/netmode	0.187s
+ok  	github.com/Maoyangui/godusevpn/internal/netmode/wfp	0.317s
+ok  	github.com/Maoyangui/godusevpn/internal/paths	0.116s
+ok  	github.com/Maoyangui/godusevpn/internal/privacy	0.755s
+ok  	github.com/Maoyangui/godusevpn/internal/privacydata	0.313s
+ok  	github.com/Maoyangui/godusevpn/internal/privacyhost	0.155s
+ok  	github.com/Maoyangui/godusevpn/internal/profile	0.115s
+ok  	github.com/Maoyangui/godusevpn/internal/ruleset	0.193s
+ok  	github.com/Maoyangui/godusevpn/internal/settings	0.093s
+ok  	github.com/Maoyangui/godusevpn/internal/state	1.155s
+ok  	github.com/Maoyangui/godusevpn/internal/svc	0.270s
+ok  	github.com/Maoyangui/godusevpn/internal/timeprivacy	0.486s
+ok  	github.com/Maoyangui/godusevpn/internal/tlsroots	0.109s
+ok  	github.com/Maoyangui/godusevpn/internal/uiapi	0.088s
+ok  	github.com/Maoyangui/godusevpn/internal/update	0.139s
+ok  	github.com/Maoyangui/godusevpn/internal/web	0.087s
+?   	github.com/Maoyangui/godusevpn/cmd/godusevpn-cli	[no test files]
+?   	github.com/Maoyangui/godusevpn/cmd/godusevpn-svc	[no test files]
+--- FAIL: TestDistCSSRunsOnOldWebView (0.00s)
+    compat_test.go:200: dist/style.css 第 357 行用了 accent-color(要 Chrome 93,底线是 66)—— 老内核会静默丢掉这条声明,页面不报错但布局是错的
+--- FAIL: TestFlexGapHasNogapFallback (0.00s)
+    compat_test.go:234: 选择器 .diag-choice 是 flex 且用了 gap,却没有对应的 .nogap 兜底规则 —— 电视那种老内核上这一行间距会变成 0
+FAIL
+FAIL	github.com/Maoyangui/godusevpn/web	0.079s
+FAIL

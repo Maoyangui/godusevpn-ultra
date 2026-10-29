@@ -1,6 +1,6 @@
 #!/bin/sh
 # Android TV 模拟器冒烟:装包 → 预授权 → 预置订阅 → 打开 → 只用遥控器按键(方向键 / 确定 / 返回)走一遍首页、节点面板、抽屉、设置,每步截图。
-#   sh deploy/android-tv-test.sh "https://面板/sub/用户名" [APK 路径] [序列号(默认 emulator-5556)]
+#   sh deploy/android-tv-test.sh "https://panel.example.invalid/sub/EXAMPLE" [APK 路径] [序列号(默认 emulator-5556)]
 export MSYS_NO_PATHCONV=1
 SUB="$1"; APK="$2"; SERIAL="${3:-emulator-5556}"
 [ -n "$SUB" ] || { echo "用法: $0 <订阅地址> [APK] [序列号]"; exit 2; }

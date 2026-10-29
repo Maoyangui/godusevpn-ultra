@@ -1,6 +1,6 @@
 #!/bin/sh
 # 佛跳墙 Linux 真机验收(本机模式)。以 root 跑:
-#   sudo sh linux-test.sh "https://面板/sub/用户名" [/usr/local/bin/godusevpn]
+#   sudo sh linux-test.sh "https://panel.example.invalid/sub/EXAMPLE" [/usr/local/bin/godusevpn]
 # 步骤:装服务 → 设订阅 → 连接 → 检查 TUN、策略路由、fake-ip、DNS 劫持、出口、IPv6 阻断、三态、直连真实 IP → 断开 → 清理检查。
 # 在云主机上跑之前会先布一个"死人开关":420 秒内没跑完就自动断开、停服务、撤闸,防止 SSH 被切断后失联,
 # 也防止闸留在机器上把跑机的代理一起断掉(作业会挂到超时)。

@@ -1,0 +1,30 @@
+{
+  "browser": "isolated Edge headless",
+  "screenshots": [
+    "privacy-420-light.png",
+    "confirmation-420-light.png",
+    "tooltip-420-light.png",
+    "privacy-error-420-light.png",
+    "network-420-light.png",
+    "data-420-light.png",
+    "data-result-420-light.png",
+    "detection-420-light.png"
+  ],
+  "checks": [
+    {
+      "width": 420,
+      "theme": "light",
+      "privacyNavigation": true,
+      "manualSettingAction": true,
+      "tooltipBounds": true,
+      "keyboardHelp": true,
+      "filterNoMutation": true,
+      "failureTunnelIsolation": true,
+      "programSelectionNoMutation": true,
+      "scrolledDataResult": true,
+      "detectionUnknownPreserved": true
+    }
+  ],
+  "errors": [],
+  "outboundRequests": []
+}

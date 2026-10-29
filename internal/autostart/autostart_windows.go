@@ -6,12 +6,14 @@ import (
 	"os"
 	"strings"
 
+	"github.com/Maoyangui/godusevpn/internal/identity"
+
 	"golang.org/x/sys/windows/registry"
 )
 
 const (
 	runKey    = `Software\Microsoft\Windows\CurrentVersion\Run`
-	valueName = "godusevpn"
+	valueName = identity.AppName
 )
 
 // Enabled 当前用户是否已设置登录自启(且指向当前可执行文件)。

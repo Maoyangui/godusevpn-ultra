@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "phase": "T00 environment preflight",
+  "targetAlias": "Windows-QA-1",
+  "execution": {
+    "transport": "Azure Action Run Command",
+    "scriptSha256": "98de70721a139c3d6fcfa35870c4a114fc4267bb03ad2b2c49fb663299877ded",
+    "sourceIntegrityCheckedBeforeExecution": true,
+    "completed": true,
+    "elevated": true,
+    "interactiveSidPresent": false,
+    "representsInteractiveGuiUser": false,
+    "settingsModifiedByPreflightScript": false,
+    "testSubscriptionImported": false,
+    "ultraBinaryExecuted": false
+  },
+  "environment": {
+    "portalOs": "Windows 11 Pro",
+    "portalImageSku": "win11-25h2-pro",
+    "registryProductName": "Windows 10 Pro",
+    "registryEdition": "Professional",
+    "registryBuild": "26200.9711",
+    "architecture": "x64",
+    "vCpu": 4,
+    "memoryGiB": 8,
+    "osDiskGiB": 127,
+    "vmAgentReady": true,
+    "bfeRunning": true,
+    "interactiveSessionExists": false,
+    "originalServiceExists": false,
+    "ultraServiceExists": false,
+    "edgeDefaultInstallationExists": true,
+    "edgeVersion": "155.0.4283.62",
+    "webView2DefaultEvergreenExists": true,
+    "webView2Version": "155.0.4283.62",
+    "chromeInInspectedDefaultLocationsExists": false,
+    "ultraDefaultDataDirectoryExists": false,
+    "ultraMachineBackupExists": false,
+    "ultraUserBackupInExecutionAccountExists": false,
+    "ultraTimeBackupInExecutionAccountExists": false
+  },
+  "recovery": {
+    "cloudRunCommandExecutedSuccessfullyBeforeNetworkChanges": true,
+    "snapshotVerified": false,
+    "independentSerialConsoleVerified": false,
+    "safeForDisruptiveNetworkTests": false
+  },
+  "limitations": [
+    "Portal, registry and RDP-advertised version are separate evidence sources; do not classify the installed OS from registry ProductName alone.",
+    "User paths, permissions and per-user installations describe the command token only; no interactive-user profile scan was performed.",
+    "Snapshot, serial console, UAC, browser-policy enforcement, VPN and WFP traffic effects are unverified.",
+    "Azure Run Command depends on the guest agent and required network paths; success before guard changes does not prove it survives those changes.",
+    "Only non-identifying allowlisted environment values are saved. No account, tenant, resource identifier, address, credential, subscription URL or hostname is included."
+  ]
+}

@@ -8,10 +8,12 @@ import (
 	"os"
 	"strings"
 
+	"github.com/Maoyangui/godusevpn/internal/identity"
+
 	"golang.org/x/sys/windows/registry"
 )
 
-const protoScheme = "godusevpn"
+const protoScheme = identity.ProtocolScheme
 
 // ensureURLProtocol 确认 godusevpn:// 指向本程序;已经对上就什么都不做。
 func ensureURLProtocol() {

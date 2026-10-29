@@ -1,0 +1,14 @@
+{
+  "formatVersion": 1,
+  "cases": [
+    {"name":"default-windows","os":"","devicePresetId":"","osVersion":"","version":"130.0.6723.58","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"},
+    {"name":"windows-10","os":"windows","devicePresetId":"windows-desktop","osVersion":"10.0.0","version":"140.0.7339.90","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"},
+    {"name":"windows-api-contract-13","os":"windows","devicePresetId":"windows-desktop","osVersion":"13.0.0","version":"149.0.1234.56","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"},
+    {"name":"macos-13","os":"macos","devicePresetId":"macos-desktop","osVersion":"13.0.0","version":"140.0.7339.90","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"},
+    {"name":"macos-new-version","os":"macos","devicePresetId":"macos-desktop","osVersion":"17.2.1","version":"149.0.1234.56","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"},
+    {"name":"android-13-pixel","os":"android","devicePresetId":"pixel-7","osVersion":"13.0.0","version":"140.0.7339.90","userAgent":"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36"},
+    {"name":"android-edited-version","os":"android","devicePresetId":"pixel-7","osVersion":"17.2.1","version":"149.0.1234.56","userAgent":"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36"},
+    {"name":"ios-synthetic-16","os":"ios","devicePresetId":"iphone-14","osVersion":"16.0.0","version":"140.0.7339.90","userAgent":"Mozilla/5.0 (iPhone; CPU iPhone OS 16_0_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36"},
+    {"name":"ios-synthetic-edited-version","os":"ios","devicePresetId":"iphone-14","osVersion":"17.2.1","version":"149.0.1234.56","userAgent":"Mozilla/5.0 (iPhone; CPU iPhone OS 17_2_1 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36"}
+  ]
+}

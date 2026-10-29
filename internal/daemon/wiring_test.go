@@ -1,6 +1,7 @@
 package daemon
 
 import (
+	"github.com/Maoyangui/godusevpn/internal/paths"
 	"os"
 	"path/filepath"
 	"testing"
@@ -15,14 +16,14 @@ import (
 // 只建 Daemon,不 Run:不监听控制口、不起内核、不碰任何系统网络设置。
 func TestNewInstallsBuiltinRuleSets(t *testing.T) {
 	dir := t.TempDir()
-	t.Setenv("GODUSEVPN_DATA", dir)
+	t.Setenv(paths.DataEnvironment, dir)
 	t.Setenv("GODUSEVPN_CONF", dir)
 
 	d, err := NewWithOptions(Options{NoListen: true})
 	if err != nil {
 		t.Fatalf("装配守护进程失败: %v", err)
 	}
-	_ = d
+	t.Cleanup(func() { _ = d.Close() })
 
 	names := ruleset.Builtin()
 	if len(names) == 0 {

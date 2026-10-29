@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
+	stdRuntime "runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -20,10 +20,14 @@ import (
 	"github.com/Maoyangui/godusevpn/internal/autostart"
 	"github.com/Maoyangui/godusevpn/internal/buildinfo"
 	"github.com/Maoyangui/godusevpn/internal/clash"
+	"github.com/Maoyangui/godusevpn/internal/identity"
 	"github.com/Maoyangui/godusevpn/internal/ipc"
 	"github.com/Maoyangui/godusevpn/internal/paths"
+	"github.com/Maoyangui/godusevpn/internal/privacy"
 	"github.com/Maoyangui/godusevpn/internal/settings"
 	"github.com/Maoyangui/godusevpn/internal/svc"
+	"github.com/Maoyangui/godusevpn/internal/timeprivacy"
+	"github.com/Maoyangui/godusevpn/internal/trial"
 	"github.com/Maoyangui/godusevpn/internal/update"
 )
 
@@ -32,9 +36,10 @@ const testURL = "http://www.gstatic.com/generate_204"
 // UIState 推给页面与托盘的一份快照:服务在不在、服务给的状态、实时速度、界面偏好。
 type UIState struct {
 	Service  bool   `json:"service"`  // 控制管道可达
-	SvcState string `json:"svcState"` // running / stopped / not-installed / unknown(服务管理器视角);no-permission = 服务在跑但当前账户没权限连控制口
+	SvcState string `json:"svcState"` // SCM state, no-permission, or identity-unknown (untrusted control peer)
 	// SvcHint no-permission 时提示的种类(页面按它取译文):register = Windows 登记账户,admin = macOS 要管理员组,
 	// root = Linux 要 root。CanRegister = 界面能替用户登记(Windows)
+	// identity-unknown uses identity (no request sent) or response (result unknown).
 	SvcHint     string          `json:"svcHint,omitempty"`
 	CanRegister bool            `json:"canRegister,omitempty"`
 	View        ipc.StateView   `json:"view"`
@@ -45,6 +50,7 @@ type UIState struct {
 	Lang        string          `json:"lang"`
 	Theme       string          `json:"theme"` // system / light / dark
 	Version     string          `json:"version"`
+	Platform    string          `json:"platform"`
 	Update      *update.Release `json:"update,omitempty"` // 有新版本时带上
 }
 
@@ -55,26 +61,56 @@ type uiPrefs struct {
 }
 
 type App struct {
-	registerMu  sync.Mutex // 「登记本账户」在途时不再叠一个 UAC
-	ctx         context.Context
-	lastCheck   time.Time // 最近一次检查更新
-	lastStatus  string    // 上次看到的连接状态,连上那一刻顺手查一次更新
-	mu          sync.Mutex
-	minimized   bool
-	pendingLink string
-	domReadyCh  chan struct{}
-	state       UIState
-	prefs       uiPrefs
-	clashKey    string // port+secret,变了就重连速度流
-	trafficStop context.CancelFunc
-	tray        *trayUI
-	updating    bool
+	registerMu                   sync.Mutex // 「登记本账户」在途时不再叠一个 UAC
+	ctx                          context.Context
+	lastCheck                    time.Time // 最近一次检查更新
+	lastStatus                   string    // 上次看到的连接状态,连上那一刻顺手查一次更新
+	mu                           sync.Mutex
+	minimized                    bool
+	pendingLink                  string
+	domReadyCh                   chan struct{}
+	state                        UIState
+	prefs                        uiPrefs
+	clashKey                     string // port+secret,变了就重连速度流
+	trafficStop                  context.CancelFunc
+	tray                         *trayUI
+	updating                     bool
+	privacyMu                    sync.Mutex
+	privacyUser                  *privacy.Manager
+	privacyHost                  privacyHelper
+	privacyHostError             string
+	privacyBrowserGuard          *PrivacyBrowserGuardState
+	privacyTime                  *timeprivacy.Manager
+	metadata                     *metadataController
+	privacyHostState             string
+	privacyHostEpoch             uint64
+	privacySnapshot              *privacyDetectionSnapshot
+	privacyExport                *privacyExportSnapshot
+	privacyEvidenceEpoch         uint64
+	browserMu                    sync.Mutex
+	browser                      *browserController
+	browserClosed                bool
+	clipboardMu                  sync.Mutex
+	clipboard                    *clipboardBridge
+	clipboardClosed              bool
+	browserEngineMu              sync.Mutex
+	browserEngine                *browserEngineController
+	browserEngineClosed          bool
+	browserProfilesMu            sync.Mutex
+	browserProfiles              browserProfilesBackend
+	browserProfilesDone          bool
+	locationPortalMu             sync.Mutex
+	locationPortal               locationPortalBackend
+	locationPortalClosed         bool
+	locationObserveMu            sync.Mutex
+	locationObserveCancelPending bool
+	locationObserveActive        bool
 }
 
 func newApp(minimized bool, link string) *App {
 	a := &App{minimized: minimized, pendingLink: link, domReadyCh: make(chan struct{})}
 	a.prefs = loadPrefs()
-	a.state = UIState{Lang: a.prefs.Lang, Theme: a.prefs.Theme, Version: buildinfo.Version, SvcState: "unknown"}
+	a.state = UIState{Lang: a.prefs.Lang, Theme: a.prefs.Theme, Version: buildinfo.Version, SvcState: "unknown", Platform: stdRuntime.GOOS}
 	return a
 }
 
@@ -129,6 +165,21 @@ func (a *App) domReady(context.Context) {
 }
 
 func (a *App) shutdown(context.Context) {
+	a.shutdownLocationPortal()
+	a.shutdownBrowserProfiles()
+	a.shutdownBrowserEngine()
+	a.shutdownClipboard()
+	a.shutdownBrowser()
+	a.privacyMu.Lock()
+	host := a.privacyHost
+	a.privacyHost = nil
+	a.privacyHostEpoch++
+	a.privacyHostState = "closed"
+	a.privacySnapshot, a.privacyExport = nil, nil
+	a.privacyMu.Unlock()
+	if host != nil {
+		host.Close()
+	}
 	a.mu.Lock()
 	stop := a.trafficStop
 	a.mu.Unlock()
@@ -185,16 +236,9 @@ func (a *App) refresh() {
 	defer cancel()
 	var view ipc.StateView
 	err := ipc.Call(ctx, ipc.MGetState, nil, &view)
+	scmState := svc.QueryStatus()
 	a.mu.Lock()
-	a.state.Service = err == nil
-	if err == nil {
-		a.state.View = view
-	} else {
-		a.state.View.State.Status = "disconnected"
-		a.state.Up, a.state.Down = 0, 0
-	}
-	a.state.SvcState = svc.QueryStatus()
-	a.state.SvcHint, a.state.CanRegister = "", false
+	a.state = serviceReadState(a.state, view, err, scmState)
 	// 服务管理器明确说停了 / 没装时不算"没权限":macOS / Linux 上服务崩了会留下 socket 文件,
 	// 普通用户连它照样拿到 EACCES,那种情况该显示"服务没有运行 + 修复",而不是把修复拦下来。
 	if errors.Is(err, ipc.ErrNoPermission) && a.state.SvcState != "stopped" && a.state.SvcState != "not-installed" {
@@ -225,7 +269,9 @@ func (a *App) manageTraffic(st UIState) {
 		a.mu.Lock()
 		stop := a.trafficStop
 		a.trafficStop, a.clashKey = nil, ""
-		a.state.TotalUp, a.state.TotalDown = 0, 0 // 断开就重新计次:首页那格显示的是"本次连接"
+		if st.SvcState != serviceIdentityUnknown {
+			a.state.TotalUp, a.state.TotalDown = 0, 0 // confirmed ordinary disconnected state
+		}
 		a.mu.Unlock()
 		if stop != nil {
 			stop()
@@ -258,6 +304,10 @@ func (a *App) manageTraffic(st UIState) {
 				// 内核的速度流每秒一条,给的是这一秒的字节数,累加起来就是本次连接的总量。
 				// 累计值放在壳里而不是页面里:页面刷新、切到托盘再回来都不会把数字清掉。
 				a.mu.Lock()
+				if a.state.SvcState == serviceIdentityUnknown {
+					a.mu.Unlock()
+					return // stopped observer may still deliver its final callback
+				}
 				a.state.Up, a.state.Down = up, down
 				a.state.TotalUp, a.state.TotalDown = a.state.TotalUp+up, a.state.TotalDown+down
 				tu, td := a.state.TotalUp, a.state.TotalDown
@@ -288,8 +338,12 @@ func (a *App) call(method string, params, result any) error {
 	ctx, cancel := context.WithTimeout(a.ctx, 90*time.Second)
 	defer cancel()
 	err := ipc.Call(ctx, method, params, result)
+	if errors.Is(err, ipc.ErrUntrustedService) || errors.Is(err, ipc.ErrResponseMismatch) {
+		a.markServiceUnconfirmed(err)
+		return err
+	}
 	if errors.Is(err, ipc.ErrNoService) {
-		return errors.New("SERVICE_DOWN")
+		return serviceDownError{}
 	}
 	return err
 }
@@ -310,6 +364,9 @@ func (a *App) updateLoop() {
 
 // pokeUpdate 查一次更新;force 为假时 15 分钟内只查一次(抽屉打开、连上网都会来戳)。结果有变就推一次状态。
 func (a *App) pokeUpdate(force bool) {
+	if identity.Ultra {
+		return // An upstream installer must never replace Ultra or its recovery tools.
+	}
 	a.mu.Lock()
 	if !force && time.Since(a.lastCheck) < 15*time.Minute {
 		a.mu.Unlock()
@@ -338,6 +395,9 @@ func (a *App) PokeUpdate() { go a.pokeUpdate(false) }
 
 // checkUpdate 先直连 GitHub;不通而内核在跑时改走本机混合端口再试一次(TUN 关着的场合)。
 func (a *App) checkUpdate(ctx context.Context) (*update.Release, error) {
+	if identity.Ultra {
+		return nil, errors.New("Ultra 尚未配置独立签名更新通道；为避免被原版覆盖，当前不下载或安装上游更新")
+	}
 	rel, err := update.Check(ctx, buildinfo.Version, true, nil)
 	if err == nil {
 		return rel, nil
@@ -371,6 +431,9 @@ func (a *App) CheckUpdate() (*update.Release, error) {
 
 // ApplyUpdate 下载安装包(进度经 update-progress 事件推给页面),校验后以管理员身份静默安装并重新拉起。
 func (a *App) ApplyUpdate() error {
+	if identity.Ultra {
+		return errors.New("Ultra 更新通道尚未配置，请使用 Ultra 的独立发行包")
+	}
 	a.mu.Lock()
 	rel := a.state.Update
 	if a.updating || rel == nil {
@@ -418,22 +481,17 @@ func (a *App) Minimize() { runtime.WindowMinimise(a.ctx) }
 // QuitApp 托盘"退出":断开连接(TUN 随之拆除)、停掉后台服务进程,再退出自己。
 // 下次登录托盘自启时会把服务再拉起来;上次是手动断开的,不会自动连。
 func (a *App) QuitApp() {
-	if a.GetState().SvcState == "no-permission" {
-		// 这个账户管不了服务(同一台电脑上别的账户在用):「退出」只关自己的界面。
-		// 以前照样 StopUser —— 服务 ACL 允许已登录用户启停,于是第二个账户一点退出,主账户的隧道就断了。
+	quitServiceActions(a.GetState(), func() error {
+		var v ipc.StateView
+		return a.call(ipc.MDisconnect, nil, &v)
+	}, func() {
+		if err := svc.StopUser(); err != nil {
+			a.logf("停止服务: %v", err)
+		}
+	}, func() {
 		a.shutdown(a.ctx)
 		runtime.Quit(a.ctx)
-		return
-	}
-	if a.GetState().Service {
-		var v ipc.StateView
-		_ = a.call(ipc.MDisconnect, nil, &v)
-	}
-	if err := svc.StopUser(); err != nil {
-		a.logf("停止服务: %v", err)
-	}
-	a.shutdown(a.ctx)
-	runtime.Quit(a.ctx)
+	})
 }
 
 // ---- 绑定给页面的方法(window.go.main.App.*) ----
@@ -594,6 +652,29 @@ func (a *App) UpdateProfile(id, name, url string) ([]ipc.ProfileView, error) {
 	return out, err
 }
 
+// TrialStatus 读取后端试用状态。设备标识只保存在当前用户的应用配置目录，
+// 不读取 MAC/序列号；后端负责按月限额，状态读取失败时页面保留购买入口。
+func (a *App) TrialStatus() (trial.Status, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 15*time.Second)
+	defer cancel()
+	return trial.New(trial.DefaultEndpoint, trialDataDir()).Status(ctx)
+}
+
+// TrialClaim 申请本月免费试用并返回新的订阅链接。服务端返回的链接由客户端
+// 复用 AddProfile 的 HTTPS 校验，不把后台管理员令牌放入客户端。
+func (a *App) TrialClaim() (trial.ClaimResult, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 20*time.Second)
+	defer cancel()
+	return trial.New(trial.DefaultEndpoint, trialDataDir()).Claim(ctx)
+}
+
+// trialDataDir belongs to the interactive user. The service store under
+// ProgramData is ACL-protected for SYSTEM/Administrators, while the Wails UI
+// normally runs as a standard user. Keeping only the random install key in the
+// per-user config directory lets that user claim a trial without weakening the
+// service store ACLs.
+func trialDataDir() string { return filepath.Join(userConfigDir(), paths.AppName) }
+
 func (a *App) GetSettings() (settings.Settings, error) {
 	var s settings.Settings
 	err := a.call(ipc.MGetSettings, nil, &s)
@@ -623,36 +704,14 @@ func (a *App) Diagnose() (string, error) {
 	return string(b), nil
 }
 
-// ExportDiag 让服务生成脱敏诊断包,复制到桌面并在资源管理器里选中,返回桌面上的路径。
+// ExportDiag is the compatibility entry point for a minimal diagnostic only.
+// Detailed content requires an explicitly reviewed PreviewDiag snapshot.
 func (a *App) ExportDiag() (string, error) {
-	var r struct {
-		Path string `json:"path"`
-	}
-	if err := a.call(ipc.MExportDiag, nil, &r); err != nil {
+	p, err := a.PreviewDiag(ipc.DiagnosticOptions{})
+	if err != nil {
 		return "", err
 	}
-	desktop := desktopDir()
-	dst := filepath.Join(desktop, filepath.Base(r.Path))
-	if err := copyFile(r.Path, dst); err != nil {
-		return r.Path, nil // 复制不了就给原路径
-	}
-	revealFile(dst)
-	return dst, nil
-}
-
-func copyFile(src, dst string) error {
-	in, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer in.Close()
-	out, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-	_, err = io.Copy(out, in)
-	return err
+	return a.ExportDiagPreview(p.ID, p.SHA256)
 }
 
 // ConnRow 连接页一行。
@@ -730,10 +789,26 @@ func (a *App) SetTheme(theme string) {
 
 // RepairService 以管理员身份重新注册并启动后台服务(弹一次 UAC)。
 func (a *App) RepairService() error {
+	if a.GetState().SvcState == serviceIdentityUnknown {
+		return unconfirmedServiceError(a.GetState())
+	}
 	if st := a.GetState(); st.SvcState == "no-permission" {
 		// 服务没坏,是这个账户没权限。「修复」= uninstall + install,会把别的账户正在用的闸撤掉、网卡 IPv6 还原,
 		// 而且 install 见名单已有人就不会再登记本账户 —— 白拆一次隧道,问题原样。
 		return errors.New("E_NO_PERMISSION: ")
+	}
+	// A previously readable snapshot may have become untrusted before this
+	// click. Authenticate a fresh read before any SCM start/repair side effect.
+	var current ipc.StateView
+	readErr := a.call(ipc.MGetState, nil, &current)
+	if errors.Is(readErr, ipc.ErrUntrustedService) || errors.Is(readErr, ipc.ErrResponseMismatch) || errors.Is(readErr, ipc.ErrNoPermission) {
+		return readErr
+	}
+	if errors.Is(readErr, ipc.ErrNoService) {
+		if currentSCM := svc.QueryStatus(); currentSCM != "stopped" && currentSCM != "not-installed" {
+			a.markServiceUnconfirmed(ipc.ErrUntrustedService)
+			return ipc.ErrUntrustedService
+		}
 	}
 	// 「登记本账户」正在重启服务:这时横幅会短暂变成"服务没有运行 + 修复",别在这个空档里再动服务
 	if !a.registerMu.TryLock() {

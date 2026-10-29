@@ -11,13 +11,14 @@ import (
 	"strings"
 	"unsafe"
 
+	"github.com/Maoyangui/godusevpn/internal/identity"
 	"github.com/Maoyangui/godusevpn/internal/paths"
 	"github.com/Microsoft/go-winio"
 	"golang.org/x/sys/windows"
 )
 
 // PipeName 管道名。ACL:SYSTEM、管理员与安装时登记的控制用户可读写。
-const PipeName = `\\.\pipe\godusevpn`
+const PipeName = identity.PipeName
 
 // Address 控制口地址(诊断信息里显示用)。
 func Address() string { return PipeName }
@@ -236,7 +237,9 @@ func listen() (net.Listener, error) {
 }
 
 func dial(ctx context.Context) (net.Conn, error) {
-	return winio.DialPipeContext(ctx, PipeName)
+	return dialAuthenticated(ctx, func(ctx context.Context) (net.Conn, error) {
+		return winio.DialPipeContext(ctx, PipeName)
+	}, authenticateWindowsPeer)
 }
 
 func listenerClosed(err error) bool { return errors.Is(err, winio.ErrPipeListenerClosed) }

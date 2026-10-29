@@ -1,0 +1,47 @@
+{
+  "schema": "ultra-qa3-file-preparation-v1",
+  "candidate": "0.01-beta-qa.3",
+  "transfer": {
+    "zipBytes": 12328692,
+    "zipSha256": "6439d6ba4d451290290f915e711d28442fa54e8c97b3fe01b791d5dd6779316d",
+    "partsWrittenAndVerified": 6,
+    "mergedHashMatched": true
+  },
+  "support": {
+    "zipBytes": 10459385,
+    "zipSha256": "a7540acd84d2ab23354cd20f6f1fcceadb05126650e3b98aa693a869b20c22df",
+    "partsWrittenAndVerified": 5,
+    "mergedHashMatched": true
+  },
+  "reconstruction": {
+    "schema": "ultra-qa3-expand-v1",
+    "ready": true,
+    "stage": "complete",
+    "error": "",
+    "files": 3,
+    "hashesMatched": 3,
+    "sha256Match": true,
+    "privateChecked": true,
+    "decoderExecuted": true,
+    "terminationUnknown": false,
+    "productExecuted": false
+  },
+  "assembly": {
+    "schema": "ultra-qa3-assemble-v1",
+    "ready": true,
+    "stage": "complete",
+    "error": "",
+    "files": 352,
+    "copiedEXEs": 3,
+    "supportFiles": 349,
+    "sha256Match": true,
+    "staticVersionsMatched": 3,
+    "privateChecked": true,
+    "productExecuted": false,
+    "installerExecuted": false
+  },
+  "manifestSha256": "bd0bcadae8965f3f782e63146d917f1fac82df8d3d7fd15eee3cd0a2cd5f61dd",
+  "runtimeBehaviorVerified": false,
+  "serviceInstalled": false,
+  "scope": "Actual VPS data transfer, fixed delta decoder reconstruction, and independent on-disk package inventory/hash/static-version checks. No product EXE or installer was run in this preparation batch."
+}

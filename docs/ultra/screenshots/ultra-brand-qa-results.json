@@ -1,0 +1,85 @@
+{
+  "scope": "Pure Wails mock branding visual QA; no product/backend/settings calls",
+  "screenshots": [
+    "ultra-brand-closed-320-light.png",
+    "ultra-brand-drawer-320-light.png",
+    "ultra-brand-closed-320-dark.png",
+    "ultra-brand-drawer-320-dark.png",
+    "ultra-brand-closed-420-light.png",
+    "ultra-brand-drawer-420-light.png",
+    "ultra-brand-about-420-light.png",
+    "ultra-brand-login-420-light.png",
+    "ultra-brand-closed-420-dark.png",
+    "ultra-brand-drawer-420-dark.png",
+    "ultra-brand-about-420-dark.png",
+    "ultra-brand-login-420-dark.png",
+    "ultra-brand-closed-900-light.png",
+    "ultra-brand-drawer-900-light.png",
+    "ultra-brand-closed-900-dark.png",
+    "ultra-brand-drawer-900-dark.png"
+  ],
+  "checks": [
+    {
+      "width": 320,
+      "theme": "light",
+      "logoCorner": true,
+      "drawerInline": true,
+      "noHorizontalOverflow": true,
+      "keyboardOpenClose": true,
+      "badgeTabStop": false,
+      "contrast": 6.24
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "logoCorner": true,
+      "drawerInline": true,
+      "noHorizontalOverflow": true,
+      "keyboardOpenClose": true,
+      "badgeTabStop": false,
+      "contrast": 9.79
+    },
+    {
+      "width": 420,
+      "theme": "light",
+      "logoCorner": true,
+      "drawerInline": true,
+      "noHorizontalOverflow": true,
+      "keyboardOpenClose": true,
+      "badgeTabStop": false,
+      "contrast": 6.24
+    },
+    {
+      "width": 420,
+      "theme": "dark",
+      "logoCorner": true,
+      "drawerInline": true,
+      "noHorizontalOverflow": true,
+      "keyboardOpenClose": true,
+      "badgeTabStop": false,
+      "contrast": 9.79
+    },
+    {
+      "width": 900,
+      "theme": "light",
+      "logoCorner": true,
+      "drawerInline": true,
+      "noHorizontalOverflow": true,
+      "keyboardOpenClose": true,
+      "badgeTabStop": false,
+      "contrast": 6.24
+    },
+    {
+      "width": 900,
+      "theme": "dark",
+      "logoCorner": true,
+      "drawerInline": true,
+      "noHorizontalOverflow": true,
+      "keyboardOpenClose": true,
+      "badgeTabStop": false,
+      "contrast": 9.79
+    }
+  ],
+  "errors": [],
+  "outboundRequests": []
+}

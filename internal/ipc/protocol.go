@@ -28,7 +28,8 @@ const (
 	MDiagnose       = "Diagnose"
 	MPing           = "Ping"
 	MGetClashInfo   = "GetClashInfo" // 内核 Clash API 的端口与密钥,托盘客户端据此读实时速度、连接与节点延迟
-	MExportDiag     = "ExportDiag"   // 生成脱敏的诊断 zip,返回路径
+	MExportDiag     = "ExportDiag"   // 导出已预览快照；无参数仅最小摘要，返回有界 zip bytes
+	MPreviewDiag    = "PreviewDiag"  // 显式选择诊断内容并取得可核对的快照
 	MGetProfiles    = "GetProfiles"  // 订阅列表
 	MAddProfile     = "AddProfile"   // 新增订阅(先拉一次验证)
 	MRemoveProfile  = "RemoveProfile"

@@ -12,6 +12,7 @@ import (
 	"github.com/energye/systray"
 
 	"github.com/Maoyangui/godusevpn/internal/buildinfo"
+	"github.com/Maoyangui/godusevpn/internal/svc"
 )
 
 //go:embed build/tray/on.ico
@@ -36,8 +37,8 @@ type trayUI struct {
 func newTray(a *App) *trayUI { return &trayUI{app: a} }
 
 var trayText = map[string]map[string]string{
-	"zh": {"show": "显示主窗口", "connect": "连接", "disconnect": "断开", "mode": "模式", "rule": "规则", "global": "全局", "direct": "直连", "quit": "退出", "svcdown": "服务未运行", "upgrade": "升级到", "guardfix": "恢复网络(解除禁直连闸)", "svcnoperm": "服务在跑,但当前账户没登记为控制用户"},
-	"en": {"show": "Show window", "connect": "Connect", "disconnect": "Disconnect", "mode": "Mode", "rule": "Rule", "global": "Global", "direct": "Direct", "quit": "Quit", "svcdown": "Service not running", "upgrade": "Update to", "guardfix": "Restore network (lift no-direct guard)", "svcnoperm": "Service running, but this account is not registered as a controller"},
+	"zh": {"show": "显示主窗口", "connect": "连接", "disconnect": "断开", "mode": "模式", "rule": "规则", "global": "全局", "direct": "直连", "quit": "退出", "svcdown": "服务未运行", "upgrade": "升级到", "guardfix": "恢复网络(解除禁直连闸)", "svcnoperm": "服务在跑,但当前账户没登记为控制用户", "svcidentity": "服务身份未确认，连接状态未知", "svcresponse": "服务响应不匹配，操作结果未知", "quitui": "关闭界面（保留后台服务）"},
+	"en": {"show": "Show window", "connect": "Connect", "disconnect": "Disconnect", "mode": "Mode", "rule": "Rule", "global": "Global", "direct": "Direct", "quit": "Quit", "svcdown": "Service not running", "upgrade": "Update to", "guardfix": "Restore network (lift no-direct guard)", "svcnoperm": "Service running, but this account is not registered as a controller", "svcidentity": "Service identity unconfirmed; connection status unknown", "svcresponse": "Service response mismatch; operation result unknown", "quitui": "Close UI (keep background service)"},
 }
 
 func (t *trayUI) tr(key string) string {
@@ -105,6 +106,9 @@ func (t *trayUI) onReady() {
 	t.show.Click(async(func() { t.app.showWindow() }))
 	t.conn.Click(async(func() {
 		st := t.app.GetState()
+		if st.SvcState == serviceIdentityUnknown {
+			return
+		}
 		if st.View.State.Wanted {
 			_, _ = t.app.Disconnect()
 		} else {
@@ -117,24 +121,27 @@ func (t *trayUI) onReady() {
 	t.quitItem.Click(async(func() { t.app.QuitApp() }))
 	// 恢复网络:服务活着就关掉「全局禁直连」的开关(闸随之撤);服务不在就提权跑恢复命令,直接删过滤器
 	t.guardFix.Click(async(func() {
-		if t.app.GetState().Service {
+		if t.app.GetState().SvcState == serviceIdentityUnknown {
+			return // unknown service identity must not select the offline clear path
+		}
+		restoreNetworkActions(func() (ipc.StateView, error) {
 			var v ipc.StateView
-			if err := t.app.call(ipc.MGetState, nil, &v); err == nil && v.Guard == "" && v.GuardError == "" {
-				return // 闸本来就没开,没什么可解除的;别顺手把「全局禁直连」开关关了
-			}
+			err := t.app.call(ipc.MGetState, nil, &v)
+			return v, err
+		}, svc.QueryStatus, func(ipc.StateView) {
 			if s, err := t.app.GetSettings(); err == nil {
 				s.NoDirect = false
 				_, _ = t.app.SaveSettings(s)
 			}
-			return
-		}
-		exe, err := os.Executable()
-		if err != nil {
-			return
-		}
-		if p, err := serviceBinary(filepath.Dir(exe)); err == nil {
-			_ = runElevated(p, "guard clear --popup")
-		}
+		}, func() {
+			exe, err := os.Executable()
+			if err != nil {
+				return
+			}
+			if p, err := serviceBinary(filepath.Dir(exe)); err == nil {
+				_ = runElevated(p, "guard clear --popup")
+			}
+		})
 	}))
 	t.upgrade.Click(async(func() { t.app.showAbout() }))
 	t.mu.Lock()
@@ -153,6 +160,13 @@ func (t *trayUI) update(st UIState) {
 	status := "off"
 	tip := buildinfo.DisplayName
 	switch {
+	case st.SvcState == serviceIdentityUnknown:
+		status = "err"
+		if st.SvcHint == "response" {
+			tip += " · " + t.tr("svcresponse")
+		} else {
+			tip += " · " + t.tr("svcidentity")
+		}
 	case !st.Service && st.SvcState == "no-permission":
 		status = "err"
 		tip += " · " + t.tr("svcnoperm")
@@ -184,12 +198,30 @@ func (t *trayUI) update(st UIState) {
 		tip = tip[:120]
 	}
 	systray.SetTooltip(tip)
-	if st.View.State.Wanted {
-		t.conn.SetTitle(t.tr("disconnect"))
+	if st.SvcState == serviceIdentityUnknown {
+		if st.SvcHint == "response" {
+			t.conn.SetTitle(t.tr("svcresponse"))
+		} else {
+			t.conn.SetTitle(t.tr("svcidentity"))
+		}
+		t.quitItem.SetTitle(t.tr("quitui"))
+		t.guardFix.Disable()
+		t.rule.Disable()
+		t.global.Disable()
+		t.direct.Disable()
 	} else {
+		t.quitItem.SetTitle(t.tr("quit"))
+		t.guardFix.Enable()
+		t.rule.Enable()
+		t.global.Enable()
+		t.direct.Enable()
+	}
+	if st.SvcState != serviceIdentityUnknown && st.View.State.Wanted {
+		t.conn.SetTitle(t.tr("disconnect"))
+	} else if st.SvcState != serviceIdentityUnknown {
 		t.conn.SetTitle(t.tr("connect"))
 	}
-	if st.Service {
+	if st.Service && st.SvcState != serviceIdentityUnknown {
 		t.conn.Enable()
 	} else {
 		t.conn.Disable()

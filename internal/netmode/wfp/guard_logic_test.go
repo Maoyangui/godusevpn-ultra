@@ -8,6 +8,13 @@ import (
 	"golang.org/x/sys/windows"
 )
 
+func TestUltraNeverOwnsOriginalGuardObjects(t *testing.T) {
+	for _,id:=range []uint32{0x6f6d9e2c,0x6f6d9e2d,0x6f6d9e2e,0x6f6d9e2f}{
+		g:=windows.GUID{Data1:id,Data2:0x3a41,Data3:0x4b8e,Data4:[8]byte{0x9d,0x55,0x67,0x6f,0x64,0x75,0x73,0x65}}
+		if isOurs(g,nil)||isOurs(windows.GUID{},&g){t.Fatal("Ultra would remove original product guard objects")}
+	}
+}
+
 // dnsBlocks 两条拦 DNS 的过滤器(出站 IPv4 / IPv6 各一条,带条件),标志是 flag。
 func dnsBlocks(flag wtFwpmFilterFlags) []filterInfo {
 	return []filterInfo{
@@ -79,14 +86,14 @@ func TestBaseProviderIsNotBoundToAService(t *testing.T) {
 // 第二代改回第一代就又得走"先删光再重建"那条有空窗的路。
 func TestGuardGenerations(t *testing.T) {
 	d4 := [8]byte{0x9d, 0x55, 0x67, 0x6f, 0x64, 0x75, 0x73, 0x65}
-	wantLegacyP := windows.GUID{Data1: 0x6f6d9e2c, Data2: 0x3a41, Data3: 0x4b8e, Data4: d4}
-	wantLegacyS := windows.GUID{Data1: 0x6f6d9e2d, Data2: 0x3a41, Data3: 0x4b8e, Data4: d4}
+	wantLegacyP := windows.GUID{Data1: 0x8a1b0e10, Data2: 0x3a41, Data3: 0x4b8e, Data4: d4}
+	wantLegacyS := windows.GUID{Data1: 0x8a1b0e11, Data2: 0x3a41, Data3: 0x4b8e, Data4: d4}
 	if legacyProviderKey != wantLegacyP || legacySublayerKey != wantLegacyS {
 		t.Fatal("第一代 GUID 变了:m29 那几版(0.6.25-m29 ~ 0.7.1)留下的提供者 / 子层 / 过滤器就认不出来了")
 	}
 	// 第二代的值也钉死:改了它,0.7.4 起装下的 …2e / …2f 对象下一版就认不出、删不掉(断开 / 卸载后断网卡死)
-	wantP := windows.GUID{Data1: 0x6f6d9e2e, Data2: 0x3a41, Data3: 0x4b8e, Data4: d4}
-	wantS := windows.GUID{Data1: 0x6f6d9e2f, Data2: 0x3a41, Data3: 0x4b8e, Data4: d4}
+	wantP := windows.GUID{Data1: 0x8a1b0e12, Data2: 0x3a41, Data3: 0x4b8e, Data4: d4}
+	wantS := windows.GUID{Data1: 0x8a1b0e13, Data2: 0x3a41, Data3: 0x4b8e, Data4: d4}
 	if providerKey != wantP || sublayerKey != wantS {
 		t.Fatal("第二代 GUID 变了:0.7.4 起装下的提供者 / 子层 / 过滤器就认不出来了。要换代就再加一代,别改这一代的值")
 	}

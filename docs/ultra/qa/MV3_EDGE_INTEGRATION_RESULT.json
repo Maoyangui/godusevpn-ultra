@@ -1,0 +1,181 @@
+{
+  "schema": "ultra-mv3-edge-live-v1",
+  "status": "passed_limited_integration",
+  "error": "",
+  "scope": "current_host_fresh_temp_headless_edge_only",
+  "mockBrowserAPI": false,
+  "browserVersion": "155.0.4283.62",
+  "manifestVersion": 3,
+  "extensionWorkerLoaded": true,
+  "productCoordinatorUsed": true,
+  "profileRetained": true,
+  "profileLeaf": "ultra-mv3-edge-live-PNyrek",
+  "pageRequestCounts": {
+    "extension": 4,
+    "blank": 0,
+    "otherBlocked": 0
+  },
+  "pageRequestsAreNotWholeProcessTraffic": true,
+  "remoteNavigationPerformed": false,
+  "windowsPolicyModified": false,
+  "existingProfileUsed": false,
+  "hardwareOrWebRTCProbeRun": false,
+  "cases": [
+    {
+      "id": "webrtc",
+      "status": "passed_setting_roundtrip",
+      "before": {
+        "supported": true,
+        "unknown": false,
+        "value": "default",
+        "control": "controllable_by_this_extension",
+        "writable": true,
+        "managed": false,
+        "stage": ""
+      },
+      "applyAcknowledged": true,
+      "restored": true,
+      "journalRemoved": true,
+      "after": {
+        "supported": true,
+        "unknown": false,
+        "value": "disable_non_proxied_udp",
+        "control": "controlled_by_this_extension",
+        "writable": true,
+        "managed": true,
+        "stage": "active"
+      },
+      "appliedReadback": true,
+      "journalActive": true,
+      "restoreReadback": {
+        "supported": true,
+        "unknown": false,
+        "value": "default",
+        "control": "controllable_by_this_extension",
+        "writable": true,
+        "managed": false,
+        "stage": ""
+      }
+    },
+    {
+      "id": "prediction",
+      "status": "passed_setting_roundtrip",
+      "before": {
+        "supported": true,
+        "unknown": false,
+        "value": true,
+        "control": "controllable_by_this_extension",
+        "writable": true,
+        "managed": false,
+        "stage": ""
+      },
+      "applyAcknowledged": true,
+      "restored": true,
+      "journalRemoved": true,
+      "after": {
+        "supported": true,
+        "unknown": false,
+        "value": false,
+        "control": "controlled_by_this_extension",
+        "writable": true,
+        "managed": true,
+        "stage": "active"
+      },
+      "appliedReadback": true,
+      "journalActive": true,
+      "restoreReadback": {
+        "supported": true,
+        "unknown": false,
+        "value": true,
+        "control": "controllable_by_this_extension",
+        "writable": true,
+        "managed": false,
+        "stage": ""
+      }
+    },
+    {
+      "id": "thirdparty",
+      "status": "passed_setting_roundtrip",
+      "before": {
+        "supported": true,
+        "unknown": false,
+        "value": true,
+        "control": "controllable_by_this_extension",
+        "writable": true,
+        "managed": false,
+        "stage": ""
+      },
+      "applyAcknowledged": true,
+      "restored": true,
+      "journalRemoved": true,
+      "after": {
+        "supported": true,
+        "unknown": false,
+        "value": false,
+        "control": "controlled_by_this_extension",
+        "writable": true,
+        "managed": true,
+        "stage": "active"
+      },
+      "appliedReadback": true,
+      "journalActive": true,
+      "restoreReadback": {
+        "supported": true,
+        "unknown": false,
+        "value": true,
+        "control": "controllable_by_this_extension",
+        "writable": true,
+        "managed": false,
+        "stage": ""
+      }
+    },
+    {
+      "id": "content-notifications",
+      "status": "passed_single_origin_sample_roundtrip",
+      "before": {
+        "supported": true,
+        "unknown": false,
+        "value": "ask",
+        "control": "",
+        "writable": true,
+        "managed": false,
+        "stage": ""
+      },
+      "source": "https://example.invalid",
+      "modeReadback": [
+        {
+          "requested": "block",
+          "actual": "block",
+          "journalActive": true
+        },
+        {
+          "requested": "ask",
+          "actual": "ask",
+          "journalActive": true
+        }
+      ],
+      "controlLevelUnavailable": true,
+      "verifiedScope": "single_origin_API_sample_only",
+      "clearAcknowledged": true,
+      "universalRestoreNotClaimed": true,
+      "sampleReturnedToBaseline": true,
+      "journalRemoved": true
+    }
+  ],
+  "queue": {
+    "status": "passed_real_background_serialization",
+    "simultaneousRequests": 5,
+    "allAcknowledged": true,
+    "orderedIntermediateActive": true,
+    "baselineRestored": true,
+    "journalRemoved": true
+  },
+  "sourceSHA256": {
+    "manifest.json": "23e815d8024a58efcd2569ada109b67bca26c61b7eea45fbd0fc09fba9ebba04",
+    "core.js": "4b4b917d3e67839eb86facec9f6cd28d48fe0967b1ca40e16616683999bd8b21",
+    "background.js": "393c8cece465c9862526e8013d85de083557773b087288b326759098bb473053",
+    "panel.html": "2f352646cce3f5dba1c4e9b112eeb46cdbbdca29fc13082324c457fb6d201fce",
+    "panel.js": "cb85ad3468b8b5a01c33dcb23aaba143f7fa3ade317cc54831c94aa1a495c228"
+  },
+  "finalJournalEmpty": true
+}

@@ -1,10 +1,24 @@
 // 佛跳墙 竖向客户端页面。后端方法在 window.go.main.App;服务端每 1.5 秒推 "state",内核每秒推 "traffic"。
 const App = () => window.go.main.App;
+let updateWindowControlText = () => {};
+function setupWindowControls() {
+  const button=document.querySelector('#max-btn'),bridge=App();
+  const supported=!!(button&&state&&state.platform==='windows'&&!window.__web&&!window.__android&&Object.prototype.hasOwnProperty.call(bridge,'ToggleMaximize')&&Object.prototype.hasOwnProperty.call(bridge,'IsMaximized'));
+  if(!button)return;
+  button.hidden=!supported;document.body.classList.toggle('has-maximize',supported);
+  if(!supported)return;
+  let maximized=false,generation=0;
+  updateWindowControlText=()=>{const label=t(maximized?'window.restore':'window.maximize');button.title=label;button.setAttribute('aria-label',label);button.setAttribute('aria-pressed',String(maximized));button.querySelector('path').setAttribute('d',maximized?'M8 8H5v11h11v-3M8 5h11v11H8z':'M6 6h12v12H6z');};
+  const sync=async()=>{const own=++generation;try{const actual=await bridge.IsMaximized();if(own===generation&&typeof actual==='boolean'){maximized=actual;updateWindowControlText();}}catch(_){}};
+  button.addEventListener('click',async()=>{if(button.disabled)return;button.disabled=true;const own=++generation;try{const actual=await bridge.ToggleMaximize();if(own===generation&&typeof actual==='boolean'){maximized=actual;updateWindowControlText();}}catch(_){toast(t('window.failed'),'err');}finally{button.disabled=false;sync();}});
+  window.addEventListener('resize',sync);updateWindowControlText();sync();
+}
 const $ = s => document.querySelector(s);
 const esc = s => String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 let state = null;          // 最新 UIState
 let view = null;           // 当前页面名:onboard / home / settings / profiles / conns / logs / about
 let pageTimer = null;      // 页面自己的定时刷新
+let diagnosticsFlow = 0;   // A preview belongs to the page that requested it.
 let lastPing = 0;          // 手动测速刚测出来的延迟;服务每次推状态时会用它自己那份覆盖
 let tweens = {};           // 数字过渡
 
@@ -90,7 +104,7 @@ function askDialog(opts) {
       if (e.key === 'Enter' && input) { e.preventDefault(); done(true); }
       if (e.key === 'Escape') { e.preventDefault(); done(false); }
     });
-    setTimeout(() => { (input || $('#dialog-yes')).focus(); if (input) input.select(); }, 40);
+    setTimeout(() => { const target = input || $('#dialog-yes'); if (target && target.isConnected) { target.focus(); if (input) input.select(); } }, 40);
   });
 }
 const askConfirm = (text, opts = {}) => askDialog({ text, danger: true, ...opts });
@@ -146,6 +160,7 @@ function applyTheme(theme) {
   if (theme === 'light' || theme === 'dark') html.setAttribute('data-theme', theme); else html.removeAttribute('data-theme');
 }
 function svcText(st) {
+  if (st.svcState === 'identity-unknown') return t(st.svcHint === 'response' ? 'svc.responseUnknown' : 'svc.identityUnknown');
   if (st.service) return t('svc.running');
   if (st.svcState === 'no-permission') return t('svc.noPermission'); // 服务在跑,只是当前账户没登记为控制用户
   if (st.svcState === 'not-installed') return t('svc.notInstalled');
@@ -162,10 +177,12 @@ const ICON = {
   about: '<circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/>',
   rules: '<path d="M4 6h3l8 12h5M4 18h3l2.5-3.7M13.5 9.7L15 7.5h5"/><path d="M17 4l3 3-3 3M17 14l3 4-3 3"/>',
   devices: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
+  privacy: '<path d="M12 3l8 3v6c0 5-8 9-8 9s-8-4-8-9V6z"/><path d="M8 12l3 3 5-6"/>',
+  detection: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M8 10.5h5M10.5 8v5"/>',
 };
-const MENU = ['settings', 'profiles', 'rules', 'devices', 'conns', 'logs', 'about'];
-const menuItems = () => MENU.filter(m => m !== 'devices' || (state && state.platform === 'linux')); // 设备页只有 Linux 软路由有
-const PAGES = { onboard: renderOnboard, home: renderHome, settings: renderSettings, profiles: renderProfiles, rules: renderRules, ruleEdit: renderRuleEdit, devices: renderDevices, conns: renderConns, logs: renderLogs, about: renderAbout };
+const MENU = ['settings', 'privacy', 'detection', 'profiles', 'rules', 'devices', 'conns', 'logs', 'about'];
+const menuItems = () => MENU.filter(m => (m !== 'devices' || (state && state.platform === 'linux')) && ((m !== 'privacy' && m !== 'detection') || (state && state.platform === 'windows' && !window.__web && !window.__android)));
+const PAGES = { onboard: renderOnboard, home: renderHome, settings: renderSettings, privacy: renderPrivacy, detection: renderPrivacyDetection, profiles: renderProfiles, rules: renderRules, ruleEdit: renderRuleEdit, devices: renderDevices, conns: renderConns, logs: renderLogs, about: renderAbout };
 const TITLES = { settings: 'set.title', profiles: 'prof.title', rules: 'rules.title', ruleEdit: 'rules.edit', devices: 'dev.title', conns: 'conns.title', logs: 'logs.title', about: 'about.title' };
 const BACK = { ruleEdit: 'rules' }; // 返回键去哪(默认回首页)
 // 重绘会把焦点所在的元素换掉(遥控器上焦点就没了):画之前记下 data-* 键,画完再落回同一项
@@ -180,7 +197,7 @@ function refocus(container, attr, key) {
 }
 function renderDrawer() {
   const keep = focusKey($('#drawer-items'), 'data-page');
-  $('#drawer-items').innerHTML =menuItems().map(m => `<a data-page="${m}"><svg viewBox="0 0 24 24">${ICON[m]}</svg><span>${t('menu.' + m)}</span>${m === 'about' && state && state.update ? '<span class="grow"></span><span class="pill-badge">NEW</span>' : ''}</a>`).join('');
+  $('#drawer-items').innerHTML =menuItems().map(m => `<a data-page="${m}"><svg viewBox="0 0 24 24">${ICON[m]}</svg><span>${m === 'privacy' ? '隐私中心' : m === 'detection' ? '检测中心' : t('menu.' + m)}</span>${m === 'about' && state && state.update ? '<span class="grow"></span><span class="pill-badge">NEW</span>' : ''}</a>`).join('');
   $('#drawer-items').querySelectorAll('a').forEach(a => a.addEventListener('click', () => { closeDrawer(); nav(a.dataset.page); }));
   refocus($('#drawer-items'), 'data-page', keep);
   $('#drawer-ver').textContent = 'v' + (state ? state.version : '');
@@ -265,6 +282,8 @@ function setTop(title, back) {
 
 // ---- 页面切换 ----
 function nav(name, arg) {
+  diagnosticsFlow++;
+  closeDialog(false);
   const stage = $('#stage');
   // 把已有的页面全部清掉(可能不止一个:引导页加订阅后自己 nav 一次,状态事件又 nav 一次,叠在一起就是两个首页)
   for (const old of stage.querySelectorAll('.view')) {
@@ -276,20 +295,87 @@ function nav(name, arg) {
   el.className = 'view ' + name + (name === 'settings' || name === 'ruleEdit' ? ' has-bar' : ''); // 页名当类名用;带保存栏的页内容不够高时保存栏也贴底
   stage.appendChild(el);
   PAGES[name](el, arg);
-  setTop(name === 'home' || name === 'onboard' ? t('app.name') : t(TITLES[name]), name !== 'home' && name !== 'onboard');
+  setTop(name === 'privacy' ? '隐私中心' : name === 'detection' ? '检测中心' : name === 'home' || name === 'onboard' ? t('app.name') : t(TITLES[name]), name !== 'home' && name !== 'onboard');
   tvFocus();
 }
 function navHome() { nav(state && state.view.profiles && state.view.profiles.length ? 'home' : 'onboard'); }
 
+// 试用卡片只负责展示和调用后端；月度限额、套餐和购买地址由后台返回，
+// 页面不缓存订阅链接，也不把管理员令牌放在客户端。
+const TRIAL_PURCHASE_FALLBACK = 'https://godusevpn.org/subscription/';
+function trialCard() {
+  return `<section class="trial-card" data-trial-card>
+    <div class="trial-head"><span class="trial-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13.2 2 5 13.1h5.6L9.8 22 19 10.4h-5.7L13.2 2Z"/></svg></span><div class="trial-copy"><div class="trial-kicker">${t('trial.kicker')}</div><h3>${t('trial.title')}</h3></div></div>
+    <p class="trial-desc">${t('trial.desc')}</p>
+    <div class="trial-status" data-trial-status aria-live="polite">${t('trial.checking')}</div>
+    <div class="trial-actions"><button class="btn primary" data-trial-claim>${t('trial.claim')}</button><button class="btn" data-trial-buy>${t('trial.buy')}</button></div>
+  </section>`;
+}
+function trialURL(raw) {
+  try { const u = new URL(String(raw || '').trim()); return (u.protocol === 'http:' || u.protocol === 'https:') ? u.href : ''; } catch (_) { return ''; }
+}
+function bindTrialCard(root) {
+  const card = root && root.querySelector('[data-trial-card]');
+  if (!card) return;
+  const api = window.go && window.go.main ? window.go.main.App : null;
+  const status = card.querySelector('[data-trial-status]');
+  const claim = card.querySelector('[data-trial-claim]');
+  const buy = card.querySelector('[data-trial-buy]');
+  let purchaseURL = TRIAL_PURCHASE_FALLBACK;
+  if (!api || typeof api.TrialStatus !== 'function' || typeof api.TrialClaim !== 'function') {
+    status.textContent = t('trial.unavailable'); claim.disabled = true;
+    buy.addEventListener('click', () => openExternal(purchaseURL));
+    return;
+  }
+  const setStatus = (key, vars) => { status.textContent = t(key, vars); };
+  const load = async () => {
+    try {
+      const s = await api.TrialStatus();
+      purchaseURL = trialURL(s && s.purchaseUrl) || TRIAL_PURCHASE_FALLBACK;
+      if (!s || !s.enabled || s.status === 'plan_missing' || s.status === 'disabled') { setStatus('trial.unavailable'); claim.disabled = true; return; }
+      if (s.claimed) { setStatus('trial.limit'); claim.disabled = true; return; }
+      setStatus('trial.ready'); claim.disabled = false;
+    } catch (_) { setStatus('trial.checkFailed'); claim.disabled = true; }
+  };
+  buy.addEventListener('click', () => openExternal(purchaseURL));
+  claim.addEventListener('click', async () => {
+    if (claim.disabled) return;
+    claim.disabled = true; buy.disabled = true; claim.textContent = t('trial.claiming'); setStatus('trial.claimingHint');
+    try {
+      const r = await api.TrialClaim();
+      const sub = trialURL(r && r.subscriptionUrl);
+      if (!sub) throw new Error(t('trial.invalidLink'));
+      purchaseURL = trialURL(r && r.purchaseUrl) || purchaseURL;
+      await api.AddProfile(t('trial.profileName'), sub);
+      toast(t('trial.success'), 'ok');
+      state = await api.GetState();
+      if (view === 'onboard') nav('home'); else nav('profiles');
+    } catch (e) {
+      const msg = errText(e);
+      const capped = /already|limit|上限|claimed|month/i.test(msg);
+      setStatus(capped ? 'trial.limit' : 'trial.failed');
+      if (!capped) toast(msg, 'err');
+      claim.disabled = capped; buy.disabled = false; claim.textContent = t('trial.claim');
+    }
+  });
+  load();
+}
+
 // ---- 引导 ----
 function renderOnboard(el) {
+  // One square SVG contains the original glyph centered at (200, 200).
+  // The shaped signature stays inside that square without shifting the glyph.
   el.innerHTML = `<div class="onboard">
-    <svg class="logo" viewBox="-16 -50 400 400"><defs><linearGradient id="g2" gradientUnits="userSpaceOnUse" x1="70" y1="70" x2="310" y2="270"><stop offset="0" stop-color="#6a44f2"/><stop offset=".55" stop-color="#2f8bff"/><stop offset="1" stop-color="#18e3e8"/></linearGradient></defs><g fill="none" stroke="url(#g2)" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"><path d="M86 248V84l146 124v52"/><path d="M332 78l-88 96"/></g><path fill="url(#g2)" d="M118 192l52 30-52 30z"/></svg>
+    <span class="ultra-logo" role="img" aria-label="佛跳墙 Ultra" title="Ultra 版本">
+    <svg class="logo" viewBox="0 0 400 400" aria-hidden="true"><defs><linearGradient id="g2" gradientUnits="userSpaceOnUse" x1="70" y1="70" x2="310" y2="270"><stop offset="0" stop-color="#6a44f2"/><stop offset=".55" stop-color="#2f8bff"/><stop offset="1" stop-color="#18e3e8"/></linearGradient><linearGradient id="g2u" x1="0" y1="0" x2="1" y2="0"><stop class="ultra-signature-start" offset="0"/><stop class="ultra-signature-end" offset="1"/></linearGradient></defs><g transform="translate(-9 31)"><g fill="none" stroke="url(#g2)" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"><path d="M86 248V84l146 124v52"/><path d="M332 78l-88 96"/></g><path fill="url(#g2)" d="M118 192l52 30-52 30z"/></g><path class="ultra-signature" fill="url(#g2u)" stroke="url(#g2u)" stroke-width="8" stroke-linejoin="round" paint-order="stroke fill" d="M211.058 109.406Q211.058 111.516 210.919 113.919Q210.779 116.323 210.578 118.804Q210.376 121.285 210.143 123.751Q209.911 126.217 209.709 128.419Q209.508 130.621 209.368 132.466Q209.229 134.312 209.229 135.552Q209.229 139.243 210.624 140.949Q212.02 142.655 214.346 142.655Q216.982 142.655 219.743 139.817Q222.503 136.979 225.015 131.52Q227.528 126.062 229.295 119.254Q231.063 112.446 231.56 104.568L238.135 103.762L238.631 103.793Q238.352 106.739 238.119 110.042Q237.887 113.345 237.701 116.649Q237.515 119.952 237.421 123.115Q237.328 126.279 237.328 128.946Q237.328 134.002 237.918 137.212Q238.507 140.422 239.437 142.267Q240.368 144.113 241.562 144.81Q242.756 145.508 243.966 145.508Q244.679 145.508 245.377 145.322Q246.075 145.136 246.695 144.873Q247.315 144.609 247.827 144.299Q248.339 143.989 248.711 143.74L249.735 145.167Q248.835 146.098 247.688 146.92Q246.54 147.741 245.268 148.346Q243.997 148.951 242.601 149.292Q241.205 149.633 239.779 149.633Q237.98 149.633 236.289 148.92Q234.599 148.207 233.296 146.532Q231.994 144.857 231.203 142.066Q230.412 139.274 230.412 135.118Q230.412 133.785 230.474 132.42Q230.536 131.055 230.66 129.535Q230.784 128.016 230.986 126.263Q231.187 124.511 231.467 122.402L231.125 122.34Q229.016 130.125 226.551 135.397Q224.085 140.67 221.495 143.896Q218.905 147.121 216.3 148.501Q213.695 149.881 211.338 149.881Q209.57 149.881 207.941 149.277Q206.313 148.672 205.041 147.292Q203.77 145.912 203.01 143.647Q202.25 141.383 202.25 138.065Q202.25 135.894 202.498 133.025Q202.746 130.156 203.041 126.915Q203.336 123.674 203.584 120.215Q203.832 116.757 203.832 113.376Q203.832 112.012 203.739 111.019Q203.646 110.027 203.336 109.375Q203.025 108.724 202.421 108.414Q201.816 108.104 200.761 108.104Q199.707 108.104 198.016 108.414Q196.326 108.724 194.465 109.251L194 107.018Q196.543 106.119 198.73 105.452Q200.916 104.785 202.638 104.351Q204.359 103.917 205.553 103.7Q206.747 103.483 207.306 103.483Q208.422 103.483 209.135 103.886Q209.849 104.289 210.283 105.064Q210.717 105.84 210.888 106.925Q211.058 108.011 211.058 109.406ZM266.266 64.992Q265.645 70.265 265.041 75.801Q264.436 81.338 263.893 86.998Q263.35 92.658 262.885 98.365Q262.42 104.072 262.079 109.608Q261.738 115.144 261.551 120.479Q261.365 125.814 261.365 130.714Q261.365 133.785 261.443 135.987Q261.52 138.189 261.691 139.708Q261.862 141.228 262.156 142.159Q262.451 143.089 262.885 143.585Q263.319 144.082 263.909 144.252Q264.498 144.423 265.304 144.423Q266.793 144.423 268.514 143.973Q270.236 143.523 272.004 142.717L272.593 144.33Q271.476 145.229 269.786 146.16Q268.096 147.09 266.235 147.865Q264.374 148.641 262.59 149.122Q260.807 149.602 259.504 149.602Q257.83 149.602 256.853 148.749Q255.876 147.897 255.364 145.974Q254.852 144.051 254.713 140.965Q254.573 137.879 254.573 133.443Q254.573 131.831 254.666 128.838Q254.759 125.845 254.93 121.875Q255.1 117.905 255.317 113.19Q255.534 108.476 255.783 103.436Q256.031 98.396 256.31 93.263Q256.589 88.13 256.868 83.338Q257.147 78.546 257.395 74.297Q257.643 70.048 257.861 66.791Q257.892 66.047 258.295 65.504Q258.698 64.961 259.334 64.636Q259.97 64.31 260.761 64.155Q261.551 64 262.358 64Q264.219 64 266.266 64.992ZM291.698 81.183Q290.396 87.075 289.512 93.356Q288.628 99.637 288.008 105.747Q289.465 105.809 290.845 105.84Q292.226 105.871 293.42 105.902Q294.614 105.933 295.591 105.933Q296.568 105.933 297.219 105.933Q300.041 105.933 301.84 105.592Q301.995 106.119 302.088 106.553Q302.182 106.987 302.182 107.359Q302.182 108.724 301.049 109.127Q299.917 109.531 297.777 109.531Q295.73 109.531 293.203 109.282Q290.675 109.034 287.666 108.817Q287.325 112.136 287.093 115.284Q286.86 118.432 286.72 121.223Q286.581 124.015 286.519 126.403Q286.457 128.791 286.457 130.559Q286.457 133.878 286.798 136.483Q287.139 139.088 288.008 140.903Q288.876 142.717 290.396 143.678Q291.915 144.64 294.242 144.64Q295.916 144.64 297.979 144.051Q300.041 143.461 302.678 142.159Q303.515 142.996 303.639 144.206Q301.716 145.477 299.762 146.516Q297.808 147.555 295.916 148.3Q294.024 149.044 292.257 149.447Q290.489 149.85 288.907 149.85Q286.829 149.85 285.108 149.091Q283.386 148.331 282.13 146.392Q280.874 144.454 280.176 141.166Q279.478 137.879 279.478 132.854Q279.478 130.032 279.571 127.039Q279.664 124.046 279.819 120.975Q279.975 117.905 280.223 114.834Q280.471 111.764 280.781 108.786Q278.331 108.817 276.237 108.988Q274.144 109.158 272.655 109.531Q272.562 109.344 272.562 109.096Q272.562 108.445 273.198 107.871Q273.833 107.297 274.966 106.832Q276.098 106.367 277.679 106.057Q279.261 105.747 281.153 105.623Q281.866 99.14 282.673 93.372Q283.479 87.603 284.286 83.074Q284.441 82.268 284.859 81.741Q285.278 81.214 285.836 80.903Q286.395 80.593 287.046 80.469Q287.697 80.345 288.318 80.345Q289.341 80.345 290.163 80.562Q290.985 80.779 291.698 81.183ZM308.757 149.044 308.261 149.013Q308.478 146.067 308.679 142.546Q308.881 139.026 309.051 135.242Q309.222 131.458 309.362 127.535Q309.501 123.611 309.61 119.859Q309.718 116.106 309.796 112.648Q309.873 109.189 309.904 106.305Q309.904 105.374 310.308 104.785Q310.711 104.196 311.3 103.855Q311.889 103.514 312.572 103.389Q313.254 103.265 313.812 103.265Q314.991 103.265 315.952 103.529Q316.914 103.793 317.813 104.227Q317.379 106.646 317.038 109.794Q316.697 112.942 316.371 116.54Q316.045 120.138 315.751 124.046Q315.456 127.954 315.115 131.893L315.425 131.924Q316.914 125.845 318.79 120.587Q320.667 115.33 323.008 111.453Q325.35 107.577 328.157 105.359Q330.964 103.141 334.313 103.141Q335.492 103.141 336.516 103.514Q337.539 103.886 338.283 104.553Q339.028 105.219 339.462 106.134Q339.896 107.049 339.896 108.135Q339.896 109.531 339.291 110.818Q338.687 112.105 337.384 113.097H337.136Q335.833 112.012 334.67 111.531Q333.507 111.05 332.204 111.05Q330.809 111.05 329.506 111.578Q328.203 112.105 327.118 113.097Q325.35 114.71 323.83 117.362Q322.31 120.014 321.054 123.239Q319.798 126.465 318.79 130.016Q317.782 133.567 317.053 136.933Q316.325 140.298 315.875 143.26Q315.425 146.222 315.239 148.238ZM365.918 116.354Q365.918 113.904 365.112 112.105Q364.305 110.306 363.003 109.158Q361.7 108.011 360.056 107.452Q358.412 106.894 356.769 106.894Q354.566 106.894 353.047 107.359Q351.527 107.825 350.581 108.631Q349.635 109.437 349.216 110.539Q348.798 111.64 348.798 112.911Q348.798 114.4 349.34 115.904Q349.883 117.408 350.938 118.835L350.814 119.176Q349.046 120.045 347.247 120.045Q346.192 120.045 345.277 119.719Q344.362 119.393 343.696 118.773Q343.029 118.153 342.641 117.253Q342.253 116.354 342.253 115.237Q342.253 113.407 343.137 111.795Q344.021 110.182 345.479 108.848Q346.937 107.515 348.86 106.46Q350.783 105.405 352.83 104.677Q354.877 103.948 356.939 103.56Q359.002 103.172 360.77 103.172Q364.026 103.172 366.337 104.041Q368.647 104.909 370.09 106.569Q371.532 108.228 372.199 110.585Q372.865 112.942 372.865 115.92Q372.865 117.967 372.695 120.417Q372.524 122.867 372.307 125.55Q372.09 128.233 371.92 131.086Q371.749 133.94 371.749 136.762Q371.749 141.228 373.408 143.477Q375.068 145.725 377.766 145.725Q380.154 145.725 383.101 143.958L384 145.291Q381.922 147.369 379.472 148.455Q377.022 149.54 374.323 149.54Q372.307 149.54 370.601 148.858Q368.896 148.176 367.655 146.826Q366.414 145.477 365.732 143.43Q365.05 141.383 365.05 138.685Q365.05 137.879 365.096 137.072Q365.143 136.266 365.298 135.366H365.112Q363.778 138.034 362.026 140.623Q360.273 143.213 358.18 145.245Q356.086 147.276 353.714 148.532Q351.341 149.788 348.736 149.788Q346.595 149.788 344.828 149.044Q343.06 148.3 341.804 146.997Q340.548 145.694 339.85 143.911Q339.152 142.128 339.152 140.019Q339.152 137.289 340.16 135.056Q341.168 132.823 342.951 131.055Q344.735 129.287 347.216 128Q349.697 126.713 352.612 125.86Q355.528 125.007 358.785 124.588Q362.041 124.17 365.422 124.17Q365.639 122.216 365.778 120.386Q365.918 118.556 365.918 116.354ZM346.875 137.661Q346.875 138.871 347.138 139.972Q347.402 141.073 347.976 141.911Q348.549 142.748 349.433 143.229Q350.317 143.709 351.558 143.709Q352.954 143.709 354.442 143.058Q355.931 142.407 357.373 141.259Q358.816 140.112 360.134 138.514Q361.452 136.917 362.506 135.025Q363.561 133.133 364.259 131.04Q364.957 128.946 365.174 126.744Q362.879 126.806 360.614 127.039Q358.35 127.271 356.319 127.768Q354.287 128.264 352.55 129.07Q350.814 129.877 349.557 131.071Q348.301 132.265 347.588 133.893Q346.875 135.521 346.875 137.661Z"/></svg></span>
     <h1>${t('onboard.title')}</h1>
     <p>${t('onboard.desc')}</p>
     <div class="field with-btn"><input type="url" id="ob-url" placeholder="${t('onboard.url')}" spellcheck="false" autofocus><button class="btn sm ghost" id="ob-paste">${t('common.paste')}</button></div>
     <input type="hidden" id="ob-name">
     <button class="btn primary block" id="ob-go">${t('onboard.go')}</button>
+    ${trialCard()}
+    ${state && state.platform === 'windows' && !window.__web && !window.__android ? '<div class="privacy-onboard-entry"><button class="btn block" id="ob-privacy">打开隐私中心（无需订阅）</button>' + privacyHelp('无需订阅即可查看和按需设置新增隐私保护；进入页面不会自动启用保护或改变隧道。') + '</div>' : ''}
+    ${state && state.platform === 'windows' && !window.__web && !window.__android ? '<div class="privacy-onboard-entry"><button class="btn block" id="ob-detection">打开检测中心（本地检查）</button>' + privacyHelp('仅运行本地只读检查，不访问在线测试站；检测未知不会当成已保护，也不会影响连接。') + '</div>' : ''}
     <div id="ob-err" class="small" style="color:var(--danger);min-height:18px"></div>
     <div class="or"><span></span><em>${t('onboard.or')}</em><span></span></div>
     <div class="tipcard">
@@ -304,6 +390,7 @@ function renderOnboard(el) {
     <div id="ob-svc"></div>
   </div>`;
   updateOnboardSvc();
+  bindTrialCard(el);
   const submit = async () => {
     const url = $('#ob-url').value.trim();
     if (!url) { $('#ob-url').focus(); return; }
@@ -320,14 +407,19 @@ function renderOnboard(el) {
     }
   };
   $('#ob-go').addEventListener('click', submit);
+  const privacyEntry = $('#ob-privacy');
+  if (privacyEntry) privacyEntry.addEventListener('click', () => nav('privacy'));
+  const detectionEntry = $('#ob-detection');
+  if (detectionEntry) detectionEntry.addEventListener('click', () => nav('detection'));
   $('#ob-paste').addEventListener('click', () => pasteInto('#ob-url'));
   $('#ob-url').addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
-  setTimeout(() => $('#ob-url').focus(), 120);
+  setTimeout(() => { const input = $('#ob-url'); if (input) input.focus(); }, 120);
 }
 // svcBanner 服务连不上时的横幅。"账户没权限"和"服务没在跑"是两回事:前者服务好好的,只是这个账户
 // 不在名单里(Windows)或不是管理员(macOS)。这时绝不能给「修复」—— 修复走 uninstall + install,
 // 会把别的账户正在用的闸撤掉、网卡 IPv6 还原,而本账户照样连不上。Windows 上给「登记本账户」。
 function svcBanner(idRepair, idRegister, extra) {
+  if (state.svcState === 'identity-unknown') return `<div class="banner" data-kind="identity-${state.svcHint === 'response' ? 'response' : 'unknown'}"><span class="grow">${t(state.svcHint === 'response' ? 'banner.responseUnknown' : 'banner.identityUnknown')}</span></div>`;
   if (state.service) return '';
   if (state.svcState === 'no-permission') {
     const reg = state.canRegister && !window.__web && !window.__android ? `<button class="btn sm" id="${idRegister}">${t('banner.register')}</button>` : '';
@@ -346,7 +438,7 @@ function wireBanner(b, idRepair, idRegister) {
 function updateOnboardSvc() {
   const b = $('#ob-svc'); if (!b || !state) return;
   const html = svcBanner('ob-repair', 'ob-register', '');
-  const want = state.service ? '' : (state.svcState === 'no-permission' ? 'noperm' : 'down');
+  const want = state.svcState === 'identity-unknown' ? (state.svcHint === 'response' ? 'identity-response' : 'identity-unknown') : state.service ? '' : (state.svcState === 'no-permission' ? 'noperm' : 'down');
   if (want === bannerKind(b)) return;
   b.innerHTML = html;
   wireBanner(b, 'ob-repair', 'ob-register');
@@ -566,6 +658,13 @@ function renderHome(el) {
 }
 async function togglePower() {
   if (!state || !state.service) { toast(state ? svcText(state) : t('svc.down'), 'err'); return; }
+  // A stop is a transaction, not an invitation to start a new session.  The
+  // daemon serialises Connect/Disconnect, but allowing a second click here
+  // makes the UI say "connect" while the old TUN/guard teardown is still in
+  // flight.  That race is especially confusing when the service becomes
+  // unreachable: the user cannot tell whether disconnect completed.
+  const st = state.view && state.view.state && state.view.state.status;
+  if (st === 'preparing' || st === 'starting' || st === 'stopping') return;
   try { if (state.view.state.wanted) await App().Disconnect(); else await App().Connect(); }
   catch (e) { toast(errText(e), 'err'); }
 }
@@ -575,9 +674,19 @@ function updateHome() {
   const v = state.view, st = v.state.status, wanted = v.state.wanted;
   const wrap = $('#power-wrap');
   if (!wrap) return;
-  const on = st === 'connected' || st === 'degraded';
-  wrap.className = 'power-wrap ' + (on ? 'on' : (wanted && st !== 'error') ? 'busy' : (st === 'error' || !state.service) ? 'err' : '');
-  $('#power-text').textContent = on ? t('home.disconnect') : wanted ? (st === 'stopping' ? t('home.stopping') : t('home.connecting')) : t('home.connect');
+  const identityUnknown = state.svcState === 'identity-unknown';
+  const on = !identityUnknown && (st === 'connected' || st === 'degraded');
+  const transitional = st === 'preparing' || st === 'starting' || st === 'stopping';
+  wrap.className = 'power-wrap ' + (identityUnknown ? 'err' : on ? 'on' : transitional ? 'busy' : (wanted && st !== 'error') ? 'busy' : (st === 'error' || !state.service) ? 'err' : '');
+  $('#power-text').textContent = identityUnknown ? t('st.unknown') : st === 'stopping' ? t('home.stopping') : on ? t('home.disconnect') : wanted ? t('home.connecting') : t('home.connect');
+  const power = $('#power');
+  if (power) {
+    // Keep the button disabled only for a confirmed in-flight lifecycle
+    // operation or an untrusted/unreachable service.  A retryable connection
+    // error remains clickable so the user can explicitly stop retries.
+    power.disabled = identityUnknown || !state.service || transitional;
+    power.setAttribute('aria-busy', transitional ? 'true' : 'false');
+  }
 
   // 连上了:大字显示时长,状态那两行让给下面的出口卡片;没连上或出错:照旧显示状态与原因
   const err = v.state.error || v.state.code ? codeText(v.state.code, v.state.error) : '';
@@ -591,7 +700,8 @@ function updateHome() {
   // 全局禁直连的闸:开着就亮一颗小盾;该开却没开成(防火墙不可用之类)标成警告
   const gp = $('#guard-pill');
   // 闸开着但有异常(比如转发层没放行隧道网卡)和闸根本没开成是两回事,标题要分开说
-  if (v.guardError) { gp.hidden = false; gp.className = 'guard-pill warn'; gp.innerHTML = ICON_WARN + `<span>${t(v.guard === 'on' ? 'home.guardWarn' : 'home.guardErr')} · ${esc(v.guardError)}</span>`; }
+  if (identityUnknown) gp.hidden = true;
+  else if (v.guardError) { gp.hidden = false; gp.className = 'guard-pill warn'; gp.innerHTML = ICON_WARN + `<span>${t(v.guard === 'on' ? 'home.guardWarn' : 'home.guardErr')} · ${esc(v.guardError)}</span>`; }
   else if (v.guard === 'on') { gp.hidden = false; gp.className = 'guard-pill'; gp.innerHTML = ICON_SHIELD + `<span>${t('home.guard')}</span>`; }
   else gp.hidden = true;
   // 有几张网卡动手前的 IPv6 状态丢了(备份坏了):一直挂着,直到用户点「知道了」。内容变了才重画,免得每次推送都换掉按钮
@@ -641,7 +751,7 @@ function updateHome() {
   $('#pk-node-v').textContent = auto ? t('pick.auto') : cleanName(v.node);
   $('#pk-node-ms').textContent = '';
   const b = $('#home-banner');
-  const want = state.service ? '' : (state.svcState === 'no-permission' ? 'noperm' : 'down');
+  const want = state.svcState === 'identity-unknown' ? (state.svcHint === 'response' ? 'identity-response' : 'identity-unknown') : state.service ? '' : (state.svcState === 'no-permission' ? 'noperm' : 'down');
   if (want !== bannerKind(b)) { // 只有横幅出现/消失/换种类时才动 DOM,免得每次推送都把按钮换掉
     const vs = state.view && state.view.settings;
     const stuck = want === 'down' && !window.__android && vs && vs.noDirect && state.view.mode === 'global' && state.view.state.wanted ? ' ' + t('banner.guardStuck') : '';
@@ -871,26 +981,35 @@ function regionCount(p) {
   return set.size;
 }
 function renderProfiles(el, editId) {
-  el.innerHTML = `<div id="prof-form"></div><div id="prof-list"></div>
+  const secretCopyButton = p => clipboardPrivacyAPI() ? `<button class="btn sm" data-act="copy-secret" data-id="${esc(p.id)}">${t('clip.copySecret')}</button>` : '';
+  el.innerHTML = `${trialCard()}<div id="prof-form"></div><div id="prof-list"></div>
     <button class="addcard" id="prof-add">
       <span class="addic"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>
       <span class="addtxt"><b>${t('prof.add')}</b><span>${t('prof.addHint')}</span></span>
     </button>`;
+  bindTrialCard(el);
   const showForm = (p) => {
-    $('#prof-form').innerHTML = `<div class="card"><div class="field"><label>${t('prof.name')}</label><input type="text" id="pf-name" value="${esc(p ? p.name : '')}"></div>
+    const host = el.querySelector('#prof-form');
+    host.innerHTML = `<div class="card"><div class="field"><label>${t('prof.name')}</label><input type="text" id="pf-name" value="${esc(p ? p.name : '')}"></div>
       <div class="field with-btn"><label>${t('prof.url')}</label><input type="url" id="pf-url" spellcheck="false" value="${esc(p ? p.url : '')}"><button class="btn sm ghost" id="pf-paste">${t('common.paste')}</button></div>
       <div class="row"><button class="btn primary" id="pf-save">${t('prof.save')}</button><button class="btn" id="pf-cancel">${t('prof.cancel')}</button><span id="pf-busy"></span></div></div>`;
-    $('#pf-cancel').addEventListener('click', () => { $('#prof-form').innerHTML = ''; });
-    $('#pf-paste').addEventListener('click', () => pasteInto('#pf-url'));
-    $('#pf-save').addEventListener('click', async () => {
-      const b = $('#pf-save'); b.disabled = true; $('#pf-busy').innerHTML = '<span class="spinner"></span>';
+    const form = host.firstElementChild, b = form.querySelector('#pf-save'), busy = form.querySelector('#pf-busy');
+    const nameField = form.querySelector('#pf-name'), urlField = form.querySelector('#pf-url');
+    const current = () => el.isConnected && view === 'profiles' && b.isConnected && host.contains(form) && form.contains(b);
+    form.querySelector('#pf-cancel').addEventListener('click', () => { if (current()) host.innerHTML = ''; });
+    form.querySelector('#pf-paste').addEventListener('click', () => { if (current()) pasteInto('#pf-url'); });
+    b.addEventListener('click', async () => {
+      if (!current() || b.disabled) return;
+      const name = nameField.value, url = urlField.value;
+      b.disabled = true; busy.innerHTML = '<span class="spinner"></span>';
       try {
-        if (p && p.id) await App().UpdateProfile(p.id, $('#pf-name').value, $('#pf-url').value); else await App().AddProfile($('#pf-name').value, $('#pf-url').value);
-        toast(t(p && p.id ? 'prof.saved' : 'prof.added'), 'ok'); $('#prof-form').innerHTML = ''; await load();
-      } catch (e) { toast(errText(e), 'err'); }
-      b.disabled = false; $('#pf-busy').innerHTML = '';
+        if (p && p.id) await App().UpdateProfile(p.id, name, url); else await App().AddProfile(name, url);
+        if (current()) { toast(t(p && p.id ? 'prof.saved' : 'prof.added'), 'ok'); host.innerHTML = ''; await load(); }
+      } catch (e) { if (current()) toast(errText(e), 'err'); }
+      finally { if (b.isConnected) b.disabled = false; if (busy.isConnected) busy.innerHTML = ''; }
     });
-    setTimeout(() => $(p && p.id ? '#pf-name' : '#pf-url').focus(), 80);
+    const focus = p && p.id ? nameField : urlField;
+    setTimeout(() => { if (focus.isConnected && el.contains(focus)) focus.focus(); }, 80);
   };
   $('#prof-add').addEventListener('click', () => showForm(null));
 
@@ -920,6 +1039,7 @@ function renderProfiles(el, editId) {
       </div>
       ${p.error ? `<div class="pc-err">${esc(p.error)}</div>` : ''}
       <div class="pc-act">
+        ${secretCopyButton(p)}
         <button class="btn sm" data-act="refresh" data-id="${esc(p.id)}">${t('prof.refresh')}</button>
         <button class="btn sm" data-act="edit" data-id="${esc(p.id)}">${t('prof.edit')}</button>
         <button class="btn sm icon danger" data-act="del" data-id="${esc(p.id)}" data-name="${esc(p.name)}" title="${t('prof.del')}"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg></button>
@@ -931,23 +1051,36 @@ function renderProfiles(el, editId) {
     <div class="pm-top" data-act="use" data-id="${esc(p.id)}"><span class="check"></span><b>${esc(p.name)}</b></div>
     <div class="pm-meta"><span>${p.error ? `<em class="bad">${esc(p.error)}</em>` : t('prof.nodes', { n: p.nodeCount }) + ' · ' + esc(fmtAgo(p.fetchedAt))}</span>${renewBtn(p, 'sm')}</div>
     <div class="pm-act">
+      ${secretCopyButton(p)}
       <button class="btn sm" data-act="use" data-id="${esc(p.id)}">${t('prof.use')}</button>
       <button class="btn sm" data-act="refresh" data-id="${esc(p.id)}">${t('prof.refresh')}</button>
       <button class="btn sm" data-act="edit" data-id="${esc(p.id)}">${t('prof.edit')}</button>
       <button class="btn sm icon danger" data-act="del" data-id="${esc(p.id)}" data-name="${esc(p.name)}" title="${t('prof.del')}"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg></button>
     </div></div>`;
   const load = async () => {
+    const listBox = el.querySelector('#prof-list');
+    if (!el.isConnected || view !== 'profiles' || !listBox) return;
     let list = [];
-    try { list = await App().GetProfiles() || []; } catch (e) { $('#prof-list').innerHTML = `<div class="empty">${esc(errText(e))}</div>`; return; }
-    if (!list.length) { $('#prof-list').innerHTML = `<div class="empty">${t('prof.empty')}</div>`; return; }
+    try { list = await App().GetProfiles() || []; } catch (e) { if (listBox.isConnected && view === 'profiles') listBox.innerHTML = `<div class="empty">${esc(errText(e))}</div>`; return; }
+    if (!el.isConnected || view !== 'profiles' || !listBox.isConnected) return;
+    if (!list.length) { listBox.innerHTML = `<div class="empty">${t('prof.empty')}</div>`; return; }
     const cur = list.find(p => p.active) || list[0], rest = list.filter(p => p !== cur);
-    $('#prof-list').innerHTML = bigCard(cur)
+    listBox.innerHTML = bigCard(cur)
       + (rest.length ? `<div class="sechead">${t('prof.others')}</div><div class="pmwrap">${rest.map(miniCard).join('')}</div>` : '');
-    $('#prof-list').querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', async e => {
+    listBox.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', async e => {
       e.stopPropagation();
       const id = b.dataset.id, act = b.dataset.act;
       try {
         if (act === 'renew') { openExternal((list.find(x => x.id === id) || {}).webPage); return; }
+        if (act === 'copy-secret') {
+          b.disabled = true;
+          try {
+            const report = await App().ClipboardPrivacyCopyProfile(id);
+            if (b.isConnected) toast(t(report.pending ? 'clip.copiedTimed' : 'clip.copied', {n:report.options.delaySeconds}), 'ok');
+          } catch (_) { if (b.isConnected) toast(t('clip.copyFailed'), 'err'); }
+          finally { if (b.isConnected) b.disabled = false; }
+          return;
+        }
         if (act === 'use') { await App().SelectProfile(id); }
         else if (act === 'refresh') { b.disabled = true; b.classList.add('busy'); await App().RefreshProfile(id); toast(t('prof.refreshed'), 'ok'); }
         else if (act === 'edit') { showForm(list.find(x => x.id === id)); return; }
@@ -961,10 +1094,73 @@ function renderProfiles(el, editId) {
 }
 
 // ---- 设置 ----
+// Secret copies use the native, conditional-cleanup bridge. Ordinary log copy
+// keeps its existing path and is never enrolled in this manager.
+function clipboardPrivacyAPI() {
+  const api = App();
+  return state.platform === 'windows' && !window.__web && !window.__android && api
+    && ['ClipboardPrivacyReport','ClipboardPrivacyCopyProfile','ClipboardPrivacySave','ClipboardPrivacyCancel','ClipboardPrivacyClearNow']
+      .every(name => Object.prototype.hasOwnProperty.call(api, name) && typeof api[name] === 'function');
+}
+function clipboardPrivacySettingsHTML(report) {
+  if (!report) return '';
+  const available = report.supported && !report.closed;
+  return `<div class="sgroup" id="clipboard-settings"><div class="sechead">${t('clip.title')}</div><div class="card tight">
+    <div class="srow"><div class="lbl">${t('clip.enabled')}<div>${t('clip.scope')}</div></div><label class="switch"><input type="checkbox" id="clip-enabled" ${report.options.enabled ? 'checked' : ''} ${available ? '' : 'disabled'}></label></div>
+    <div class="srow"><div class="lbl">${t('clip.delay')}<div>${t('clip.delayHint')}</div></div><input id="clip-delay" type="number" min="5" max="600" step="1" value="${esc(report.options.delaySeconds)}" ${available ? '' : 'disabled'}></div>
+    <div class="srow"><details><summary aria-label="${t('clip.helpLabel')}">?</summary><p>${t('clip.help')}</p></details></div>
+    <div class="srow"><span id="clip-status" role="status" aria-live="polite"></span></div>
+    <div class="srow"><button class="btn sm" id="clip-save" ${available ? '' : 'disabled'}>${t('clip.save')}</button><button class="btn sm" id="clip-cancel" disabled>${t('clip.cancel')}</button><button class="btn sm" id="clip-clear" disabled>${t('clip.clear')}</button></div>
+  </div></div>`;
+}
+function bindClipboardPrivacySettings(el, initial) {
+  const group = el.querySelector('#clipboard-settings');
+  if (!group) return;
+  let busy = false, report = initial, revision = 0;
+  const update = value => {
+    if (!group.isConnected) return;
+    report = value;
+    const status = group.querySelector('#clip-status');
+    const seconds = Math.max(0, Math.ceil(((value.deadlineUnixMilli || 0) - Date.now()) / 1000));
+    status.textContent = !value.supported || value.closed ? t('clip.unavailable') : value.pending && value.lastCode === 'pending' ? t('clip.pending', {n:seconds}) : t('clip.code.' + value.lastCode);
+    group.querySelector('#clip-cancel').disabled = busy || !value.pending;
+    group.querySelector('#clip-clear').disabled = busy || !value.pending;
+  };
+  const perform = async (method, options) => {
+    if (busy || !group.isConnected) return;
+    busy = true; revision++; group.querySelector('#clip-save').disabled = true; update(report);
+    try {
+      const value = await App()[method](...(options ? [options] : []));
+      if (!group.isConnected) return;
+      update(value);
+      if (options) toast(t('clip.saved'), 'ok');
+    } catch (_) { if (group.isConnected) { group.querySelector('#clip-status').textContent = t('clip.actionFailed'); } }
+    finally { busy = false; if (group.isConnected) { group.querySelector('#clip-save').disabled = !report.supported || report.closed; group.querySelector('#clip-cancel').disabled = !report.pending; group.querySelector('#clip-clear').disabled = !report.pending; } }
+  };
+  group.querySelector('#clip-save').addEventListener('click', () => {
+    const delay = Number(group.querySelector('#clip-delay').value);
+    if (!Number.isInteger(delay) || delay < 5 || delay > 600) { group.querySelector('#clip-status').textContent = t('clip.invalidDelay'); return; }
+    perform('ClipboardPrivacySave', {enabled:group.querySelector('#clip-enabled').checked,delaySeconds:delay});
+  });
+  group.querySelector('#clip-cancel').addEventListener('click', () => perform('ClipboardPrivacyCancel'));
+  group.querySelector('#clip-clear').addEventListener('click', () => perform('ClipboardPrivacyClearNow'));
+  update(initial);
+  pageTimer = setInterval(async () => {
+    if (busy || !group.isConnected) return;
+    const requested = revision;
+    try { const value = await App().ClipboardPrivacyReport(); if (!busy && requested === revision) update(value); } catch (_) { /* no clipboard reads or tunnel changes */ }
+  }, 1000);
+}
 async function renderSettings(el) {
+  const requested = diagnosticsFlow;
+  const current = () => el.isConnected && view === 'settings' && diagnosticsFlow === requested;
+  let clipboardReport = null;
+  if (clipboardPrivacyAPI()) { try { clipboardReport = await App().ClipboardPrivacyReport(); } catch (_) { /* service-independent optional feature */ } }
+  if (!current()) return;
   let s;
-  try { s = await App().GetSettings(); } catch (e) { el.innerHTML = `<div class="empty">${esc(errText(e))}</div>`; return; }
+  try { s = await App().GetSettings(); } catch (e) { if (!current()) return; el.innerHTML = `${clipboardPrivacySettingsHTML(clipboardReport)}<div class="empty">${esc(errText(e))}</div>`; bindClipboardPrivacySettings(el, clipboardReport); return; }
   const auto = await App().GetAutostart();
+  if (!current()) return;
   const sw = (id, label, on, help) => `<div class="srow"><div class="lbl">${label}${help ? `<div>${help}</div>` : ''}</div><label class="switch"><input type="checkbox" id="${id}" ${on ? 'checked' : ''}></label></div>`;
   const num = (id, label, val, help) => `<div class="srow"><div class="lbl">${label}${help ? `<div>${help}</div>` : ''}</div><input type="number" id="${id}" value="${esc(val)}"></div>`;
   const txt = (id, label, val, help) => `<div class="srow"><div class="lbl">${label}${help ? `<div>${help}</div>` : ''}</div><input type="text" id="${id}" value="${esc(val)}"></div>`;
@@ -1009,12 +1205,14 @@ async function renderSettings(el) {
       ${sel('f-log', t('set.logLevel'), s.logLevel, [['debug', 'debug'], ['info', 'info'], ['warn', 'warn'], ['error', 'error']])}
       ${num('f-logdays', t('set.logDays'), (s.logDays === null || s.logDays === undefined ? 7 : s.logDays), t('set.logDaysHelp'))}
     `)}
+    ${clipboardPrivacySettingsHTML(clipboardReport)}
     ${group(t('set.g.app'), `
       ${state.platform === 'android' ? `<div class="srow"><div class="lbl">${t('set.autostart')}<div>${t('set.autostartAndroidHelp')}</div></div></div>` : sw('f-autostart', t(state.platform === 'linux' ? 'set.autostartLinux' : 'set.autostart'), auto, t(state.platform === 'linux' ? 'set.autostartLinuxHelp' : 'set.autostartHelp'))}
       ${sel('f-lang', t('set.lang'), LANG, [['zh', '中文'], ['en', 'English']])}
       ${sel('f-theme', t('set.theme'), curTheme(), [['system', t('theme.system')], ['light', t('theme.light')], ['dark', t('theme.dark')]])}
     `, t('set.instant'))}
     <div class="savebar" id="savebar"><div class="note" id="save-note">${t('set.clean')}</div><button class="btn primary" id="save" disabled>${t('set.save')}</button></div>`;
+  bindClipboardPrivacySettings(el, clipboardReport);
   // 搜索只是把对不上的行藏起来,整组都藏光了连组名一起收掉
   $('#set-search').addEventListener('input', () => {
     const q = $('#set-search').value.trim().toLowerCase();
@@ -1031,7 +1229,7 @@ async function renderSettings(el) {
     });
     $('#set-nores').hidden = !q || hit > 0;
   });
-  const watch = ['f-tun', 'f-stack', 'f-strict', 'f-lan', 'f-mixed', 'f-probe', 'f-update', 'f-rdns', 'f-ldns', 'f-fakeip', 'f-ipv6', 'f-nicv6', 'f-ad', 'f-bypass', 'f-log', 'f-logdays', 'f-netmode', 'f-lansub', 'f-weblisten'].filter(id => $('#' + id));
+  const watch = ['f-tun', 'f-stack', 'f-strict', 'f-lan', 'f-mixed', 'f-probe', 'f-update', 'f-rdns', 'f-ldns', 'f-fakeip', 'f-ipv6', 'f-nodirect', 'f-nicv6', 'f-ad', 'f-bypass', 'f-log', 'f-logdays', 'f-netmode', 'f-lansub', 'f-weblisten'].filter(id => $('#' + id));
   const dirty = on => { $('#save').disabled = !on; $('#savebar').classList.toggle('dirty', on); $('#save-note').textContent = on ? t('set.unsaved') + ' · ' + t('set.note') : t('set.clean'); $('#save').textContent = t(on ? 'set.saveChanges' : 'set.save'); };
   watch.forEach(id => ['input', 'change'].forEach(ev => $('#' + id).addEventListener(ev, () => dirty(true))));
   $('#save').addEventListener('click', async () => {
@@ -1064,8 +1262,26 @@ async function renderRules(el) {
   let s;
   try { s = await App().GetSettings(); } catch (e) { el.innerHTML = `<div class="empty">${esc(errText(e))}</div>`; return; }
   const groups = s.ruleGroups || [];
-  const save = async next => { try { await App().SaveSettings({ ...s, ruleGroups: next }); toast(t('set.saved'), 'ok'); } catch (e) { toast(errText(e), 'err'); } nav('rules'); };
   const dr = Object.assign({ private: 'direct', cn: 'direct', final: 'proxy' }, s.defaultRules || {});
+  let draftGroups = groups, saving = false, pending = false;
+  const active = () => el.isConnected && view === 'rules';
+  const persist = async () => {
+    pending = true;
+    if (saving) return;
+    saving = true; el.setAttribute('aria-busy', 'true');
+    // Group buttons refer to the displayed order. Keep that order stable while
+    // saving, but let default-route changes accumulate into the same draft.
+    el.querySelectorAll('[data-act],#rg-add,#dr-reset').forEach(button => { button.disabled = true; });
+    try {
+      while (pending) {
+        pending = false;
+        s = await App().SaveSettings({ ...s, ruleGroups: draftGroups, defaultRules: { ...dr } });
+      }
+      if (active()) toast(t('set.saved'), 'ok');
+    } catch (e) { pending = false; if (active()) toast(errText(e), 'err'); }
+    finally { saving = false; if (active()) nav('rules'); }
+  };
+  const save = next => { draftGroups = next; return persist(); };
   const drRow = (id, key, hint, val, opts) => `<div class="drow"><div class="dtxt"><b>${t(key)}</b><span>${t(hint)}</span></div>
     <select id="${id}" data-dr="${id.slice(3)}">${opts.map(o => `<option value="${o}" ${o === val ? 'selected' : ''}>${t('out.' + o)}</option>`).join('')}</select></div>`;
   const card = (g, i) => {
@@ -1105,11 +1321,12 @@ async function renderRules(el) {
       ${drRow('dr-final', 'rules.dFinal', 'rules.dFinalHint', dr.final, ['proxy', 'direct'])}
     </div>
     <p class="pagehint">${t('rules.defaultHint')}</p>`;
-  const saveDR = async next => { try { await App().SaveSettings({ ...s, defaultRules: next }); toast(t('set.saved'), 'ok'); } catch (e) { toast(errText(e), 'err'); } nav('rules'); };
+  const saveDR = next => { Object.assign(dr, next); return persist(); };
   el.querySelectorAll('select[data-dr]').forEach(sel => sel.addEventListener('change', () => saveDR({ ...dr, [sel.dataset.dr]: sel.value })));
   $('#dr-reset').addEventListener('click', async () => { if (await askConfirm(t('rules.restoreConfirm'), { danger: false, ok: t('rules.restore') })) saveDR({ private: 'direct', cn: 'direct', final: 'proxy' }); });
   $('#rg-add').addEventListener('click', () => nav('ruleEdit', null));
   el.querySelectorAll('[data-act]').forEach(b => b.addEventListener(b.dataset.act === 'toggle' ? 'change' : 'click', async () => {
+    if (saving || !active()) return;
     const i = Number(b.dataset.i), next = groups.map(g => ({ ...g }));
     switch (b.dataset.act) {
       case 'toggle': next[i].enabled = b.checked; break;
@@ -1376,9 +1593,10 @@ function renderLogs(el) {
       <button class="btn primary" id="diag">${t('logs.diag')}</button>
     </div>
     <p class="pagehint center">${t('logs.diagNote')}</p>`;
+  const shownLines = () => raw.filter(line => !errOnly || ['err', 'warn'].includes(logClass(logParse(line).lv)));
   const draw = () => {
     const box = $('#log'); if (!box) return;
-    const rows = raw.map(logParse).filter(r => !errOnly || logClass(r.lv) === 'err' || logClass(r.lv) === 'warn');
+    const rows = shownLines().map(logParse);
     const atBottom = box.scrollTop + box.clientHeight >= box.scrollHeight - 10;
     const html = rows.length
       ? rows.map(r => `<div class="lrow ${logClass(r.lv)}"><span class="lt">${esc(r.time)}</span><span class="ll">${esc(r.lv)}</span><span class="lx">${esc(r.text)}</span></div>`).join('')
@@ -1391,7 +1609,11 @@ function renderLogs(el) {
   const load = async () => {
     if (paused) return;
     try { raw = await App().GetLogs(300, core) || []; draw(); }
-    catch (e) { const box = $('#log'); if (box) box.innerHTML = `<div class="lempty">${esc(errText(e))}</div>`; }
+    catch (e) {
+      raw = [];
+      const box = $('#log');
+      if (box) { box.__html = null; box.innerHTML = `<div class="lempty">${esc(errText(e))}</div>`; }
+    }
   };
   $('#log-chips').querySelectorAll('.chip[data-src]').forEach(c => c.addEventListener('click', () => {
     core = c.dataset.src === '1';
@@ -1407,7 +1629,7 @@ function renderLogs(el) {
   });
   const op = $('#log-open'); if (op) op.addEventListener('click', () => App().OpenLogs().catch(e => toast(errText(e), 'err')));
   $('#log-copy').addEventListener('click', async () => {
-    const ok = await copyText(raw.join('\n'));
+    const ok = await copyText(shownLines().join('\n'));
     toast(t(ok ? 'logs.copied' : 'logs.copyFail'), ok ? 'ok' : 'err');
   });
   $('#diag').addEventListener('click', exportDiag);
@@ -1421,11 +1643,52 @@ function segInit(seg, onPick) {
   btns.forEach(b => b.addEventListener('click', () => { btns.forEach(x => x.classList.toggle('active', x === b)); move(b); onPick(b); }));
   requestAnimationFrame(() => move(seg.querySelector('button.active')));
 }
+function diagnosticDialogHelp(panel, previewing) {
+  panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'true');
+  panel.setAttribute('aria-labelledby', 'diag-dialog-title');
+  const heading = panel.querySelector('h2'); if (heading) heading.id = 'diag-dialog-title';
+  const help = (id, text) => panel.querySelector(id).insertAdjacentHTML('afterend', privacyHelp(text, panel.querySelector(id).textContent));
+  help('#dialog-no', t('diag.cancelHelp'));
+  help('#dialog-yes', t(previewing ? 'diag.previewHelp' : 'diag.saveHelp'));
+}
 async function exportDiag() {
+  const flow = ++diagnosticsFlow, origin = view;
+  const alive = () => flow === diagnosticsFlow && view === origin;
   try {
-    const r = await App().ExportDiag();
-    if (window.__web) { window.open(r, '_blank'); toast(t('logs.downloading'), 'ok'); } else toast(t('logs.exported'), 'ok');
-  } catch (e) { toast(errText(e), 'err'); }
+    if (window.__web || window.__android) {
+      const summary = await App().Diagnose();
+      if (!alive()) return;
+      const pending = askDialog({text:'',ok:t('common.ok')});
+      const text = $('#dialog .dialog-text');
+      text.innerHTML = `<h2>${esc(t('diag.title'))}</h2><p>${esc(t('diag.desktop'))}</p><pre class="diag-text" tabindex="0">${esc(summary)}</pre>`;
+      await pending;
+      return;
+    }
+    const choices = ['logs','config','crashes','network'];
+    const pending = askDialog({text:'',ok:t('diag.preview')});
+    const panel = $('#dialog'); panel.classList.add('diagnostic-dialog');
+    panel.querySelector('.dialog-text').innerHTML = `<h2>${esc(t('diag.title'))}</h2><p>${esc(t('diag.minimal'))}</p><div class="diag-choices">${choices.map(key => `<div class="diag-choice"><label><input type="checkbox" data-diag-option="${key}"> ${esc(t('diag.'+key))}</label>${privacyHelp(t('diag.'+key+'Help'),t('diag.'+key))}</div>`).join('')}</div><div class="diag-choice"><label><input type="checkbox" id="diag-ack"> ${esc(t('diag.ack'))}</label>${privacyHelp(t('diag.sensitive'),t('diag.ack'))}</div><p class="small muted">${esc(t('diag.sensitive'))}</p>`;
+    diagnosticDialogHelp(panel, true);
+    const update = () => {
+      const any = [...panel.querySelectorAll('[data-diag-option]')].some(el => el.checked);
+      panel.querySelector('#dialog-yes').disabled = any && !panel.querySelector('#diag-ack').checked;
+    };
+    panel.addEventListener('change', update); update();
+    const ok = await pending;
+    if (!ok || !alive()) return;
+    const options = {acknowledgeSensitive:panel.querySelector('#diag-ack').checked};
+    choices.forEach(key => { options[key] = panel.querySelector('[data-diag-option="'+key+'"]').checked; });
+    const preview = await App().PreviewDiag(options);
+    if (!alive()) return;
+    if (!preview || !preview.id || !/^[a-f0-9]{64}$/.test(preview.sha256 || '') || !Array.isArray(preview.files)) throw new Error(t('diag.invalid'));
+    const approve = askDialog({text:'',ok:t('diag.save')});
+    const box = $('#dialog'); box.classList.add('diagnostic-dialog');
+    box.querySelector('.dialog-text').innerHTML = `<h2>${esc(t('diag.review'))}</h2><p>${esc(t('diag.same'))}${privacyHelp(t('diag.expiry'),t('diag.review'))}</p>${(preview.warnings || []).map(w => `<p class="diag-warning">${esc(w)}</p>`).join('')}${preview.files.map(file => `<details class="diag-file"><summary>${esc(file.name)} · ${fmtBytes(file.bytes)}</summary>${privacyHelp(t('diag.fileHelp'),file.name)}<pre class="diag-text" tabindex="0">${esc(file.content)}</pre></details>`).join('')}`;
+    diagnosticDialogHelp(box, false);
+    if (!await approve || !alive()) return;
+    const saved = await App().ExportDiagPreview(preview.id, preview.sha256);
+    if (alive()) toast(t(saved ? 'logs.exported' : 'diag.cancelled'), saved ? 'ok' : '');
+  } catch (e) { if (alive()) toast(errText(e), 'err'); }
 }
 
 // ---- 关于 ----
@@ -1445,7 +1708,7 @@ function renderAbout(el) {
     <div class="list">
       <div class="item"><span class="dot ${state && state.service ? 'on' : 'err'}"></span>
         <div class="name"><b>${t('about.svc')}</b><span id="about-svc">${esc(svcText(state))}</span></div>
-        ${window.__web || window.__android ? '' : `<button class="btn sm" id="repair" ${state && state.svcState === 'no-permission' ? 'hidden' : ''}>${t('about.repair')}</button>`}</div>
+        ${window.__web || window.__android ? '' : `<button class="btn sm" id="repair" ${state && (state.svcState === 'no-permission' || state.svcState === 'identity-unknown') ? 'hidden' : ''}>${t('about.repair')}</button>`}</div>
       <div class="item"><div class="name"><b>${t('about.kernel')}</b><span>sing-box${stack ? ' · ' + esc(stack) : ''}${v.version ? ' · ' + t('about.svcVer', { v: v.version }) : ''}</span></div></div>
     </div>
     <div class="list">
@@ -1453,14 +1716,14 @@ function renderAbout(el) {
         <div class="name"><b>${t('about.diag')}</b><span>${t('logs.diagNote')}</span></div>
         <svg class="rowgo" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></div>
       <div class="item" id="repo"><svg class="rowic" viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M4 8l8 5 8-5"/></svg>
-        <div class="name"><b>${t('about.repo')}</b><span>github.com/Maoyangui/godusevpn</span></div>
+        <div class="name"><b>${t('about.repo')}</b><span>github.com/Maoyangui/godusevpn-ultra</span></div>
         <svg class="rowgo" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></div>
       ${window.__web
       ? `<div class="item" id="webpw"><svg class="rowic" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
           <div class="name"><b>${t('about.web')}</b><span>${t('about.webHelp')}</span></div>
           <svg class="rowgo" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></div>`
       : `<div class="item danger" id="quit"><svg class="rowic" viewBox="0 0 24 24"><path d="M12 3v9"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg>
-          <div class="name"><b>${t('about.quit')}</b><span id="about-quit-help">${t(state && state.svcState === 'no-permission' ? 'about.quitHelpNoPerm' : 'about.quitHelp')}</span></div></div>`}
+          <div class="name"><b>${t('about.quit')}</b><span id="about-quit-help">${t(state && state.svcState === 'identity-unknown' ? 'about.quitHelpIdentity' : state && state.svcState === 'no-permission' ? 'about.quitHelpNoPerm' : 'about.quitHelp')}</span></div></div>`}
     </div>
     <p class="pagehint center">${t('about.license')}</p>`;
   const showUpdate = rel => {
@@ -1486,7 +1749,7 @@ function renderAbout(el) {
     const pw = await askInput(t('about.webPwPrompt'), '', { password: true }); if (pw === null) return;
     try { await App().SetWebPassword(pw); toast(t('set.saved'), 'ok'); if (pw) setTimeout(() => location.reload(), 800); } catch (e) { toast(errText(e), 'err'); }
   });
-  $('#repo').addEventListener('click', () => openExternal('https://github.com/Maoyangui/godusevpn'));
+  $('#repo').addEventListener('click', () => openExternal('https://github.com/Maoyangui/godusevpn-ultra'));
 }
 
 // ---- 浏览器面板:登录 ----
@@ -1536,6 +1799,7 @@ async function init() {
   // macOS 的原生窗口没有标题栏,红绿灯按钮浮在左上角,给顶栏左边让出位置(网页面板和安卓壳里没有这回事)
   if (!window.__web && !window.__android && state.platform === 'darwin') document.body.classList.add('mac');
   LANG = state.lang || 'zh';
+  setupWindowControls();
   applyTheme(state.theme);
   updateThemeBtn();
   document.documentElement.lang = LANG === 'en' ? 'en' : 'zh';
@@ -1553,7 +1817,7 @@ async function init() {
   navHome();
   window.runtime.EventsOn('state', st => {
     const langChanged = (st.lang || 'zh') !== LANG, hadProfiles = state && state.view.profiles && state.view.profiles.length;
-    state = st; LANG = st.lang || 'zh';
+    state = st; LANG = st.lang || 'zh'; updateWindowControlText();
     if (st.view.state.status !== 'connected' && st.view.state.status !== 'degraded' && hist.length) clearHist();
     if (themeWish !== null && st.theme === themeWish) themeWish = null;
     applyTheme(curTheme());
@@ -1569,9 +1833,9 @@ async function init() {
     if (view === 'about' && $('#about-svc')) $('#about-svc').textContent = svcText(st);
     // 关于页只渲染一次:没权限 ↔ 已登记来回变时,「修复」按钮与「退出」的说明要跟着变,否则说明会和实际行为相反
     if (view === 'about') {
-      const noperm = st.svcState === 'no-permission';
-      const qh = $('#about-quit-help'); if (qh) qh.textContent = t(noperm ? 'about.quitHelpNoPerm' : 'about.quitHelp');
-      const rp = $('#repair'); if (rp) rp.hidden = noperm;
+      const noperm = st.svcState === 'no-permission', identityUnknown = st.svcState === 'identity-unknown';
+      const qh = $('#about-quit-help'); if (qh) qh.textContent = t(identityUnknown ? 'about.quitHelpIdentity' : noperm ? 'about.quitHelpNoPerm' : 'about.quitHelp');
+      const rp = $('#repair'); if (rp) rp.hidden = noperm || identityUnknown;
     }
   });
   window.runtime.EventsOn('traffic', tr => {

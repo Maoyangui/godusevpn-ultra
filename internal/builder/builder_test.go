@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -87,7 +88,7 @@ func TestDefaultsNoIPv6FakeIPTun(t *testing.T) {
 	if strings.Contains(raw, "inet6_range") {
 		t.Fatal("默认不该给 fake-ip 分配 IPv6 段")
 	}
-	if !strings.Contains(raw, "fdfe:") {
+	if !strings.Contains(raw, TunAddr6) {
 		t.Fatal("TUN 应带 IPv6 地址以便捕获并拒绝 v6,否则会泄露")
 	}
 	var v6reject, hijack53, fake bool
@@ -114,7 +115,7 @@ func TestDefaultsNoIPv6FakeIPTun(t *testing.T) {
 	if c.Inbounds[0]["type"] != "tun" || c.Inbounds[0]["strict_route"] != true || c.Inbounds[0]["stack"] != wantStack {
 		t.Fatalf("TUN 入站不对: %v", c.Inbounds[0])
 	}
-	if len(c.Inbounds) != 2 || c.Inbounds[1]["listen_port"] != float64(2080) {
+	if len(c.Inbounds) != 2 || c.Inbounds[1]["listen_port"] != float64(settings.Default().MixedPort) {
 		t.Fatalf("应有混合端口入站: %v", c.Inbounds)
 	}
 	if c.Outbounds[0]["tag"] != "proxy" || c.Outbounds[0]["default"] != "auto" || c.Outbounds[len(c.Outbounds)-1]["tag"] != "direct" {
@@ -142,7 +143,7 @@ func TestIPv6OnAndOptions(t *testing.T) {
 	s.IPv6, s.FakeIP, s.LANBypass, s.AdBlock, s.MixedPort = true, false, false, true, 0
 	s.Mode, s.Selected, s.RemoteDNS = settings.ModeGlobal, "台湾2", "dns.google"
 	c, raw := build(t, s)
-	if c.DNS.Strategy != "prefer_ipv4" || !strings.Contains(raw, "fdfe:dcba:9876::1/126") {
+	if c.DNS.Strategy != "prefer_ipv4" || !strings.Contains(raw, TunAddr6) {
 		t.Fatal("开 IPv6 后应有 v6 地址与 prefer_ipv4")
 	}
 	for _, r := range c.Route.Rules {
@@ -677,7 +678,7 @@ func TestAndroidListeners(t *testing.T) {
 			t.Fatalf("开着 TUN 的 Android 上不该有混合入站: %v", in)
 		}
 	}
-	if got, _ := c.Experimental.ClashAPI["external_controller"].(string); got != "127.0.0.1:9090" {
+	if got, _ := c.Experimental.ClashAPI["external_controller"].(string); got != "127.0.0.1:"+strconv.Itoa(s.ClashPort) {
 		t.Fatalf("Android 上 Clash API 必须监听(连接页、网速、测延迟都靠它),实际 %q", got)
 	}
 

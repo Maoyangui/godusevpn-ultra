@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"testing"
 
 	"golang.org/x/sys/windows/registry"
@@ -8,6 +9,9 @@ import (
 
 // 用一个一次性的协议名验证注册逻辑:写得进去、读回来是本程序、重复调用不出错;跑完删干净。
 func TestEnsureSchemeWritesRegistry(t *testing.T) {
+	if os.Getenv("GODUSEVPN_ULTRA_REGISTRY_LIVE") != "1" {
+		t.Skip("opt-in only: writes a temporary key in the real user registry")
+	}
 	const scheme = "godusevpn-selftest"
 	base := `Software\Classes\` + scheme
 	t.Cleanup(func() {

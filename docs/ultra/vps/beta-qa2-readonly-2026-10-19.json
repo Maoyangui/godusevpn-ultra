@@ -1,0 +1,47 @@
+{
+  "schema": "ultra-beta-readonly-v1",
+  "candidate": "0.01-beta-qa.2",
+  "status": "completed",
+  "stage": "complete",
+  "error": "",
+  "hashesMatched": 3,
+  "staticVersionsMatched": 3,
+  "commandsStarted": 5,
+  "commandsPassed": 5,
+  "terminationUnknown": false,
+  "token": {"kind": "SYSTEM", "elevated": true, "interactiveSid": false},
+  "cliVersion": "0.01-beta-qa.2",
+  "svcVersion": "0.01-beta-qa.2",
+  "policy": {
+    "controls": 36,
+    "managed": 0,
+    "canApply": 0,
+    "unknownOrOther": 0,
+    "observerElevated": true,
+    "backupHealthyCurrentTokenOnly": true,
+    "machineJournalChecked": false
+  },
+  "detection": {
+    "findings": 45,
+    "statuses": {"observed": 2, "allowed": 0, "possible": 28, "restricted": 0, "unknown": 14, "manual": 1, "other": 0},
+    "observerElevated": true,
+    "helperAuthorized": false,
+    "machineJournalChecked": false
+  },
+  "firewall": {
+    "supported": true,
+    "observerElevated": true,
+    "rules": 0,
+    "unknownFilters": 0,
+    "filtersInstalled": 0,
+    "partial": 0,
+    "other": 0,
+    "runtimeTested": false
+  },
+  "guiStarted": false,
+  "serviceStarted": false,
+  "settingsOrNetworkChangesRequested": false,
+  "runtimeProtectionTested": false,
+  "scope": "current_token_not_GUI_user",
+  "machineJournalChecked": false
+}

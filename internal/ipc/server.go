@@ -152,10 +152,19 @@ var (
 )
 
 func Call(ctx context.Context, method string, params any, result any) error {
+	return callWithDial(ctx, method, params, result, dial)
+}
+
+// The transport seam allows protocol tests to use net.Pipe; production callers
+// always use the platform dialer, including Windows' authenticated connection.
+func callWithDial(ctx context.Context, method string, params any, result any, connect func(context.Context) (net.Conn, error)) error {
 	dctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
-	conn, err := dial(dctx)
+	conn, err := connect(dctx)
 	if err != nil {
+		if errors.Is(err, ErrUntrustedService) {
+			return err
+		}
 		if permissionDenied(err) {
 			return fmt.Errorf("%w(%s)", ErrNoPermission, permissionHint)
 		}
@@ -184,6 +193,9 @@ func Call(ctx context.Context, method string, params any, result any) error {
 	var resp Response
 	if err := json.Unmarshal(line, &resp); err != nil {
 		return err
+	}
+	if resp.ID != req.ID {
+		return ErrResponseMismatch
 	}
 	if !resp.OK {
 		return &CallError{Code: resp.Code, Msg: resp.Error}

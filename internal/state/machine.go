@@ -140,6 +140,11 @@ func New(d Deps) *Machine {
 
 // CheckNow 请求立刻做一次健康检查(连接期间才有意义;没在连就丢掉)。不阻塞。
 func (m *Machine) CheckNow() {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if !m.wanted || m.closed || m.cancel == nil || (m.snap.Status != Connected && m.snap.Status != Degraded) {
+		return
+	}
 	select {
 	case m.kick <- struct{}{}:
 	default:
@@ -159,7 +164,21 @@ func (m *Machine) Wanted() bool {
 }
 
 func (m *Machine) set(st Status, err error) {
+	m.publish(st, err, false)
+}
+
+func (m *Machine) publish(st Status, err error, newConnection bool) {
 	m.mu.Lock()
+	if newConnection {
+		// Discard only the previous session's queued request, atomically with
+		// publishing Connected. CheckNow checks and enqueues under this same
+		// lock, so notifications after publication cannot be discarded here.
+		select {
+		case <-m.kick:
+		default:
+		}
+		m.snap.Retries = 0
+	}
 	m.snap.Status, m.snap.Since, m.snap.Wanted = st, time.Now().Unix(), m.wanted
 	if err != nil {
 		m.snap.Code, m.snap.Error = CodeOf(err), err.Error()
@@ -386,10 +405,7 @@ func (m *Machine) run(ctx context.Context, started bool) {
 		}
 		started = false
 		attempt = 0
-		m.mu.Lock()
-		m.snap.Retries = 0
-		m.mu.Unlock()
-		m.set(Connected, nil)
+		m.publish(Connected, nil, true)
 		rebuild, cause := m.watch(ctx)
 		if !rebuild {
 			return // 用户断开
@@ -432,11 +448,6 @@ func (m *Machine) watch(ctx context.Context) (bool, error) {
 	defer health.Stop()
 	fails := 0
 	tried := false // 这一轮不健康期间已经叫过一次自救了
-	// 断开期间攒下的 kick 作废:那是对上一条连接的判定,新连接刚起来不该平白多查一次
-	select {
-	case <-m.kick:
-	default:
-	}
 	// 一次健康检查。返回 true = 该重建连接了(内核死了、或这条线路救不回来)。
 	check := func() (bool, error) {
 		if m.d.Health == nil {

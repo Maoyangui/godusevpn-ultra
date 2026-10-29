@@ -1,0 +1,66 @@
+{
+  "schema": "ultra-qa4-readonly-evidence-v1",
+  "date": "2026-10-20",
+  "candidate": "0.01-beta-qa.4",
+  "package": {
+    "size": 37349587,
+    "sha256": "c8d87b386180459caefe4372630c5f25ef2c1ffd960b89e7687ce236702c0580"
+  },
+  "transfer": {
+    "parts": 18,
+    "remoteFiles": 20,
+    "remotePreviewHashMatched": true,
+    "remoteWrites": "private QA staging only",
+    "reconnects": 2
+  },
+  "candidatePreparation": {
+    "status": "prepared",
+    "fixedExecutables": 3,
+    "sha256Matched": true,
+    "installersOrExtensionsExtracted": false
+  },
+  "readonly": {
+    "schema": "ultra-qa4-readonly-v1",
+    "status": "completed",
+    "observer": "SYSTEM",
+    "hashesMatched": 3,
+    "staticVersionsMatched": 3,
+    "commandsStarted": 5,
+    "commandsPassed": 5,
+    "terminationUnknown": false,
+    "cliVersion": "0.01-beta-qa.4",
+    "serviceVersion": "0.01-beta-qa.4",
+    "policyControls": 36,
+    "detectionFindings": 45,
+    "detectionStatuses": {
+      "observed": 2,
+      "possible": 28,
+      "unknown": 14,
+      "manual": 1
+    },
+    "firewallRules": 0,
+    "guiStarted": false,
+    "serviceStarted": false,
+    "settingsOrNetworkChangesRequested": false,
+    "runtimeProtectionTested": false,
+    "machineJournalChecked": false
+  },
+  "scmReadback": {
+    "schema": "ultra-qa4-scm-readback-v2",
+    "status": "completed",
+    "effectiveSystemCaller": true,
+    "scmOpened": true,
+    "targetServicesPresent": false,
+    "targetServiceError": 1060,
+    "cimQuerySucceeded": true,
+    "originalServiceCount": 0,
+    "ultraServiceCount": 0,
+    "productExecuted": false,
+    "changesRequested": false
+  },
+  "scope": [
+    "SYSTEM-only observation",
+    "no installation, GUI/UAC, ordinary-user, browser, tunnel, WFP or traffic proof",
+    "unknown and manual findings remain unverified"
+  ]
+}

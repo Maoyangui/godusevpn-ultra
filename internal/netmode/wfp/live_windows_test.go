@@ -73,8 +73,8 @@ func TestLivePersistentGuard(t *testing.T) {
 	out, _ = exec.Command("netsh", "wfp", "show", "state", "file=-").Output()
 	state := strings.ToLower(string(out))
 	for _, g := range []struct{ id, what string }{
-		{"6f6d9e2e-3a41-4b8e-9d55-676f64757365", "提供者"}, {"6f6d9e2f-3a41-4b8e-9d55-676f64757365", "子层"},
-		{"6f6d9e2c-3a41-4b8e-9d55-676f64757365", "第一代提供者"}, {"6f6d9e2d-3a41-4b8e-9d55-676f64757365", "第一代子层"},
+		{"8a1b0e12-3a41-4b8e-9d55-676f64757365", "提供者"}, {"8a1b0e13-3a41-4b8e-9d55-676f64757365", "子层"},
+		{"8a1b0e10-3a41-4b8e-9d55-676f64757365", "第一代提供者"}, {"8a1b0e11-3a41-4b8e-9d55-676f64757365", "第一代子层"},
 	} {
 		if strings.Contains(state, g.id) {
 			t.Fatalf("撤闸后%s还在", g.what)

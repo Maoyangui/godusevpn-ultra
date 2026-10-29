@@ -1,0 +1,145 @@
+{
+  "scope": "headless original frontend with fixed Wails mock; no real settings or account data",
+  "checks": [
+    {
+      "width": 320,
+      "theme": "light",
+      "dpr": 1,
+      "geometry": {
+        "width": 80,
+        "height": 80,
+        "center": 160,
+        "glyphY": 40.00000000000001,
+        "markWidth": 38,
+        "markHeight": 17.176193237304688,
+        "markInside": true,
+        "signatureStroke": "8",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px"
+      },
+      "drawer": {
+        "text": "ultra",
+        "font": "\"Segoe UI Variable Display\", \"Segoe UI\", sans-serif",
+        "weight": "300",
+        "size": "9.5px"
+      }
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "dpr": 1,
+      "geometry": {
+        "width": 80,
+        "height": 80,
+        "center": 160,
+        "glyphY": 40.00000000000001,
+        "markWidth": 38,
+        "markHeight": 17.176193237304688,
+        "markInside": true,
+        "signatureStroke": "8",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px"
+      },
+      "drawer": {
+        "text": "ultra",
+        "font": "\"Segoe UI Variable Display\", \"Segoe UI\", sans-serif",
+        "weight": "300",
+        "size": "9.5px"
+      }
+    },
+    {
+      "width": 420,
+      "theme": "light",
+      "dpr": 1,
+      "geometry": {
+        "width": 80,
+        "height": 80,
+        "center": 210,
+        "glyphY": 40.00000000000001,
+        "markWidth": 38,
+        "markHeight": 17.176193237304688,
+        "markInside": true,
+        "signatureStroke": "8",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px"
+      },
+      "drawer": {
+        "text": "ultra",
+        "font": "\"Segoe UI Variable Display\", \"Segoe UI\", sans-serif",
+        "weight": "300",
+        "size": "9.5px"
+      }
+    },
+    {
+      "width": 420,
+      "theme": "light",
+      "dpr": 2,
+      "geometry": {
+        "width": 80,
+        "height": 80,
+        "center": 210,
+        "glyphY": 40.00000000000001,
+        "markWidth": 38,
+        "markHeight": 17.176193237304688,
+        "markInside": true,
+        "signatureStroke": "8",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px"
+      },
+      "drawer": {
+        "text": "ultra",
+        "font": "\"Segoe UI Variable Display\", \"Segoe UI\", sans-serif",
+        "weight": "300",
+        "size": "9.5px"
+      }
+    },
+    {
+      "width": 420,
+      "theme": "dark",
+      "dpr": 1,
+      "geometry": {
+        "width": 80,
+        "height": 80,
+        "center": 210,
+        "glyphY": 40.00000000000001,
+        "markWidth": 38,
+        "markHeight": 17.176193237304688,
+        "markInside": true,
+        "signatureStroke": "8",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px"
+      },
+      "drawer": {
+        "text": "ultra",
+        "font": "\"Segoe UI Variable Display\", \"Segoe UI\", sans-serif",
+        "weight": "300",
+        "size": "9.5px"
+      }
+    },
+    {
+      "width": 420,
+      "theme": "dark",
+      "dpr": 2,
+      "geometry": {
+        "width": 80,
+        "height": 80,
+        "center": 210,
+        "glyphY": 40.00000000000001,
+        "markWidth": 38,
+        "markHeight": 17.176193237304688,
+        "markInside": true,
+        "signatureStroke": "8",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "0px"
+      },
+      "drawer": {
+        "text": "ultra",
+        "font": "\"Segoe UI Variable Display\", \"Segoe UI\", sans-serif",
+        "weight": "300",
+        "size": "9.5px"
+      }
+    }
+  ],
+  "errors": [],
+  "outbound": []
+}

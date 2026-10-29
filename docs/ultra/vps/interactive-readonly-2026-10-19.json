@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-19",
+  "test": "interactive_readonly",
+  "status": "completed",
+  "version": "0.1.0-ultra.1",
+  "cliSha256": "bf728ab1a000b4a8aae5329d7ba76cc25aae4c7a87667fecc0bfdf4d9f5ffaa1",
+  "scriptSha256": "f7a4254a05078ba9bd7c8b88e9178c732661ed5e5a08d69d33fc2d0e08d3636a",
+  "cliHashMatched": true,
+  "interactiveSid": true,
+  "elevated": true,
+  "policyCount": 26,
+  "canApplyCount": 26,
+  "managedUserJournalCount": 0,
+  "userJournalHealthy": true,
+  "availableCount": 26,
+  "manualCount": 0,
+  "configuredCount": 0,
+  "conflictCount": 0,
+  "unknownCount": 0,
+  "readDifferentCount": 26,
+  "readMatchCount": 0,
+  "machineBackupsInspected": false,
+  "GUIStarted": false,
+  "browserRuntimeTested": false,
+  "networkTested": false,
+  "commands": ["version", "privacy report"],
+  "scope": "SAC-authenticated elevated interactive account; current token HKCU and APPDATA only. A GUI process was not started.",
+  "verification": "The source was hash-checked and staged without execution. The SAC process redirected the minimized script result into a new private QA result file. SYSTEM Run Command then checked the result file path/ACL, validated successful version/hash/token/counts and returned selected fixed fields only.",
+  "attempts": [
+    "The first SAC invocation used forward slashes in PackageDirectory and was rejected by the local-path preflight; it was not a successful CLI test.",
+    "Serial rendering loses characters on long JSON. The successful invocation used Windows backslash paths and a separate private result file, verified through Run Command. No raw policy report was saved."
+  ],
+  "limits": [
+    "canApply is the product eligibility result, not a completed write or proof of OS/browser enforcement",
+    "backup health and managed count describe only this account's user journal",
+    "machine policy ownership and backup health were not checked by this CLI report",
+    "no GUI/helper/service/install/extension/policy change/detection/subscription/tunnel/WFP test",
+    "hash pinning is not a publisher signature",
+    "private stage and ancestors are trusted; administrator namespace races remain outside this test"
+  ]
+}

@@ -14,6 +14,8 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 
 	"github.com/Maoyangui/godusevpn/internal/buildinfo"
+	"github.com/Maoyangui/godusevpn/internal/identity"
+	"github.com/Maoyangui/godusevpn/internal/privacyhost"
 	"github.com/Maoyangui/godusevpn/web"
 )
 
@@ -25,7 +27,7 @@ func parseArgs(args []string) (minimized bool, deepLink string) {
 		switch {
 		case a == "--minimized" || a == "-minimized":
 			minimized = true
-		case strings.HasPrefix(strings.ToLower(a), "godusevpn://"):
+		case strings.HasPrefix(strings.ToLower(a), identity.ProtocolScheme+"://") || strings.HasPrefix(strings.ToLower(a), "godusevpn://"):
 			deepLink = a
 		}
 	}
@@ -33,6 +35,9 @@ func parseArgs(args []string) (minimized bool, deepLink string) {
 }
 
 func main() {
+	if handled, code := privacyhost.Handle(os.Args[1:]); handled {
+		os.Exit(code)
+	}
 	minimized, link := parseArgs(os.Args[1:])
 	ensureURLProtocol() // 落地页一键导入的 godusevpn:// 协议:老安装包漏注册过,每次启动补一遍
 	app := newApp(minimized, link)
@@ -42,7 +47,7 @@ func main() {
 		Height:            760,
 		MinWidth:          380,
 		MinHeight:         640,
-		MaxWidth:          560,
+		MaxWidth:          1040,
 		MaxHeight:         1000,
 		Frameless:         true, // 自绘标题栏
 		HideWindowOnClose: true, // 点关闭只收到托盘,连接不受影响
@@ -54,7 +59,7 @@ func main() {
 		OnShutdown:        app.shutdown,
 		Bind:              []interface{}{app},
 		SingleInstanceLock: &options.SingleInstanceLock{
-			UniqueId: "godusevpn-3c1f8d2e-7b4a-4e0c-9a6d-fotiaoqiang",
+			UniqueId: identity.SingleInstanceID,
 			OnSecondInstanceLaunch: func(d options.SecondInstanceData) {
 				_, l := parseArgs(d.Args)
 				app.secondInstance(l)

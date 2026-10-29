@@ -1,0 +1,77 @@
+{
+  "scope": "Centered logo and compact version tag; pure Wails mock, no backend calls",
+  "checks": [
+    {
+      "theme": "light",
+      "geometry": {
+        "contentCenterX": 210,
+        "svgCenterX": 210,
+        "glyphCenterX": 210,
+        "svgWidth": 64,
+        "svgHeight": 64,
+        "tagWidth": 32,
+        "tagHeight": 14,
+        "tagCenterX": 238,
+        "font": {
+          "family": "\"Segoe UI\", Arial, sans-serif",
+          "size": "8.5px",
+          "weight": "600",
+          "spacing": "0.3px"
+        }
+      },
+      "formLayoutUnchanged": true,
+      "actualFont": [
+        {
+          "family": "Segoe UI Semibold",
+          "postScriptName": "SegoeUI-Semibold",
+          "glyphs": 5
+        }
+      ],
+      "drawer": {
+        "gap": 6,
+        "centerDelta": 0,
+        "tagWidth": 30,
+        "tagHeight": 13,
+        "tabIndex": -1
+      },
+      "keyboardOpenClose": true
+    },
+    {
+      "theme": "dark",
+      "geometry": {
+        "contentCenterX": 210,
+        "svgCenterX": 210,
+        "glyphCenterX": 210,
+        "svgWidth": 64,
+        "svgHeight": 64,
+        "tagWidth": 32,
+        "tagHeight": 14,
+        "tagCenterX": 238,
+        "font": {
+          "family": "\"Segoe UI\", Arial, sans-serif",
+          "size": "8.5px",
+          "weight": "600",
+          "spacing": "0.3px"
+        }
+      },
+      "formLayoutUnchanged": true,
+      "actualFont": [
+        {
+          "family": "Segoe UI Semibold",
+          "postScriptName": "SegoeUI-Semibold",
+          "glyphs": 5
+        }
+      ],
+      "drawer": {
+        "gap": 6,
+        "centerDelta": 0,
+        "tagWidth": 30,
+        "tagHeight": 13,
+        "tabIndex": -1
+      },
+      "keyboardOpenClose": true
+    }
+  ],
+  "errors": [],
+  "outboundRequests": []
+}
