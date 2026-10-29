@@ -1,5 +1,12 @@
 # 逐功能实现与验收台账
 
+## 2026-10-31 当前状态（优先于下方历史记录）
+
+- 最新客户端发布为 [v0.01-beta.6.1](https://github.com/Maoyangui/godusevpn-ultra/releases/tag/v0.01-beta.6.1)。发布包、PE 资源、前端资产和 ZIP SHA-256 已重新核对；浏览器内核、硬件、启动取消竞态、配置保存与像素 UI fixture 复跑通过。
+- `godusevpn.org/app/api/trial/*` 已由 Cloudflare Worker（版本 `5e5d847a-4248-4c6b-9594-90a54cac9e86`）转发至站点服务端网关；status、真实订阅 claim、同设备 409、非法设备 400、OPTIONS 204 和 CORS 边界均有生产回执。服务端 HMAC/Redis 限额、`free` 套餐、短 `t-` 用户名、来源备注和后台开关/购买链接已落地。
+- Azure Win10 19044/17763 曾有安装、服务、CLI、隧道和出口的有限实机证据；最新 beta.6.1 尚未在普通用户 VM 重新完成 Chrome/Firefox 原生窗口、导航和 GPS 写入读回。代码启动链存在不等于这些运行时能力已验收。
+- 仍未关闭：真实 Chrome/Firefox 多版本窗口与代理出口矩阵、WebRTC/WebGPU/OOPIF/Worker 读回、Windows GPS provider 写入/读回、CEF/uBlock 运行集成、跨 Windows 版本完整矩阵，以及 D03/B03/N08 等原台账范围。不得用 DOM、mock、纯 Go/C# 测试或旧包证据替代这些范围。
+
 ## 2026-10-27 当前状态（优先于下方历史记录）
 
 完整对话的用户要求与后续追加目标按 [H01–H37](HANDOVER_REQUIREMENTS_2026-10-26.zh-CN.md) 保留；早先 beta 批次不构成整体项目完成定义。qa.11 已在临时 VM 通过官方 QA9→QA11 升级、完整包与 Running / LocalSystem 读回；普通 Medium 无参数启动、实际取消 UAC 后保留 GUI，第二轮原始 Process handle 取得托盘正常退出码 0，见 [本次证据与边界](qa/QA11_OFFICIAL_UPGRADE_2026-10-27.md)。配置库另已通过 QA11 真实 GUI 的载入、重命名、另存新配置、取消删除与删除的有限往返及独立磁盘核验，见 [本批记录](qa/QA11_PROFILE_GUI_VM_2026-10-27.md)。普通用户代理 GUI 的单节点认证 SOCKS5 显式 probe、错误认证反馈与运行中 UAC 取消保留 GUI 已有 [有限实测](qa/QA11_PROXY_GUI_VM_2026-10-27.md)；元数据仍按其 QA9 有限证据判断。完整 GUI、接受授权路径与独立浏览器仍分别待验。私有冻结包尚未公开发布。产品内的 Android / iOS / macOS / Windows 指浏览器环境配置，不能据此宣称四种原生系统内核运行。
