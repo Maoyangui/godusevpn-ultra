@@ -204,7 +204,7 @@ func PreviewIdentity(config ProfileConfig, runtime RuntimeContext) (IdentityPrev
 		p.Warnings = append(p.Warnings, "Generated Chromium UA uses reduced fixed platform tokens and major.0.0.0; detailed requested platform/model and actual full engine versions remain in Client Hints.")
 	}
 	if preset != nil && preset.Config.OS == "ios" {
-		p.Warnings = append(p.Warnings, "The iOS environment UA is synthetic Windows Chromium emulation, not a retail iOS CriOS browser, native Safari, or WebKit 605.")
+		p.Warnings = append(p.Warnings, "The iOS environment UA is a synthetic Chromium iPhone profile on Windows, not a retail iOS CriOS browser, native Safari, or WebKit 605.")
 	}
 	return p, nil
 }
