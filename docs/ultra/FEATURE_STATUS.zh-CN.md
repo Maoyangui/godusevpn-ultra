@@ -2,10 +2,10 @@
 
 ## 2026-10-31 当前状态（优先于下方历史记录）
 
-- 最新客户端发布为 [v0.01-beta.6.2](https://github.com/Maoyangui/godusevpn-ultra/releases/tag/v0.01-beta.6.2)（含助手失联后的重新授权与 Device Portal 已准备记录的安全重连修复）；v0.01-beta.6.1 仍保留在 GitHub Release。发布包、PE 资源、前端资产和 ZIP SHA-256 已重新核对；浏览器内核、硬件、启动取消竞态、配置保存与像素 UI fixture 复跑通过。
+- 最新客户端发布为 [v0.01-beta.6.5](https://github.com/Maoyangui/godusevpn-ultra/releases/tag/v0.01-beta.6.5)（含助手失联后的重新授权、Device Portal 已准备记录的安全重连，以及独立浏览器会话数据退出清理）；v0.01-beta.6.2 仍保留在 GitHub Release。发布包、PE 资源、前端资产和 ZIP SHA-256 已重新核对；浏览器内核、硬件、启动取消竞态、配置保存与像素 UI fixture 复跑通过。
 - `godusevpn.org/app/api/trial/*` 已由 Cloudflare Worker（版本 `5e5d847a-4248-4c6b-9594-90a54cac9e86`）转发至站点服务端网关；status、真实订阅 claim、同设备 409、非法设备 400、OPTIONS 204 和 CORS 边界均有生产回执。服务端 HMAC/Redis 限额、`free` 套餐、短 `t-` 用户名、来源备注和后台开关/购买链接已落地。
-- Azure Win10 19044/17763 曾有安装、服务、CLI、隧道和出口的有限实机证据；最新 beta.6.2 尚未在普通用户 VM 重新完成 Chrome/Firefox 原生窗口、导航和 GPS 写入读回。代码启动链存在不等于这些运行时能力已验收。
-- 仍未关闭：真实 Chrome/Firefox 多版本窗口与代理出口矩阵、WebRTC/WebGPU/OOPIF/Worker 读回、Windows GPS provider 写入/读回、CEF/uBlock 运行集成、跨 Windows 版本完整矩阵，以及 D03/B03/N08 等原台账范围。不得用 DOM、mock、纯 Go/C# 测试或旧包证据替代这些范围。
+- Azure Win10 19044/17763 曾有安装、服务、CLI、隧道和出口的有限实机证据；最新 beta.6.5 尚未在普通用户 VM 重新完成 Chrome/Firefox 原生窗口、导航和 GPS 写入读回。代码启动链存在不等于这些运行时能力已验收。
+- 仍未关闭：真实 Chrome/Firefox 多版本窗口与代理出口矩阵、WebRTC/WebGPU/OOPIF/Worker 读回、Windows GPS provider 写入/读回、CEF/uBlock 运行集成、跨 Windows 版本完整矩阵，以及 D03/N08 等原台账范围。不得用 DOM、mock、纯 Go/C# 测试或旧包证据替代这些范围。
 
 ## 2026-10-27 当前状态（优先于下方历史记录）
 
