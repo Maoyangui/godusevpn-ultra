@@ -72,3 +72,4 @@
 
 - `internal/locationadapter.RuntimeSupportStatus` 现在只读取 Windows build，并用官方 `GeolocationProvider` 文档门槛 23504 做本地门禁；Win10/23H2 明确返回 build 不足，达到门槛也只返回“可能存在”。
 - 隐私中心系统位置卡显示该门禁的原因与剩余条件；没有把 build 检查当成 GPS 写入、LAF、runFullTrust、会话所有权或原子恢复能力。
+- QA12.16 package audit（含 RuntimeSupportStatus 与隐私中心门禁卡）：1997 payload/1998 ZIP members，ZIP SHA-256 `b489b5d83b3cfa0460c4c638930a3007d4c957e89630d3556631fd05e08f88f1`；runtimeVersionVerified=false 仍按审计边界保留。
