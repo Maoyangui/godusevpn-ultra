@@ -137,6 +137,8 @@
 .privacy-editor-footer > .privacy-actions { margin-top:5px; }
 .privacy-editor-footer > details { margin-top:10px; }
 @media (max-width:520px) {
+  .privacy-tabs button { padding:7px 8px; font-size:11px; }
+  .privacy-tab-option { margin-right:1px; }
   .privacy-browser-editor { padding:14px; }
   .privacy-editor-tabs { margin:12px -14px 4px; padding:0 10px 8px; }
   .privacy-editor-tab { padding:8px; font-size:11px; }
