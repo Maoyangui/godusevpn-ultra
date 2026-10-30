@@ -7,7 +7,7 @@
 | 范围 | 证据 |
 | --- | --- |
 | 浏览器配置交互 | 四种网页环境预设、OS 版本/视口、UA 生成与手改、GPU/WebGL 字段、代理草稿、内核下载/校验/删除、预览失效和启动前复核；DOM QA 全部通过 |
-| 隐私中心/检测中心 | 状态分层、未知/有限/计划中不升级、减少重复帮助标记、紧凑本地时间、页内错误反馈、检测快照筛选/导出、键盘与窄屏布局；beta.6.6 后再次执行 420/900px、浅色/深色共 32 张截图，0 error、0 outbound；截图目录 `C:\\Temp\\ultra-trial-ui-qa\\final-audit-beta66` |
+| 隐私中心/检测中心 | 状态分层、未知/有限/计划中不升级、减少重复帮助标记、紧凑本地时间、页内错误反馈、检测快照筛选/导出、键盘与窄屏布局；当前试用卡片/帮助 fixture 修复后再次执行 420px 浅色 smoke，共 8 张截图，`errors=[]`、`outboundRequests=[]`；截图目录 `C:\\Temp\\ultra-trial-ui-qa\\final-audit-after-fixture-fix` |
 | 开源集成 | sing-box、WFP/WireGuard 规则、ExifTool、WebView2 SDK/宿主、Chrome/Firefox 下载校验链均有源码入口、固定版本/许可证或哈希说明；对应 Go/Node 测试通过 |
 | 独立会话数据生命周期 | 浏览器每次启动使用独立会话目录；进程/防火墙收尾后以 `os.Root` 相对路径扫描并删除本次树，拒绝重解析点、异常对象和共享目录，失败保持 `closing_or_unknown`；Windows 交叉编译与纯文件回归见 [会话清理审计](BROWSER_SESSION_CLEANUP_2026-10-30.md) |
 | 秘密剪贴板 | 本应用复制路径已接入序号、所有者和内容摘要的条件清理；默认关闭、时长 5–600 秒，Go 与 DOM 回归覆盖取消、替换内容保留和服务不可用，详见 [审计记录](CLIPBOARD_PRIVACY_QA_2026-10-31.md)。真实 VM 的竞争、退出、历史/云同步边界仍待实测，不扩展为全系统剪贴板控制 |
