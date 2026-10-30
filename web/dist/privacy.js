@@ -211,6 +211,9 @@ function renderPrivacy(el, arg) {
   };
   const browserEnvironmentEditor = () => {
     const meta=model.browserMeta||{}, x=model.browserExtras||{}, storage=x.storage||{}, tabs=x.tabs||{}, proxy=x.proxy||{}, fp=x.fingerprint||{}, noise=fp.noise||{}, advanced=x.advanced||{}, readback=x.readback||{};
+    const familyNames={sunbrowser:'SunBrowser（家族标签）',flowerbrowser:'FlowerBrowser（家族标签）',chromium:'Chrome / Chromium',firefox:'Firefox / Gecko',webview2:'WebView2 / Edge'};
+    const engineNames={'chrome-for-testing':'Chrome for Testing','firefox':'Firefox','webview2':'WebView2'};
+    const graphicsEditable=fp.webglMetadata==='custom';
     const disabled=model.browserBusy||model.engineBusy||model.loading?'disabled':'';
     const options=(value,list)=>list.map(pair=>`<option value="${safe(pair[0])}" ${value===pair[0]?'selected':''}>${safe(pair[1])}</option>`).join('');
     const select=(path,label,value,list,help='')=>`<label>${safe(label)}${help?privacyHelp(help):''}<select data-browser-v2="${safe(path)}" ${disabled}>${options(value,list)}</select></label>`;
@@ -224,7 +227,6 @@ function renderPrivacy(el, arg) {
       <div class="privacy-card-head"><h2>浏览器环境编辑器${privacyHelp('按 AdsPower / 比特浏览器式的完整环境配置组织。每个字段先保存为配置草稿，再在启动时按能力范围逐项读回；无法由当前宿主实现的项目保持“未知/不支持”，不会伪装成已生效。')}</h2>${status(readback.runtimeVerified?'运行时已读回':'配置已保存 · '+supported,readback.runtimeVerified?'verified':'pending')}</div>
       <p class="muted">配置名称是浏览器配置记录名称；环境名称、分组和备注用于管理。Cookie 原文只在本次会话内存中解析，默认不落盘。</p>
       <div class="privacy-browser-fields">
-        ${select('meta.browser','浏览器',meta.browser||'sunbrowser',[['sunbrowser','SunBrowser'],['flowerbrowser','FlowerBrowser'],['chrome-for-testing','Chrome / Chromium'],['firefox','Firefox / Gecko'],['webview2','WebView2 / Edge']], '这里只保存浏览器家族标签；实际内核仍由下方浏览器内核和版本决定。')}
         ${select('meta.browser','浏览器家族',meta.browser||'chromium',[['sunbrowser','SunBrowser（家族标签）'],['flowerbrowser','FlowerBrowser（家族标签）'],['chromium','Chrome / Chromium'],['firefox','Firefox / Gecko'],['webview2','WebView2 / Edge']], '家族标签与实际内核分开保存；选择 SunBrowser 或 FlowerBrowser 不会伪装成未安装的真实内核。')}
         ${input('meta.environmentName','环境名称',meta.environmentName||'','maxlength="100" placeholder="选填：环境名称"','环境名称最多 100 个字符，只用于识别配置。')}
         ${input('meta.group','分组',meta.group||'','maxlength="100" placeholder="未分组"','分组不会改变启动参数。')}
@@ -262,11 +264,11 @@ function renderPrivacy(el, arg) {
           ${select('fingerprint.resolution','分辨率',fp.resolution||'ua',[['random','随机'],['preset','预定义'],['custom','自定义'],['ua','基于 User-Agent']], '视口和 DPR 由现有运行时部分支持；物理显示器不会被修改。')}
           ${select('fingerprint.fonts','字体',fp.fonts||'default',[['default','默认'],['custom','自定义']], '字体列表需要宿主级注入；当前仅保存计划并在启动后报告能力。')}
         </div>
-        <div class="privacy-v2-noise"><strong>硬件噪音</strong>${checked('fingerprint.noise.canvas','Canvas',!!noise.canvas)}${checked('fingerprint.noise.webglImage','WebGL 图像',!!noise.webglImage)}${checked('fingerprint.noise.audio','AudioContext',!!noise.audio)}${checked('fingerprint.noise.media','媒体设备',!!noise.media)}${checked('fingerprint.noise.clientRects','ClientRects',!!noise.clientRects)}${checked('fingerprint.noise.speechVoices','SpeechVoices',!!noise.speechVoices)}</div>
+        <div class="privacy-v2-noise"><strong>硬件噪音</strong>${checked('fingerprint.noise.canvas','Canvas',!!noise.canvas,'仅改变受控页面的 Canvas 读回；必须在 Window、iframe 和 Worker 逐项读回。')}${checked('fingerprint.noise.webglImage','WebGL 图像',!!noise.webglImage,'仅记录图像噪音策略；不改变物理 GPU、驱动或像素性能。')}${checked('fingerprint.noise.audio','AudioContext',!!noise.audio,'需要真实页面读回 AudioContext 的输出差异；未读回时保持未知。')}${checked('fingerprint.noise.media','媒体设备',!!noise.media,'只影响媒体设备枚举策略；摄像头和麦克风权限仍单独拒绝。')}${checked('fingerprint.noise.clientRects','ClientRects',!!noise.clientRects,'只记录 ClientRects 策略；跨源和 Worker 范围需要启动后读回。')}${checked('fingerprint.noise.speechVoices','SpeechVoices',!!noise.speechVoices,'只记录语音列表策略；宿主不支持时显示未知或不支持。')}</div>
         <div class="privacy-browser-fields">
           ${select('fingerprint.webglMetadata','WebGL 元数据',fp.webglMetadata||'real',[['real','真实'],['custom','自定义']], '厂商和渲染器可在下方编辑；真实硬件、像素和性能不会改变。')}
-          ${input('fingerprint.webglVendor','厂商',fp.webglVendor||'Google Inc. (AMD)','maxlength="128" placeholder="Google Inc. (AMD)"')}
-          ${input('fingerprint.webglRenderer','渲染器',fp.webglRenderer||'ANGLE (AMD, Radeon RX 580 Series (0x000067DF) Direct3D11 vs_5_0 ps_5_0, D3D11)','maxlength="256" placeholder="ANGLE (...)"')}
+          ${input('fingerprint.webglVendor','厂商',graphicsEditable?(fp.webglVendor||'Google Inc. (AMD)'):'','maxlength="128" placeholder="仅自定义模式可编辑"','网页 WebGL 厂商字符串只在受控浏览器中尝试覆盖；真实显卡和驱动不变。')}
+          ${input('fingerprint.webglRenderer','渲染器',graphicsEditable?(fp.webglRenderer||'ANGLE (AMD, Radeon RX 580 Series (0x000067DF) Direct3D11 vs_5_0 ps_5_0, D3D11)'):'','maxlength="256" placeholder="仅自定义模式可编辑"','网页 WebGL 渲染器字符串只在受控浏览器中尝试覆盖；WebGL1/2、iframe、Worker 和像素能力仍需读回。')}
           ${select('fingerprint.webgpu','WebGPU',fp.webgpu||'runtime',[['webgl','基于 WebGL'],['real','真实'],['disabled','禁用']], 'WebGPU 的真实/禁用状态必须由运行时读回；名称策略不能替代能力检查。')}
         </div>
       </details>
@@ -287,7 +289,7 @@ function renderPrivacy(el, arg) {
         </div>
         <label>允许被扫描的端口（选填）${privacyHelp('只记录端口清单，最多 32 个；实际拦截范围取决于浏览器和系统。')}<input data-browser-v2="advanced.allowedPorts" value="${safe(Array.isArray(advanced.allowedPorts)?advanced.allowedPorts.join(', '):'')}" maxlength="256" placeholder="例如 80, 443" ${disabled}></label>
       </details>
-      <div class="privacy-v2-summary"><div><strong>概要</strong><dl><dt>环境</dt><dd>${safe(meta.environmentName||'未命名环境')}</dd><dt>浏览器</dt><dd>${safe(meta.browser||model.browserEngine.engineId||'未选择')} · ${safe(model.browserProfileName||'未命名配置')}</dd><dt>标签页 / Cookie</dt><dd>${safe(urlCount)} / ${safe(cookieCount)}</dd><dt>代理</dt><dd>${safe(proxy.mode||'no-proxy')} · ${safe(proxy.type||'none')}</dd><dt>读回</dt><dd>${safe(readback.state||'unknown')} · ${safe(readback.runtimeVerified?'已验证':'未运行时读回')}</dd></dl></div><div class="privacy-actions"><button type="button" class="btn sm" id="privacy-browser-v2-generate" ${disabled}>生成新指纹</button><button type="button" class="btn sm" id="privacy-browser-v2-validate" ${disabled}>检查配置</button></div></div>
+      <div class="privacy-v2-summary"><div><strong>概要</strong><dl><dt>环境</dt><dd>${safe(meta.environmentName||'未命名环境')}</dd><dt>浏览器家族</dt><dd>${safe(familyNames[meta.browser]||meta.browser||'未选择')}</dd><dt>实际内核</dt><dd>${safe(engineNames[model.browserEngine.engineId]||model.browserEngine.engineId||'未选择')} ${safe(model.browserEngine.version||'')}</dd><dt>标签页 / Cookie</dt><dd>${safe(urlCount)} / ${safe(cookieCount)}</dd><dt>代理</dt><dd>${safe(proxy.mode||'no-proxy')} · ${safe(proxy.type||'none')}</dd><dt>读回</dt><dd>${safe(readback.state||'unknown')} · ${safe(readback.runtimeVerified?'已验证':'未运行时读回')}</dd></dl></div><div class="privacy-actions"><button type="button" class="btn sm" id="privacy-browser-v2-generate" data-help-text="生成新的本地指纹种子并标记为待读回；不会改变物理硬件，也不会自动启动浏览器。" ${disabled}>生成新指纹</button><button type="button" class="btn sm" id="privacy-browser-v2-validate" data-help-text="只检查当前草稿的字段、URL、端口和长度；校验通过不等于运行时已经生效。" ${disabled}>检查配置</button></div></div>
       ${model.browserV2Error?`<p class="privacy-error" role="alert">${safe(model.browserV2Error)}</p>`:''}${model.browserV2Message?`<p class="privacy-note" role="status">${safe(model.browserV2Message)}</p>`:''}
     </article>`;
   };
@@ -582,10 +584,15 @@ function renderPrivacy(el, arg) {
     const incoming=model.browserExtras&&typeof model.browserExtras==='object'?model.browserExtras:{}; ['storage','tabs','proxy','fingerprint','advanced','readback'].forEach(key=>{if(typeof incoming[key]==='string'){try{incoming[key]=JSON.parse(incoming[key]);}catch(_){delete incoming[key];}}}); model.browserExtras=merge(defaults,incoming); model.browserMeta=model.browserMeta&&typeof model.browserMeta==='object'?model.browserMeta:{browser:'chromium',environmentName:'',group:'',remark:'',tags:[]};
     if(!['sunbrowser','flowerbrowser','chromium','firefox','webview2'].includes(model.browserMeta.browser))model.browserMeta.browser='chromium';
     if(!Array.isArray(model.browserMeta.tags))model.browserMeta.tags=[];
+    const configSeed=model.browser&&model.browser.config&&String(model.browser.config.randomizationSeed||'');
+    const savedSeed=String(model.browserExtras.fingerprint.seed||'');
+    if(!savedSeed&&configSeed)model.browserExtras.fingerprint.seed=configSeed;
+    else if(savedSeed&&model.browser&&model.browser.config)model.browser.config.randomizationSeed=savedSeed;
+    model.browserSeed=String(model.browserExtras.fingerprint.seed||'');
     return model.browserExtras;
   }
   function browserV2Path(path) { browserV2EnsureState(); const parts=String(path||'').split('.'); let root=model.browserExtras; if(parts[0]==='meta'){parts.shift();root=model.browserMeta;} for(const part of parts.slice(0,-1)){if(!root[part]||typeof root[part]!=='object')root[part]={};root=root[part];} return {root,key:parts[parts.length-1]}; }
-  function browserV2Set(path,value) { const ref=browserV2Path(path); if(ref.root)ref.root[ref.key]=value; if(model.browser&&model.browser.config){const c=model.browser.config,fp=model.browserExtras.fingerprint||{};if(path==='fingerprint.seed')c.randomizationSeed=String(value||'');if(path==='fingerprint.webgpu')c.webgpu=value==='disabled'?'disabled':'runtime-default';if(path==='fingerprint.webglMetadata'){if(value==='real')delete c.graphics;else c.graphics={mode:'webgl-metadata',presetId:'manual',vendor:fp.webglVendor||'',renderer:fp.webglRenderer||''};c.webgpu=value==='custom'?'disabled':c.webgpu||'runtime-default';}if(path==='fingerprint.webglVendor'||path==='fingerprint.webglRenderer'){c.graphics={mode:'webgl-metadata',presetId:'manual',vendor:fp.webglVendor||'',renderer:fp.webglRenderer||''};c.webgpu='disabled';}} model.browserExtras.readback={state:'unknown',scope:'browser-profile',runtimeVerified:false,warnings:['配置已修改，尚未启动读回。']}; }
+  function browserV2Set(path,value) { const ref=browserV2Path(path); if(ref.root)ref.root[ref.key]=value; if(path==='fingerprint.seed')model.browserSeed=String(value||''); if(model.browser&&model.browser.config){const c=model.browser.config,fp=model.browserExtras.fingerprint||{};if(path==='fingerprint.seed')c.randomizationSeed=String(value||'');if(path==='fingerprint.webgpu')c.webgpu=value==='disabled'?'disabled':'runtime-default';if(path==='fingerprint.webglMetadata'){if(value==='real')delete c.graphics;else c.graphics={mode:'webgl-metadata',presetId:'manual',vendor:fp.webglVendor||'',renderer:fp.webglRenderer||''};c.webgpu=value==='custom'?'disabled':c.webgpu||'runtime-default';}if(path==='fingerprint.webglVendor'||path==='fingerprint.webglRenderer'){c.graphics={mode:'webgl-metadata',presetId:'manual',vendor:fp.webglVendor||'',renderer:fp.webglRenderer||''};c.webgpu='disabled';}} model.browserExtras.readback={state:'unknown',scope:'browser-profile',runtimeVerified:false,warnings:['配置已修改，尚未启动读回。']}; }
   function browserV2Get(path,fallback) { const ref=browserV2Path(path); return ref.root&&ref.root[ref.key]!==undefined?ref.root[ref.key]:fallback; }
   function browserV2ParseCookies(raw,format) {
     const text=String(raw||'').trim(); if(!text)return 0; if(text.length>512*1024)throw Error('Cookie 文本超过 512 KB。');
@@ -607,18 +614,32 @@ function renderPrivacy(el, arg) {
     if((x.tabs.urls||[]).length)unsupported.push('启动标签页 URL');
     if(Number(x.storage.cookieCount)>0)unsupported.push('Cookie 导入');
     if(x.proxy&&x.proxy.mode&&x.proxy.mode!=='no-proxy')unsupported.push('代理来源策略');
+    if(x.tabs&&x.tabs.startupMode&&x.tabs.startupMode!=='restore')unsupported.push('标签页启动方式');
     const fp=x.fingerprint||{}, n=fp.noise||{};
     if(fp.webrtc&&fp.webrtc!=='disable-non-proxied-udp')unsupported.push('WebRTC 多态策略');
     if(fp.geo&&fp.geo!=='real')unsupported.push('地理位置策略');
     if(fp.language&&fp.language!=='real')unsupported.push('语言策略');
+    if(fp.timezone&&fp.timezone!=='real')unsupported.push('时区策略');
+    if(fp.uiLanguage&&fp.uiLanguage!=='by-language')unsupported.push('界面语言策略');
+    if(fp.resolution&&fp.resolution!=='ua')unsupported.push('分辨率策略');
     if(fp.fonts&&fp.fonts!=='default')unsupported.push('字体策略');
+    if(fp.webglMetadata==='custom'&&model.browserEngine.engineId==='chrome-for-testing')unsupported.push('Chrome 不支持自定义 WebGL 元数据');
+    if(fp.webglMetadata&&fp.webglMetadata!=='real'&&fp.webglMetadata!=='custom')unsupported.push('WebGL 元数据');
+    if(fp.webgpu==='webgl'||(fp.webgpu==='disabled'&&model.browserEngine.engineId==='chrome-for-testing'))unsupported.push('WebGPU 策略');
+    if(fp.seed&&model.browserEngine.engineId!=='webview2')unsupported.push('指纹种子');
     if(Object.values(n).some(Boolean))unsupported.push('硬件噪音');
     const a=x.advanced||{};
+    if(a.cpu&&a.cpu!=='real')unsupported.push('CPU');
     ['ram','deviceName','mac'].forEach(key=>{if(a[key]&&a[key]!=='real')unsupported.push(key.toUpperCase());});
     if(a.dnt&&a.dnt!=='default')unsupported.push('Do Not Track');
     if(a.portScan&&a.portScan!=='enabled')unsupported.push('端口扫描保护');
     if(a.hardwareAcceleration&&a.hardwareAcceleration!=='default')unsupported.push('硬件加速');
     if(a.tls&&a.tls!=='default')unsupported.push('TLS 特性');
+    if(a.teamApps&&a.teamApps!=='global')unsupported.push('团队应用');
+    if(a.dataSync&&a.dataSync!=='global')unsupported.push('数据同步');
+    if(a.browserSettings&&a.browserSettings!=='global')unsupported.push('浏览器设置');
+    if(a.randomFingerprint)unsupported.push('每次启动随机指纹');
+    if(Array.isArray(a.allowedPorts)&&a.allowedPorts.length)unsupported.push('允许被扫描的端口');
     if(unsupported.length)throw Error('当前宿主尚未提供这些字段的可靠启动读回：'+unsupported.join('、')+'。配置仍已保存，但为避免静默丢弃，启动已停止。');
   }
   function bindBrowserV2Fields() {
@@ -631,13 +652,13 @@ function renderPrivacy(el, arg) {
         else if(path==='tabs.urls')value=input.value.split(/\r?\n/).map(v=>v.trim()).filter(Boolean).slice(0,20);
         else if(path==='advanced.allowedPorts')value=input.value.split(',').map(v=>v.trim()).filter(Boolean).slice(0,32).map(v=>Number(v));
         else value=input.value;
-        browserV2Set(path,value); model.browserV2Error=''; model.browserV2Message='配置草稿已修改，尚未运行时读回。'; markBrowserProfileEdited(true);
+        browserV2Set(path,value); model.browserV2Error=''; model.browserV2Message='配置草稿已修改，尚未运行时读回。'; markBrowserProfileEdited(true); if(input.tagName==='SELECT'||input.type==='checkbox')draw();
       };
       input.addEventListener(input.tagName==='SELECT'||input.type==='checkbox'?'change':'input',update);
       if(input.tagName==='TEXTAREA'&&input.dataset.browserV2==='tabs.urls')input.addEventListener('blur',()=>{try{browserV2Validate();}catch(error){model.browserV2Error=errText(error);}});
     });
     const cookie=el.querySelector('[data-browser-v2-cookie]'); if(cookie)cookie.addEventListener('input',()=>{if(model.browserBusy)return;model.browserCookieDraft=cookie.value;try{const count=browserV2ParseCookies(cookie.value,browserV2Get('storage.cookieFormat','json'));browserV2Set('storage.cookieCount',count);model.browserV2Error='';model.browserV2Message='Cookie 已解析 '+count+' 个，仅保留在本次会话内存。';}catch(error){model.browserV2Error=errText(error);} });
-    const generate=el.querySelector('#privacy-browser-v2-generate'); if(generate)generate.addEventListener('click',()=>{if(model.browserBusy)return;const seed=browserV2GenerateSeed();browserV2Set('fingerprint.seed',seed);browserV2Set('advanced.randomFingerprint',true);model.browserSeed=seed;model.browserV2Message='已生成新指纹种子；保存并启动后才能验证实际读回。';markBrowserProfileEdited(true);draw();});
+    const generate=el.querySelector('#privacy-browser-v2-generate'); if(generate)generate.addEventListener('click',()=>{if(model.browserBusy)return;const seed=browserV2GenerateSeed();browserV2Set('fingerprint.seed',seed);model.browserV2Message='已生成新指纹种子；请先检查配置并在支持的内核中启动，实际效果仍需运行时读回。';markBrowserProfileEdited(true);draw();});
     const validate=el.querySelector('#privacy-browser-v2-validate'); if(validate)validate.addEventListener('click',()=>{try{browserV2Validate();model.browserV2Error='';model.browserV2Message='配置校验通过；所有运行时字段仍需启动后读回。';}catch(error){model.browserV2Error=errText(error);model.browserV2Message='配置校验未通过，未启动浏览器。';}draw();});
   }
   function bindBrowserProfile() {
@@ -686,7 +707,7 @@ function renderPrivacy(el, arg) {
     const region = el.querySelector('#privacy-browser-region');
     if (region) region.addEventListener('change', () => { const selected = (model.browser.regions || []).find(r => r.presetId === region.value); if (selected && !model.browserBusy) { model.browser.config.region = JSON.parse(JSON.stringify(selected)); edited(); draw(); } });
     const seed = el.querySelector('#privacy-browser-seed');
-    if (seed) seed.addEventListener('input', () => { model.browserSeed = seed.value; edited(); });
+    if (seed) seed.addEventListener('input', () => { if(model.browserBusy||!model.browser)return; browserV2Set('fingerprint.seed',seed.value); edited(); });
     const environmentChoice = el.querySelector('#privacy-browser-environment');
     if (environmentChoice) environmentChoice.addEventListener('change', () => {
       if (model.browserBusy || !model.browser) return;
