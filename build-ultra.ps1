@@ -37,8 +37,16 @@ try {
         if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) { throw 'Install go-winres v0.3.3 first: go install github.com/tc-hib/go-winres@v0.3.3' }
         $winresPath = $candidate
     } else { $winresPath = $winres.Source }
+    $resourceConfigRoot = Join-Path $projectRoot ".codex/tmp/winres-$Version"
+    New-Item -ItemType Directory -Force -Path $resourceConfigRoot | Out-Null
+    Copy-Item -LiteralPath (Join-Path $projectRoot 'cmd/godusevpn/build/appicon.png') -Destination (Join-Path $resourceConfigRoot 'appicon.png') -Force
     foreach ($name in @('godusevpn', 'godusevpn-svc', 'godusevpn-cli')) {
-        & $winresPath make --in "winres/$name.json" --out "cmd/$name/rsrc" --arch ($Architecture -join ',') --file-version $fileVersion --product-version $Version
+        $resourceConfig = Get-Content -LiteralPath (Join-Path $projectRoot "winres/$name.json") -Raw | ConvertFrom-Json
+        $resourceConfig.RT_MANIFEST.'#1'.'0409'.identity.version = $fileVersion
+        $resourceConfig.RT_GROUP_ICON.APP.'0000'[0] = 'appicon.png'
+        $resourceConfigPath = Join-Path $resourceConfigRoot "$name.json"
+        $resourceConfig | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $resourceConfigPath -Encoding UTF8
+        & $winresPath make --in $resourceConfigPath --out "cmd/$name/rsrc" --arch ($Architecture -join ',') --file-version $fileVersion --product-version $Version
         if ($LASTEXITCODE -ne 0) { throw "Resource build failed: $name" }
     }
     if (-not $SkipTests) {
