@@ -68,6 +68,20 @@ async function run(){try{
  await settle();vm.runInContext("nav('privacy',{tab:'browser'})",context);await settle();
  assert.equal(calls.length,0,'opening browser editor never saves or enumerates records');
  assert.equal(q('#privacy-browser-profile-name').value,'');assert.ok(q('#privacy-browser-profile-save'));
+	 // BrowserProfile v2 is a single editable contract: all persisted sections are
+	 // present, cookies stay in memory, and URL validation happens before save.
+	 assert.ok(q('#privacy-browser-environment-editor'),'v2 editor is visible');
+	 const v2Fields=Array.from(w.document.querySelectorAll('[data-browser-v2]'));
+	 assert.ok(v2Fields.length>=43,`expected at least 43 v2 fields, got ${v2Fields.length}`);
+	 for(const path of ['meta.environmentName','meta.group','meta.tags','meta.remark','storage.cookieFormat','storage.merge','tabs.urls','tabs.startupMode','fingerprint.webrtc','fingerprint.timezone','fingerprint.geo','fingerprint.language','fingerprint.uiLanguage','fingerprint.resolution','fingerprint.fonts','fingerprint.noise.canvas','fingerprint.noise.webglImage','fingerprint.noise.audio','fingerprint.noise.media','fingerprint.noise.clientRects','fingerprint.noise.speechVoices','fingerprint.webglMetadata','fingerprint.webglVendor','fingerprint.webglRenderer','fingerprint.webgpu','advanced.ram','advanced.deviceName','advanced.mac','advanced.dnt','advanced.portScan','advanced.allowedPorts','advanced.hardwareAcceleration','advanced.tls','advanced.teamApps','advanced.dataSync','advanced.browserSettings','advanced.randomFingerprint']) assert.ok(q(`[data-browser-v2="${path}"]`),`missing v2 field ${path}`);
+	 edit('[data-browser-v2="meta.environmentName"]','工作环境');
+	 edit('[data-browser-v2-cookie]','[{"name":"sid","value":"memory-only"}]');
+	 edit('[data-browser-v2="tabs.urls"]','https://example.com');
+	 await click('#privacy-browser-v2-validate');
+	 assert.match(q('#privacy-browser-environment-editor').textContent,/Cookie 已解析|配置校验通过/);
+	 edit('[data-browser-v2="tabs.urls"]','file:///not-allowed');await click('#privacy-browser-v2-validate');
+	 assert.match(q('#privacy-browser-environment-editor').textContent,/启动网址必须是完整/);
+	 edit('[data-browser-v2="tabs.urls"]','https://example.com');await click('#privacy-browser-v2-validate');
  // The shared save footer works while a proxy draft is present, but that draft
  // is excluded from the persistence request and survives ordinary saves.
  edit('#privacy-proxy-host',privateProxy.host);edit('#privacy-proxy-username',privateProxy.username);edit('#privacy-proxy-password',privateProxy.password);
