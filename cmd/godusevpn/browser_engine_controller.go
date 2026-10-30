@@ -32,6 +32,7 @@ type browserEngineProfileRequest struct {
 	Timezone    string                         `json:"timezone"`
 	Width       int                            `json:"width"`
 	Height      int                            `json:"height"`
+	StartupURL  string                         `json:"startupURL,omitempty"`
 	Identity    browserhost.ProfileIdentity    `json:"identity,omitempty"`
 	Environment *browserhost.EnvironmentConfig `json:"environment,omitempty"`
 	Hardware    *browserhost.HardwareConfig    `json:"hardware,omitempty"`
@@ -39,6 +40,12 @@ type browserEngineProfileRequest struct {
 	WebGPU      string                         `json:"webgpu,omitempty"`
 	ExitCleanup string                         `json:"exitCleanup,omitempty"`
 }
+
+func validEngineStartupURL(raw string) bool {
+	u, err := url.Parse(raw)
+	return err == nil && len(raw) <= 8192 && (u.Scheme == "https" || u.Scheme == "http") && u.Hostname() != "" && u.User == nil && u.Opaque == "" && !strings.ContainsAny(raw, "\x00\r\n")
+}
+
 type BrowserEngineLaunchResult struct {
 	Status         browserenginehost.Status `json:"status"`
 	CanLaunch      bool                     `json:"canLaunch"`
@@ -110,7 +117,7 @@ func parseBrowserEngineRequest(data string) (browserEngineProfileRequest, error)
 		}
 		seen[strings.ToLower(key)] = true
 		switch key {
-		case "engineId", "version", "profileId", "language", "timezone", "width", "height", "identity", "environment", "hardware", "graphics", "webgpu", "exitCleanup":
+		case "engineId", "version", "profileId", "language", "timezone", "width", "height", "startupURL", "identity", "environment", "hardware", "graphics", "webgpu", "exitCleanup":
 		default:
 			return request, errBrowserEngineConfig
 		}
@@ -130,6 +137,12 @@ func parseBrowserEngineRequest(data string) (browserEngineProfileRequest, error)
 		if key == "webgpu" {
 			var mode string
 			if len(value) == 0 || value[0] != '"' || json.Unmarshal(value, &mode) != nil || (mode != "runtime-default" && mode != "disabled") {
+				return request, errBrowserEngineConfig
+			}
+		}
+		if key == "startupURL" {
+			var startup string
+			if len(value) == 0 || value[0] != '"' || json.Unmarshal(value, &startup) != nil || startup != "" && !validEngineStartupURL(startup) {
 				return request, errBrowserEngineConfig
 			}
 		}
@@ -239,7 +252,7 @@ func strictBrowserEngineFields(data []byte, allowed map[string]bool) bool {
 	return err == io.EOF
 }
 func (r browserEngineProfileRequest) hostConfig(proxy browserproxy.Config) browserenginehost.Config {
-	return browserenginehost.Config{EngineID: r.EngineID, Version: r.Version, ProfileID: r.ProfileID, Language: r.Language, Timezone: r.Timezone, Width: r.Width, Height: r.Height, ExitCleanup: r.ExitCleanup, Identity: r.Identity, Environment: r.Environment, Hardware: r.Hardware, Graphics: r.Graphics, WebGPU: r.WebGPU, Proxy: proxy}
+	return browserenginehost.Config{EngineID: r.EngineID, Version: r.Version, ProfileID: r.ProfileID, Language: r.Language, Timezone: r.Timezone, Width: r.Width, Height: r.Height, StartupURL: r.StartupURL, ExitCleanup: r.ExitCleanup, Identity: r.Identity, Environment: r.Environment, Hardware: r.Hardware, Graphics: r.Graphics, WebGPU: r.WebGPU, Proxy: proxy}
 }
 
 // BrowserEngineIdentity is a local plan for the selected actual engine version.

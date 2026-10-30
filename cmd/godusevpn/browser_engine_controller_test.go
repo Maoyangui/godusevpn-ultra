@@ -118,6 +118,38 @@ func TestEngineControllerOnlyFixedConfigAndProfileProxyReachHost(t *testing.T) {
 		t.Fatal("session not closed")
 	}
 }
+
+func TestEngineControllerStartupURLReachesNativeHostAndRejectsUnsafeValues(t *testing.T) {
+	c, session, starts := engineFixture(t)
+	var observed browserenginehost.Config
+	c.deps.start = func(_ context.Context, _ *browserengine.Manager, value browserenginehost.Config, _ browserenginehost.Guard) (browserEngineSession, error) {
+		observed = value
+		starts.Add(1)
+		return session, nil
+	}
+	valid := strings.Replace(engineConfigFixture, `"profileId":"engine-profile"`, `"profileId":"engine-profile","startupURL":"https://startup.invalid/"`, 1)
+	if _, err := c.launch(valid, engineProxyFixture); err != nil {
+		t.Fatal("valid startup URL refused", err)
+	}
+	if observed.StartupURL != "https://startup.invalid/" {
+		t.Fatalf("startup URL dropped: %q", observed.StartupURL)
+	}
+	for _, value := range []string{
+		`file:///C:/private`,
+		`https://user:secret@example.invalid/`,
+		"https://example.invalid/\r\nX-Test: injected",
+	} {
+		bad := strings.Replace(engineConfigFixture, `"profileId":"engine-profile"`, `"profileId":"engine-profile","startupURL":`+mustJSON(value), 1)
+		if _, err := c.launch(bad, engineProxyFixture); err != errBrowserEngineConfig {
+			t.Fatalf("unsafe startup URL accepted: %q", value)
+		}
+	}
+}
+
+func mustJSON(value string) string {
+	data, _ := json.Marshal(value)
+	return string(data)
+}
 func TestEngineControllerRejectsArgumentsPathsIdentitiesAndUnsupportedEnvironment(t *testing.T) {
 	c, _, starts := engineFixture(t)
 	for _, field := range []string{`"path":"C:/arbitrary.exe"`, `"extraArguments":["--no-sandbox"]`, `"jobHandle":1`, `"mainPid":1`, `"relayPort":1`, `"sid":"S-1-5-18"`, `"root":"C:/Users/other"`, `"environment":{"os":"ios"}`, `"graphics":{"mode":"webgl-metadata"}`, `"proxy":{"type":"direct"}`, `"VERSION":"131.0.1.1"`} {

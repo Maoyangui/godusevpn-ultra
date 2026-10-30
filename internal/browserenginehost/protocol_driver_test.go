@@ -138,6 +138,9 @@ func (f *driverFixture) result(c driverCommand) map[string]any {
 		return map[string]any{"result": map[string]any{"type": "string", "value": f.observation()}}
 	case "Page.navigate":
 		url, _ := c.Params["url"].(string)
+		if f.fault == "startup-navigation" && url == "https://startup.invalid/" {
+			return map[string]any{"frameId": "", "errorText": "fixture startup navigation failed"}
+		}
 		if strings.HasPrefix(url, "https://godusevpn.invalid/owned/") {
 			ua := f.ua
 			if f.fault == "http-ua" {
@@ -208,6 +211,9 @@ func (f *driverFixture) result(c driverCommand) map[string]any {
 		return map[string]any{"type": "success", "realm": "main-realm", "result": map[string]any{"type": "string", "value": f.observation()}}
 	case "browsingContext.navigate":
 		url, _ := c.Params["url"].(string)
+		if f.fault == "startup-navigation" && url == "https://startup.invalid/" {
+			return map[string]any{"url": "about:blank", "error": "fixture startup navigation failed"}
+		}
 		if strings.HasPrefix(url, "https://godusevpn.invalid/owned/") {
 			ua := f.ua
 			if f.fault == "http-ua" {
@@ -350,5 +356,49 @@ func TestProtocolDriverOnlyHTTPAndNoNavigationBeforeReadiness(t *testing.T) {
 		if d.Navigate(context.Background(), "https://example.invalid") == nil {
 			t.Fatal("navigation after Close")
 		}
+	}
+}
+
+func TestProtocolDriverStartupURLValidationAndFailureClosesSession(t *testing.T) {
+	for _, engine := range []string{"chrome-for-testing", "firefox"} {
+		t.Run(engine, func(t *testing.T) {
+			invalid := newDriverFixture(t, engine)
+			invalid.config.StartupURL = "file:///C:/private"
+			invalid.start()
+			var invalidDriver protocolDriver
+			if engine == "firefox" {
+				invalidDriver = newFirefoxDriver(invalid.m, invalid.config, invalid.launch, nil)
+			} else {
+				invalidDriver = newChromeDriver(invalid.m, invalid.config, invalid.launch, nil)
+			}
+			if invalidDriver.Configure(context.Background()) == nil {
+				t.Fatal("invalid startup URL reached protocol")
+			}
+
+			f := newDriverFixture(t, engine)
+			f.config.StartupURL = "https://startup.invalid/"
+			f.start()
+			var d protocolDriver
+			if engine == "firefox" {
+				d = newFirefoxDriver(f.m, f.config, f.launch, nil)
+			} else {
+				d = newChromeDriver(f.m, f.config, f.launch, nil)
+			}
+			if err := d.Configure(context.Background()); err != nil {
+				t.Fatal("valid startup URL refused", err)
+			}
+			before := f.snapshot()
+			f.fault = "startup-navigation"
+			if d.Navigate(context.Background(), f.config.StartupURL) == nil {
+				t.Fatal("failed startup navigation accepted")
+			}
+			after := f.snapshot()
+			if len(after) <= len(before) {
+				t.Fatal("startup navigation was not sent after Configure")
+			}
+			if d.Navigate(context.Background(), "https://example.invalid/after-failure") == nil {
+				t.Fatal("navigation remained available after startup failure")
+			}
+		})
 	}
 }

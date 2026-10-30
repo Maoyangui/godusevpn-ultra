@@ -26,13 +26,18 @@ func NativeLaunchEnabled() bool {
 type Config struct {
 	EngineID, Version, ProfileID, Language, Timezone string
 	Width, Height                                    int
-	ExitCleanup                                      string
-	Proxy                                            browserproxy.Config
-	Identity                                         browserhost.ProfileIdentity
-	Environment                                      *browserhost.EnvironmentConfig
-	Hardware                                         *browserhost.HardwareConfig
-	Graphics                                         *browserhost.GraphicsConfig
-	WebGPU                                           string
+	// StartupURL is an optional single URL opened after the protocol and
+	// network guard have been verified, but before the session is reported
+	// ready. It is intentionally a single value; multi-tab startup needs a
+	// separate per-target lifecycle and readback contract.
+	StartupURL  string
+	ExitCleanup string
+	Proxy       browserproxy.Config
+	Identity    browserhost.ProfileIdentity
+	Environment *browserhost.EnvironmentConfig
+	Hardware    *browserhost.HardwareConfig
+	Graphics    *browserhost.GraphicsConfig
+	WebGPU      string
 }
 type Guard interface {
 	Install(context.Context, browserengineguard.InstallRequest) (browserengineguard.Result, error)

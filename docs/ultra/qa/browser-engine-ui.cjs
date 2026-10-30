@@ -50,6 +50,7 @@ const context=dom.getInternalVMContext();for(const name of ['i18n.js','flags.js'
 const q=selector=>w.document.querySelector(selector),alertText=()=>Array.from(w.document.querySelectorAll('[role="alert"]')).map(node=>node.textContent||'').join('\n'),wait=(ms=30)=>new Promise(resolve=>setTimeout(resolve,ms));
 async function until(predicate,label){const end=Date.now()+3000;while(!predicate()&&Date.now()<end)await wait(20);assert.ok(predicate(),label);}
 const edit=(id,value)=>{const input=q(id);assert.ok(input,'missing '+id);input.value=value;input.dispatchEvent(new w.Event('input',{bubbles:true}));};
+const editSelector=(selector,value)=>{const input=q(selector);assert.ok(input,'missing '+selector);input.value=value;input.dispatchEvent(new w.Event('input',{bubbles:true}));};
 const choose=(id,value)=>{const input=q(id);assert.ok(input,'missing '+id);input.value=value;input.dispatchEvent(new w.Event('change',{bubbles:true}));};
 const count=kind=>calls.filter(call=>call[0]===kind).length,last=kind=>calls.filter(call=>call[0]===kind).at(-1);
 const proxy={type:'socks5',host:'fixture.proxy.invalid',port:1080,username:'fixture-user',password:'fixture-secret'};
@@ -97,6 +98,8 @@ async function run(){try{
   edit('#privacy-browser-ua',manual);assert.equal(q('#privacy-browser-identity-mode').value,'manual');const previewsBeforeManual=count('native-identity');
   await selectEngine('firefox');choose('#privacy-browser-engine-version','146.0.2');await wait(260);assert.equal(q('#privacy-browser-ua').value,manual);assert.equal(count('native-identity'),previewsBeforeManual,'changing engine/version never regenerates a manual UA');
   edit('#privacy-proxy-host',proxy.host);edit('#privacy-proxy-username',proxy.username);edit('#privacy-proxy-password',proxy.password);edit('#privacy-browser-id','native-private');choose('#privacy-browser-region','zh-cn');
+  editSelector('[data-browser-v2="tabs.urls"]','https://startup.invalid/');choose('[data-browser-v2="tabs.startupMode"]','urls');await wait();q('#privacy-browser-launch').click();await wait();assert.equal(last('native-launch')[1].startupURL,'https://startup.invalid/','one startup URL reaches native request');
+  const startupBefore=count('native-launch');editSelector('[data-browser-v2="tabs.urls"]','https://startup.invalid/\nhttps://second.invalid/');await wait();q('#privacy-browser-launch').click();await wait();assert.equal(count('native-launch'),startupBefore,'multiple startup URLs remain blocked');assert.match(alertText(),/最多支持 1 个 URL/);editSelector('[data-browser-v2="tabs.urls"]','');choose('[data-browser-v2="tabs.startupMode"]','restore');await wait();
   for(const [engine,version]of [['firefox','146.0.2'],['chrome-for-testing','155.0.8000.9']]){
    await selectEngine(engine);choose('#privacy-browser-engine-version',version);
    for(const [index,preset] of environments.entries()){

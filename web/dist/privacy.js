@@ -663,12 +663,20 @@ function renderPrivacy(el, arg) {
   }
   function browserV2SaveExtras() { browserV2EnsureState(); const copy=JSON.parse(JSON.stringify(model.browserExtras)); if(copy.storage){delete copy.storage.values;delete copy.storage.raw;copy.storage.cookieSessionOnly=true;} if(copy.readback){copy.readback.state='unknown';copy.readback.runtimeVerified=false;} return copy; }
   function browserV2GenerateSeed() { const bytes=new Uint8Array(16); if(window.crypto&&window.crypto.getRandomValues)window.crypto.getRandomValues(bytes); else for(let i=0;i<bytes.length;i++)bytes[i]=Math.floor(Math.random()*256); return Array.from(bytes).map(value=>value.toString(16).padStart(2,'0')).join(''); }
+  function browserV2StartupGate(engineId) {
+    const x=model.browserExtras||{}, startupURLs=Array.isArray(x.tabs&&x.tabs.urls)?x.tabs.urls:[], startupMode=x.tabs&&x.tabs.startupMode||'restore', unsupported=[];
+    if(startupURLs.length>1)unsupported.push('启动标签页目前最多支持 1 个 URL');
+    if(startupMode==='urls'&&startupURLs.length!==1)unsupported.push('指定网址模式需要恰好 1 个 URL');
+    if(startupURLs.length===1&&startupMode!=='urls')unsupported.push('有启动 URL 时必须选择指定网址模式');
+    if(startupMode==='urls'&&startupURLs.length===1&&engineId==='webview2')unsupported.push('WebView2 当前不支持启动 URL，请选择已核验的 Chrome 或 Firefox');
+    if(startupMode!=='restore'&&startupMode!=='blank'&&startupMode!=='urls')unsupported.push('标签页启动方式');
+    if(unsupported.length)throw Error('当前宿主尚未提供这些字段的可靠启动读回：'+unsupported.join('、')+'。配置仍已保存，但为避免静默丢弃，启动已停止。');
+  }
   function browserV2LaunchGate() {
     browserV2Validate(); const x=model.browserExtras, unsupported=[];
-    if((x.tabs.urls||[]).length)unsupported.push('启动标签页 URL');
+    browserV2StartupGate(model.browserEngine.engineId);
     if(Number(x.storage.cookieCount)>0)unsupported.push('Cookie 导入');
     if(x.proxy&&x.proxy.mode&&x.proxy.mode!=='no-proxy')unsupported.push('代理来源策略');
-    if(x.tabs&&x.tabs.startupMode&&x.tabs.startupMode!=='restore')unsupported.push('标签页启动方式');
     const fp=x.fingerprint||{}, n=fp.noise||{};
     if(fp.webrtc&&fp.webrtc!=='disable-non-proxied-udp')unsupported.push('WebRTC 多态策略');
     if(fp.geo&&fp.geo!=='real')unsupported.push('地理位置策略');
@@ -914,9 +922,10 @@ function renderPrivacy(el, arg) {
     }
     for(const action of ['refresh','download','local','launch','close']){
       const button=el.querySelector('#privacy-engine-'+action);if(button)button.addEventListener('click',async()=>{
-        if(!alive()||model.tab!=='browser'||!el.contains(button)||model.engineBusy||model.browserBusy)return;
+         if(!alive()||model.tab!=='browser'||!el.contains(button)||model.engineBusy||model.browserBusy)return;
         const kind=model.engineKind,version=model.engineVersion,proxyJSON=model.engineRoute==='proxy'?JSON.stringify(model.browserProxy):'';
         if((action==='download'||action==='launch')&&!version)return;
+         if(action==='launch'){try{browserV2StartupGate(kind);}catch(error){model.engineError=errText(error);draw();return;}}
         model.engineBusy=true;model.engineError='';model.engineMessage='';draw();
         try{
           if(action==='refresh'){const catalog=await api('BrowserEngineCatalog',proxyJSON);if(alive())model.engineCatalog=catalog;}
@@ -938,7 +947,11 @@ function renderPrivacy(el, arg) {
     const c=model.browser&&model.browser.config;
     if(!c||!version)throw new Error('请先选择已下载的内核版本。');
     if(!identityOnly&&engineId!=='firefox'&&(c.graphics&&c.graphics.mode==='webgl-metadata'||c.webgpu!=='runtime-default'))throw new Error('此内核尚未支持所选 GPU / WebGPU 设置；本次不启动，也不会忽略这些参数。请先恢复原生图形信息或选择 Firefox / WebView2。');
+    const tabs=model.browserExtras&&model.browserExtras.tabs||{};
+    const startupURLs=Array.isArray(tabs.urls)?tabs.urls:[];
+    const startupURL=tabs.startupMode==='urls'&&startupURLs.length===1?startupURLs[0]:'';
     const request={engineId,version,profileId:c.profileId,language:c.region.language,timezone:c.region.timezone,width:c.viewport.width,height:c.viewport.height,identity:JSON.parse(JSON.stringify(c.identity)),exitCleanup:c.exitCleanup==='delete-owned-profile'?'delete-owned-profile':'retain-profile'};
+    if(startupURL)request.startupURL=startupURL;
     if(c.hardware){if(engineId==='firefox')throw new Error('Firefox 当前不支持自定义网页 CPU 核数；请恢复原生信息或选择 Chrome / WebView2。');request.hardware=JSON.parse(JSON.stringify(c.hardware));}
     if(!identityOnly&&engineId==='firefox'){if(c.graphics)request.graphics=JSON.parse(JSON.stringify(c.graphics));if(c.webgpu==='disabled')request.webgpu='disabled';}
     if(c.environment)request.environment=JSON.parse(JSON.stringify(c.environment));return request;

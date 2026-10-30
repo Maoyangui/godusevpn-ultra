@@ -196,6 +196,15 @@ func startAcceptance(parent context.Context, engines *browserengine.Manager, c C
 	if frontend.Open() != nil {
 		return nil, ErrRefused
 	}
+	if c.StartupURL != "" {
+		// The protocol driver has completed its own identity/readback checks,
+		// and the strict guard has just been reported. Opening the frontend
+		// makes the owned relay usable; navigate before exposing Ready so a
+		// failed startup URL tears down the entire session.
+		if driver.Navigate(ctx, c.StartupURL) != nil {
+			return nil, ErrRefused
+		}
+	}
 	var navigation sync.Mutex
 	session.navigate = func(callContext context.Context, raw string) error {
 		if callContext == nil || callContext.Err() != nil || ctx.Err() != nil || !allowedNavigation(raw) {
