@@ -214,6 +214,7 @@ function renderPrivacy(el, arg) {
     const familyNames={sunbrowser:'SunBrowser（家族标签）',flowerbrowser:'FlowerBrowser（家族标签）',chromium:'Chrome / Chromium',firefox:'Firefox / Gecko',webview2:'WebView2 / Edge'};
     const engineNames={'chrome-for-testing':'Chrome for Testing','firefox':'Firefox','webview2':'WebView2'};
     const graphicsEditable=fp.webglMetadata==='custom';
+    const runtimeConfig=model.browser&&model.browser.config||{}, runtimeGraphics=runtimeConfig.graphics||{};
     const disabled=model.browserBusy||model.engineBusy||model.loading?'disabled':'';
     const options=(value,list)=>list.map(pair=>`<option value="${safe(pair[0])}" ${value===pair[0]?'selected':''}>${safe(pair[1])}</option>`).join('');
     const select=(path,label,value,list,help='')=>`<label>${safe(label)}${help?privacyHelp(help):''}<select data-browser-v2="${safe(path)}" ${disabled}>${options(value,list)}</select></label>`;
@@ -266,15 +267,11 @@ function renderPrivacy(el, arg) {
         </div>
         <div class="privacy-v2-noise"><strong>硬件噪音</strong>${checked('fingerprint.noise.canvas','Canvas',!!noise.canvas,'仅改变受控页面的 Canvas 读回；必须在 Window、iframe 和 Worker 逐项读回。')}${checked('fingerprint.noise.webglImage','WebGL 图像',!!noise.webglImage,'仅记录图像噪音策略；不改变物理 GPU、驱动或像素性能。')}${checked('fingerprint.noise.audio','AudioContext',!!noise.audio,'需要真实页面读回 AudioContext 的输出差异；未读回时保持未知。')}${checked('fingerprint.noise.media','媒体设备',!!noise.media,'只影响媒体设备枚举策略；摄像头和麦克风权限仍单独拒绝。')}${checked('fingerprint.noise.clientRects','ClientRects',!!noise.clientRects,'只记录 ClientRects 策略；跨源和 Worker 范围需要启动后读回。')}${checked('fingerprint.noise.speechVoices','SpeechVoices',!!noise.speechVoices,'只记录语音列表策略；宿主不支持时显示未知或不支持。')}</div>
         <div class="privacy-browser-fields">
-          ${select('fingerprint.webglMetadata','WebGL 元数据',fp.webglMetadata||'real',[['real','真实'],['custom','自定义']], '厂商和渲染器可在下方编辑；真实硬件、像素和性能不会改变。')}
-          ${input('fingerprint.webglVendor','厂商',graphicsEditable?(fp.webglVendor||'Google Inc. (AMD)'):'','maxlength="128" placeholder="仅自定义模式可编辑"','网页 WebGL 厂商字符串只在受控浏览器中尝试覆盖；真实显卡和驱动不变。')}
-          ${input('fingerprint.webglRenderer','渲染器',graphicsEditable?(fp.webglRenderer||'ANGLE (AMD, Radeon RX 580 Series (0x000067DF) Direct3D11 vs_5_0 ps_5_0, D3D11)'):'','maxlength="256" placeholder="仅自定义模式可编辑"','网页 WebGL 渲染器字符串只在受控浏览器中尝试覆盖；WebGL1/2、iframe、Worker 和像素能力仍需读回。')}
-          ${select('fingerprint.webgpu','WebGPU',fp.webgpu||'runtime',[['webgl','基于 WebGL'],['real','真实'],['disabled','禁用']], 'WebGPU 的真实/禁用状态必须由运行时读回；名称策略不能替代能力检查。')}
+          <div class="privacy-v2-runtime-ref"><strong>图形、WebGPU 与 CPU</strong>${privacyHelp('这些启动参数由上方基础浏览器配置统一管理，避免同一设置出现两份草稿。此处只显示当前值；运行时仍需独立读回。')}<dl><dt>WebGL</dt><dd>${safe(runtimeGraphics.vendor||'原生信息')} / ${safe(runtimeGraphics.renderer||'原生渲染器')}</dd><dt>WebGPU</dt><dd>${safe(runtimeConfig.webgpu||'runtime-default')}</dd><dt>CPU</dt><dd>${safe(runtimeConfig.hardware&&runtimeConfig.hardware.logicalProcessors||'原生逻辑处理器')}</dd></dl><p class="muted">要修改这些参数，请使用上方基础配置的 GPU、WebGPU 和 CPU 控件；本区不会再创建第二份值。</p></div>
         </div>
       </details>
       <details><summary>高级设置 ${status('真实硬件项可能仅支持读回','limited')}</summary>
         <div class="privacy-browser-fields">
-          ${select('advanced.cpu','CPU',advanced.cpu||'real',[['real','真实'],['custom','自定义']], '当前运行时支持网页逻辑处理器数的有限覆盖；物理 CPU 不变。')}
           ${select('advanced.ram','RAM',advanced.ram||'real',[['real','真实'],['custom','自定义']], '真实 RAM 不能由普通网页或浏览器配置安全修改。')}
           ${select('advanced.deviceName','设备名称',advanced.deviceName||'real',[['real','真实'],['custom','自定义']], '设备名的系统级读回依赖宿主能力。')}
           ${select('advanced.mac','MAC 地址',advanced.mac||'real',[['real','真实'],['custom','自定义']], 'MAC 地址属于系统网络适配器，普通浏览器不能修改。')}
