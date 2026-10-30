@@ -2,7 +2,7 @@
 [CmdletBinding()]
 param(
     [ValidatePattern('^[0-9]+\.[0-9]+(?:\.[0-9]+)?(?:-[A-Za-z0-9.-]+)?$')]
-    [string]$Version = '0.01-beta',
+    [string]$Version = '0.02',
     [ValidateSet('amd64', 'arm64')]
     [string[]]$Architecture = @('amd64'),
     [switch]$SkipTests,
@@ -66,7 +66,12 @@ try {
     }
     foreach ($arch in $Architecture) {
         $env:GOARCH = $arch
-        $packageName = "godusevpn-ultra-$Version-windows-$arch"
+        # Release/package names are filesystem-facing identifiers. Keep them
+        # lowercase even when a caller uses an uppercase prerelease label for
+        # the embedded product version.
+        $packageVersion = $Version.ToLowerInvariant()
+        $packageName = "godusevpn-ultra-$packageVersion-windows-$arch"
+        if ($packageName -cmatch '[A-Z]') { throw "Package name must be lowercase: $packageName" }
         $out = Join-Path $projectRoot "dist/$packageName"
         # Refuse to mix stale files into a release; this script never recursively deletes.
         if (Test-Path -LiteralPath $out) { throw "Output exists; choose a new version or archive it yourself: $out" }
@@ -94,7 +99,7 @@ try {
             Copy-Item -LiteralPath (Join-Path $projectRoot '.codex/tmp/metadata-tool-build/exiftool-13.59') -Destination $metadataDestination -Recurse
             Copy-Item -LiteralPath (Join-Path $projectRoot 'internal/metadatatool/bundle.sha256') -Destination (Join-Path $metadataDestination 'exiftool-13.59.sha256')
         }
-        foreach ($file in @('LICENSE', 'NOTICE', 'README.md', 'README-ULTRA.zh-CN.md', 'PROJECT_PLAN.zh-CN.md')) {
+        foreach ($file in @('LICENSE', 'NOTICE', 'README.md', 'README.zh-CN.md', 'README-ULTRA.zh-CN.md', 'PROJECT_PLAN.zh-CN.md')) {
             Copy-Item -LiteralPath (Join-Path $projectRoot $file) -Destination $out
         }
         $engineNotices = Join-Path $projectRoot 'internal/browserengine/third_party'

@@ -4,9 +4,9 @@
 
 A Windows privacy companion built on [GodUseVPN](https://github.com/Maoyangui/godusevpn), retaining its sing-box VPN client and adding separate privacy controls and a local detection center.
 
-**v0.01 beta · Windows x64 · unsigned · experimental.** A saved policy or installed filter is configuration evidence, not proof that every app or website is blocked. The [feature ledger](docs/ultra/FEATURE_STATUS.zh-CN.md) and [audit ledger](docs/ultra/AUDIT_RECHECK_SUMMARY.zh-CN.md) separate source review, simulated tests and real Windows tests.
+**v0.02 preview target · Windows x64 · unsigned · experimental.** The public preview remains the earlier v0.01 beta candidate until v0.02 is explicitly released. A saved policy or installed filter is configuration evidence, not proof that every app or website is blocked. The [feature ledger](docs/ultra/FEATURE_STATUS.zh-CN.md) and [audit ledger](docs/ultra/AUDIT_RECHECK_SUMMARY.zh-CN.md) separate source review, simulated tests and real Windows tests.
 
-Development continues against the [complete H01–H35 requirements](docs/ultra/HANDOVER_REQUIREMENTS_2026-10-26.zh-CN.md). Earlier beta batches do not cancel later browser, GPS, open source integration or UI requirements. Source and simulated tests do not satisfy pending Windows acceptance; the first section of the [feature ledger](docs/ultra/FEATURE_STATUS.zh-CN.md) records the current state.
+Development continues against the [complete H01–H41 requirements](docs/ultra/HANDOVER_REQUIREMENTS_2026-10-26.zh-CN.md). Earlier beta batches do not cancel later browser, GPS, open source integration or UI requirements. Source and simulated tests do not satisfy pending Windows acceptance; the first section of the [feature ledger](docs/ultra/FEATURE_STATUS.zh-CN.md) records the current state.
 
 [Downloads](https://github.com/Maoyangui/godusevpn-ultra/releases) · [中文说明](README-ULTRA.zh-CN.md) · [Project plan](PROJECT_PLAN.zh-CN.md) · [Browser companion](browser-extension/README.md) · [Recovery guide](docs/ultra/INSTALL_RECOVERY.en.md)
 
@@ -33,7 +33,7 @@ Privacy controls and findings have small `?` explanations, explicit actions, and
 
 Use Windows x64, Microsoft WebView2 and **64-bit PowerShell**. Only Windows x64 is packaged for this beta. Upstream macOS/Linux/Android scripts and installers are not Ultra releases.
 
-1. Download `godusevpn-ultra-0.01-beta-windows-amd64.zip` and its `.sha256` from this repository's Releases. Verify the hash and fully extract.
+1. Download the all-lowercase `godusevpn-ultra-0.02-windows-amd64.zip` and its `.sha256` from this repository's Releases. Verify the hash and fully extract.
 2. Run `godusevpn.exe` to inspect the interface. The GUI stays in the original account. Startup requests a separate headless administrator helper; cancellation leaves the interface available. `--ultra-no-elevate` skips this request for inspection.
 3. To install the VPN service, run `./Install-Ultra.ps1 -WhatIf` first. Then execute `./Install-Ultra.ps1` elevated. It supports **fresh installation only**, into `%ProgramFiles%\GodUseVPN Ultra`. Existing/partial installations are preserved. Follow the [recovery guide](docs/ultra/INSTALL_RECOVERY.en.md) if it stops.
 4. Start the installed client, add your subscription and choose the controls you need. Adding or refreshing a subscription contacts its provider. This package includes no subscription and does not automatically download WebView2.
@@ -74,13 +74,13 @@ Use the Go version in `go.mod`, Node.js and PowerShell on Windows:
 
 ```powershell
 go install github.com/tc-hib/go-winres@v0.3.3
-./build-ultra.ps1 -Version 0.01-beta
-node tools/audit-built-package.cjs dist/godusevpn-ultra-0.01-beta-windows-amd64
+./build-ultra.ps1 -Version 0.02
+node tools/audit-built-package.cjs dist/godusevpn-ultra-0.02-windows-amd64
 ```
 
 The script runs isolated regression tests, generates resources, builds GUI/CLI/service and creates a ZIP with checksums. It does not start the product, install a service or change network settings. Existing outputs are refused. Tests use fake registry/WFP or temporary fixtures; live tests are opt-in and excluded from CI. Development-only DOM/visual dependencies are pinned under `tools/qa`.
 
-Latest preview tag: `v0.01-beta.6.1`; displayed release: **v0.01 beta.6.1**; numeric Windows file version: `0.1.0.0`. The Windows workflow checks source, tests, PE resources, package/ZIP inventory and embedded frontend. CI success alone does not complete release acceptance. Real UAC, managed browsers, reboot persistence and end-to-end network validation remain pending wherever the ledgers lack evidence; untested versions and scenarios are not certified.
+Next release target: `v0.02`; package names use `godusevpn-ultra-0.02-windows-amd64.zip` with no uppercase letters. The Windows workflow checks source, tests, PE resources, package/ZIP inventory and embedded frontend. CI success alone does not complete release acceptance. Real UAC, managed browsers, reboot persistence and end-to-end network validation remain pending wherever the ledgers lack evidence; untested versions and scenarios are not certified.
 
 ## License and attribution
 

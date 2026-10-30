@@ -1,16 +1,18 @@
-# GodUseVPN Ultra · v0.01 beta
+# GodUseVPN Ultra · v0.02 预览目标
+
+> 当前公开 Release 仍是旧的 v0.01 beta 候选；v0.02 是下一次构建与发布目标，本次只更新构建和说明，不自动上传 Release。
 
 这是在独立目录开发的 Windows 增强版本，原项目目录保持不变。完整需求、架构、功能范围和验收门槛见 [PROJECT_PLAN.zh-CN.md](PROJECT_PLAN.zh-CN.md)，每阶段实际证据及剩余工作见 [执行日志](docs/ultra/EXECUTION_LOG.md)，逐功能状态见 [台账](docs/ultra/FEATURE_STATUS.zh-CN.md)。
 
 目前是**未签名的开发预览**，不是已经完成所有实机验收的正式发行版。代码和自动测试完成的范围不等于当前电脑的保护已经生效。没有通过订阅联网、真实 WFP 流量、Windows 多版本和浏览器策略实机验收的部分均保留未知状态。
 
-项目继续按[完整要求 H01–H35](docs/ultra/HANDOVER_REQUIREMENTS_2026-10-26.zh-CN.md)开发。早先 beta 约定只决定发行批次，不取消后续浏览器、GPS、开源集成和 UI 目标。源码和模拟测试不能替代待完成的实机验证；最新状态以[功能台账首节](docs/ultra/FEATURE_STATUS.zh-CN.md)为准。
+项目继续按[完整要求 H01–H41](docs/ultra/HANDOVER_REQUIREMENTS_2026-10-26.zh-CN.md)开发。早先 beta 约定只决定发行批次，不取消后续浏览器、GPS、开源集成和 UI 目标。源码和模拟测试不能替代待完成的实机验证；最新状态以[功能台账首节](docs/ultra/FEATURE_STATUS.zh-CN.md)为准。
 
 最新审计与整改见[第二轮台账](docs/ultra/AUDIT_RECHECK_SUMMARY.zh-CN.md)。其中服务身份认证、核心存储信任和机器恢复的源码/fake验证，与VPS固定v1的一项策略恢复分开记录；新包仍需自己的实机验收。
 
 ## 使用
 
-1. 从本仓库 Releases 获取 `godusevpn-ultra-0.01-beta-windows-amd64.zip` 及对应 `.sha256`，核对后完整解压。本次发行仅含 Windows x64；ARM64 不在本次验收范围。
+1. 从本仓库 Releases 获取全小写的 `godusevpn-ultra-0.02-windows-amd64.zip` 及对应 `.sha256`，核对后完整解压。本次发行仅含 Windows x64；ARM64 不在本次验收范围。
 2. 只查看界面和本地检测，可运行 `godusevpn.exe`。默认请求管理员执行助手的授权；取消仍能打开应用。开发查看可用 `godusevpn.exe --ultra-no-elevate` 跳过授权。管理员助手不承载浏览器界面。
 3. 要使用原有 VPN 服务，在 **64 位 PowerShell** 中运行 `./Install-Ultra.ps1 -WhatIf` 查看安装目标，再以管理员权限运行 `./Install-Ultra.ps1`。脚本仅支持新安装到系统 Program Files 下的 `GodUseVPN Ultra`，不会覆盖已有目录；失败保留文件供恢复。安装后运行安装目录中的客户端。
 4. 在隐私中心逐项选择需要的保护，阅读名称旁的 `?`，再应用。程序和文件用选择器，时区用系统枚举的选择框。没有安全自动修改接口的项目提供说明和系统入口。
@@ -76,7 +78,7 @@
 
 ```powershell
 go install github.com/tc-hib/go-winres@v0.3.3
-./build-ultra.ps1
+./build-ultra.ps1 -Version 0.02
 ```
 
 脚本执行 fake/临时文件回归、生成独立资源、编译 GUI/CLI/服务并生成 ZIP 和 SHA256SUMS；不启动客户端、不安装服务、不修改注册表或网络策略。已有输出目录会拒绝覆盖，便于逐版审阅。`-SkipTests` 仅用于测试已经独立记录的构建。
@@ -87,4 +89,4 @@ SHA256SUMS 用于传输完整性检查，不等于发布者签名。CI 和自动
 
 原项目版权与 GPL-3.0 许可保持不变；第三方声明见 LICENSE、NOTICE。修改版源代码与构建脚本由本仓库提供。
 
-当前预览发行标签为 `v0.01-beta.6.1`，应用版本 `0.01-beta.6.1`，Windows 数字文件版本为 `0.1.0.0`；qa.* 是独立候选，不等于已经发布。首次联网询问、通用凭据加密、GPS 与多内核的未完成部分继续按完整台账推进。英文主页见 [README](README.md)，安装中断处理见[恢复说明](docs/ultra/INSTALL_RECOVERY.zh-CN.md)。用户存储 C04 写侧并发改向残余仍按审计台账保留，不能标记全面修复。
+下一发行目标为 `v0.02`，包名统一为全小写的 `godusevpn-ultra-0.02-windows-amd64.zip`；qa.* 是独立候选，不等于已经发布。首次联网询问、通用凭据加密、GPS 与多内核的未完成部分继续按完整台账推进。英文主页见 [README](README.md)，中文快速说明见 [README.zh-CN.md](README.zh-CN.md)，安装中断处理见[恢复说明](docs/ultra/INSTALL_RECOVERY.zh-CN.md)。用户存储 C04 写侧并发改向残余仍按审计台账保留，不能标记全面修复。

@@ -3,7 +3,7 @@ name: Windows Beta
 on:
   push:
     branches: [main]
-    tags: ['v0.01-beta']
+    tags: ['v0.02']
   pull_request:
   workflow_dispatch:
 
@@ -42,12 +42,12 @@ jobs:
         id: version
         shell: pwsh
         run: |
-          $version = '0.01-beta-ci.' + $env:GITHUB_SHA.Substring(0, 7)
+          $version = '0.02-ci'
           if ($env:GITHUB_REF_TYPE -eq 'tag') {
-            if ($env:GITHUB_REF_NAME -cne 'v0.01-beta') { throw 'This workflow only releases v0.01-beta.' }
-            $version = '0.01-beta'
+            if ($env:GITHUB_REF_NAME -cne 'v0.02') { throw 'This workflow only releases v0.02.' }
+            $version = '0.02'
           }
-          if ($version -cnotmatch '^(?:0\.01-beta|0\.01-beta-ci\.[a-f0-9]{7})$') { throw 'Unexpected beta or CI version.' }
+          if ($version -cnotmatch '^(?:0\.02|0\.02-ci)$') { throw 'Unexpected v0.02 or CI version.' }
           "version=$version" >> $env:GITHUB_OUTPUT
       - name: Source publication audit
         run: node tools/audit-publication.cjs
@@ -167,7 +167,7 @@ jobs:
             dist/*.zip.sha256
 
   prerelease:
-    if: github.event_name == 'push' && github.ref == 'refs/tags/v0.01-beta'
+    if: github.event_name == 'push' && github.ref == 'refs/tags/v0.02'
     needs: windows
     runs-on: ubuntu-latest
     permissions:
@@ -191,4 +191,4 @@ jobs:
           sha256sum --check *.sha256
           cd ..
           gh release create "$GITHUB_REF_NAME" --verify-tag --prerelease --latest=false \
-            --title "v${ULTRA_VERSION/-/ }" --notes-file docs/ultra/releases/v0.01-beta.md release-artifacts/*
+            --title "v${ULTRA_VERSION/-/ }" --notes-file docs/ultra/releases/v0.02.md release-artifacts/*

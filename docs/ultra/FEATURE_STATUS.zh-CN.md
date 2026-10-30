@@ -2,6 +2,7 @@
 
 ## 2026-10-31 当前状态（优先于下方历史记录）
 
+- 下一构建/发布目标为短版本 `v0.02`，对应包名统一为全小写的 `godusevpn-ultra-0.02-windows-amd64.zip`；本次只更新构建规则与说明，未自动上传新 Release。
 - 最新客户端发布为 [v0.01-beta.6.6](https://github.com/Maoyangui/godusevpn-ultra/releases/tag/v0.01-beta.6.6)（含助手失联后的重新授权、Device Portal 已准备记录的安全重连、独立浏览器会话数据退出清理，以及 iOS 合成 UA 的准确边界说明）；v0.01-beta.6.5 仍保留在 GitHub Release。发布包、PE 资源、前端资产和 ZIP SHA-256 已重新核对；浏览器内核、硬件、启动取消竞态、配置保存与像素 UI fixture 复跑通过。
 - `godusevpn.org/app/api/trial/*` 已由 Cloudflare Worker（版本 `5e5d847a-4248-4c6b-9594-90a54cac9e86`）转发至站点服务端网关；status、真实订阅 claim、同设备 409、非法设备 400、OPTIONS 204 和 CORS 边界均有生产回执。服务端 HMAC/Redis 限额、`free` 套餐、短 `t-` 用户名、来源备注和后台开关/购买链接已落地。
 - Azure Win10 19044/17763 曾有安装、服务、CLI、隧道和出口的有限实机证据；最新 beta.6.6 尚未在普通用户 VM 重新完成 Chrome/Firefox 原生窗口、导航和 GPS 写入读回。代码启动链存在不等于这些运行时能力已验收。
