@@ -45,7 +45,10 @@ try {
         $resourceConfig.RT_MANIFEST.'#1'.'0409'.identity.version = $fileVersion
         $resourceConfig.RT_GROUP_ICON.APP.'0000'[0] = 'appicon.png'
         $resourceConfigPath = Join-Path $resourceConfigRoot "$name.json"
-        $resourceConfig | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $resourceConfigPath -Encoding UTF8
+        # Windows PowerShell 5's `-Encoding UTF8` adds a BOM. go-winres expects
+        # JSON to start with `{`, so write an explicit BOM-free UTF-8 file.
+        $json = $resourceConfig | ConvertTo-Json -Depth 20
+        [IO.File]::WriteAllText($resourceConfigPath, $json, [Text.UTF8Encoding]::new($false))
         & $winresPath make --in $resourceConfigPath --out "cmd/$name/rsrc" --arch ($Architecture -join ',') --file-version $fileVersion --product-version $Version
         if ($LASTEXITCODE -ne 0) { throw "Resource build failed: $name" }
     }
