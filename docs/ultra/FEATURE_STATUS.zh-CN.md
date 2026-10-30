@@ -1,8 +1,8 @@
 # 逐功能实现与验收台账
 
-## 2026-10-31 当前状态（优先于下方历史记录）
+## 2026-10-30 当前状态（优先于下方历史记录）
 
-- v0.02 已构建并发布预览包 [godusevpn-ultra-0.02-windows-amd64.zip](https://github.com/Maoyangui/godusevpn/releases/tag/v0.02)，包名全小写；标签指向最新提交 `54d52cd`，远程 ZIP SHA-256 为 `e616c70bef9a33ce2f7a5bccfde27a15778796bc10472047eb8cb55fd9e444ad`。构建验证还修复了 Windows PowerShell BOM 导致的资源构建失败。
+- v0.02 已构建并发布预览包 [godusevpn-ultra-0.02-windows-amd64.zip](https://github.com/Maoyangui/godusevpn-ultra/releases/tag/v0.02)，包名全小写；标签指向最新提交 `1690b4e`，远程 ZIP SHA-256 为 `e616c70bef9a33ce2f7a5bccfde27a15778796bc10472047eb8cb55fd9e444ad`。构建验证还修复了 Windows PowerShell BOM 导致的资源构建失败。
 - `godusevpn.org/app/api/trial/*` 已由 Cloudflare Worker 版本 `820c2b67-9884-419e-9da0-6cbdd6259d33` 接管，并绑定 GodUseVPN 自己的 `godusevpn-commerce` D1。实测 status 200、claim 200 返回真实 `hk.joinvip.vip:2056` 订阅、同设备 409、再次 status 为 `already_claimed`、OPTIONS 204、非法设备 400、恶意 Origin 无允许跨域头；D1 记录短 `t-xxxxxxxx` 标识和“来源：佛跳墙内置免费试用；套餐：free”备注。健康检查明确返回 `backend=d1`、`backendConfigured=true`。`TRIAL_ENABLED`、`TRIAL_PLAN`、`TRIAL_PURCHASE_URL` 由 Worker 配置控制，客户端不接触令牌；面板 API 的 `free` 套餐映射已在 GodUseVPN 后台确认通过。
 - Azure Win10 19044/17763 曾有安装、服务、CLI、隧道和出口的有限实机证据；最新 beta.6.6 尚未在普通用户 VM 重新完成 Chrome/Firefox 原生窗口、导航和 GPS 写入读回。代码启动链存在不等于这些运行时能力已验收。
 - 仍未关闭：真实 Chrome/Firefox 多版本窗口与代理出口矩阵、WebRTC/WebGPU/OOPIF/Worker 读回、Windows GPS provider 写入/读回、CEF/uBlock 运行集成、跨 Windows 版本完整矩阵，以及 D03/N08 等原台账范围。不得用 DOM、mock、纯 Go/C# 测试或旧包证据替代这些范围。
@@ -11,7 +11,7 @@
 
 > 历史快照：本节记录 10 月 27 日当时的候选状态。当前公开候选、会话清理修复和视觉复核以本页顶部与 [最终审计](qa/FINAL_AUDIT_2026-10-30.zh-CN.md) 为准。
 
-完整对话的用户要求与后续追加目标按 [H01–H37](HANDOVER_REQUIREMENTS_2026-10-26.zh-CN.md) 保留；早先 beta 批次不构成整体项目完成定义。qa.11 已在临时 VM 通过官方 QA9→QA11 升级、完整包与 Running / LocalSystem 读回；普通 Medium 无参数启动、实际取消 UAC 后保留 GUI，第二轮原始 Process handle 取得托盘正常退出码 0，见 [本次证据与边界](qa/QA11_OFFICIAL_UPGRADE_2026-10-27.md)。配置库另已通过 QA11 真实 GUI 的载入、重命名、另存新配置、取消删除与删除的有限往返及独立磁盘核验，见 [本批记录](qa/QA11_PROFILE_GUI_VM_2026-10-27.md)。普通用户代理 GUI 的单节点认证 SOCKS5 显式 probe、错误认证反馈与运行中 UAC 取消保留 GUI 已有 [有限实测](qa/QA11_PROXY_GUI_VM_2026-10-27.md)；元数据仍按其 QA9 有限证据判断。完整 GUI、接受授权路径与独立浏览器仍分别待验。私有冻结包尚未公开发布。产品内的 Android / iOS / macOS / Windows 指浏览器环境配置，不能据此宣称四种原生系统内核运行。
+完整对话的用户要求与后续追加目标按 [H01–H37](HANDOVER_REQUIREMENTS_2026-10-26.zh-CN.md) 保留；早先 beta 批次不构成整体项目完成定义。qa.11 已在临时 VM 通过官方 QA9→QA11 升级、完整包与 Running / LocalSystem 读回；普通 Medium 无参数启动、实际取消 UAC 后保留 GUI，第二轮原始 Process handle 取得托盘正常退出码 0，见 [本次证据与边界](qa/QA11_OFFICIAL_UPGRADE_2026-10-27.md)。配置库另已通过 QA11 真实 GUI 的载入、重命名、另存新配置、取消删除与删除的有限往返及独立磁盘核验，见 [本批记录](qa/QA11_PROFILE_GUI_VM_2026-10-27.md)。普通用户代理 GUI 的单节点认证 SOCKS5 显式 probe、错误认证反馈与运行中 UAC 取消保留 GUI 已有 [有限实测](qa/QA11_PROXY_GUI_VM_2026-10-27.md)；元数据仍按其 QA9 有限证据判断。完整 GUI、接受授权路径与独立浏览器仍分别待验。本段是 10 月 27 日历史快照，当时的“私有冻结包尚未公开发布”不适用于当前 v0.02。产品内的 Android / iOS / macOS / Windows 指浏览器环境配置，不能据此宣称四种原生系统内核运行。
 
 | 模块 | 当前实现证据 | 尚待完成 / 验收 |
 |---|---|---|

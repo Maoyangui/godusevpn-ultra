@@ -1,6 +1,6 @@
-# GodUseVPN Ultra · v0.02 预览目标
+# GodUseVPN Ultra · v0.02 预览版
 
-> 当前公开 Release 仍是旧的 v0.01 beta 候选；v0.02 是下一次构建与发布目标，本次只更新构建和说明，不自动上传 Release。
+> v0.02 已发布 Windows x64 未签名预览包：下载 `godusevpn-ultra-0.02-windows-amd64.zip` 与 `.sha256` 后再安装。本页不自动上传 Release。
 
 这是在独立目录开发的 Windows 增强版本，原项目目录保持不变。完整需求、架构、功能范围和验收门槛见 [PROJECT_PLAN.zh-CN.md](PROJECT_PLAN.zh-CN.md)，每阶段实际证据及剩余工作见 [执行日志](docs/ultra/EXECUTION_LOG.md)，逐功能状态见 [台账](docs/ultra/FEATURE_STATUS.zh-CN.md)。
 
@@ -89,4 +89,4 @@ SHA256SUMS 用于传输完整性检查，不等于发布者签名。CI 和自动
 
 原项目版权与 GPL-3.0 许可保持不变；第三方声明见 LICENSE、NOTICE。修改版源代码与构建脚本由本仓库提供。
 
-下一发行目标为 `v0.02`，包名统一为全小写的 `godusevpn-ultra-0.02-windows-amd64.zip`；qa.* 是独立候选，不等于已经发布。首次联网询问、通用凭据加密、GPS 与多内核的未完成部分继续按完整台账推进。英文主页见 [README](README.md)，中文快速说明见 [README.zh-CN.md](README.zh-CN.md)，安装中断处理见[恢复说明](docs/ultra/INSTALL_RECOVERY.zh-CN.md)。用户存储 C04 写侧并发改向残余仍按审计台账保留，不能标记全面修复。
+当前公开预览为 `v0.02`，包名统一为全小写的 `godusevpn-ultra-0.02-windows-amd64.zip`；qa.* 是独立证据，不等于所有运行时范围都已通过。首次联网询问、通用凭据加密、GPS 与多内核的未完成部分继续按完整台账推进。英文主页见 [README](README.md)，中文快速说明见 [README.zh-CN.md](README.zh-CN.md)，安装中断处理见[恢复说明](docs/ultra/INSTALL_RECOVERY.zh-CN.md)。用户存储 C04 写侧并发改向残余仍按审计台账保留，不能标记全面修复。

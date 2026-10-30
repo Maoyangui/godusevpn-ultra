@@ -21,6 +21,7 @@ node C:\Temp\ultra-trial-ui-qa\trial-card.cjs
 - `go test -tags with_clash_api ./...`（Ultra）通过。
 - `go test ./internal/trial ./internal/uiapi ./cmd/godusevpn` 通过。
 - `go test ./web ./database/...`（m-ui）通过。
+- 上述 m-ui 命令针对独立 m-ui Go checkout（当前审计 commit `3d19df5`），不是 liumeiti.vip-main Next.js 站点；该 checkout 包含 `web/`、`database/` 和 Cloudflare Worker/D1 试用网关。
 - 后端并发测试确认同一设备同一 UTC 月份只有一个 200，其余为 409，D1 只创建一个试用领取记录。
 - 生产回归通过 `https://godusevpn.org/app/api/trial/*`：Cloudflare Worker + GodUseVPN D1 status 200，claim 200 返回真实 `hk.joinvip.vip:2056` 订阅且 URL 可访问；同设备随后 status 为 `already_claimed`、claim 为 409；OPTIONS 为 204，非法设备为 400，恶意 Origin 不获得允许跨域头。
 - 生产后端生成 `t-` 加 8 位十六进制短标识，并在 D1 备注记录“来源：佛跳墙内置免费试用；套餐：free”；客户端只发送设备安装标识，永不接收面板令牌。GodUseVPN 后台截图确认面板 API 已就绪、`free` 套餐存在并完成映射。

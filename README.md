@@ -4,7 +4,7 @@
 
 A Windows privacy companion built on [GodUseVPN](https://github.com/Maoyangui/godusevpn), retaining its sing-box VPN client and adding separate privacy controls and a local detection center.
 
-**v0.02 preview target · Windows x64 · unsigned · experimental.** The public preview remains the earlier v0.01 beta candidate until v0.02 is explicitly released. A saved policy or installed filter is configuration evidence, not proof that every app or website is blocked. The [feature ledger](docs/ultra/FEATURE_STATUS.zh-CN.md) and [audit ledger](docs/ultra/AUDIT_RECHECK_SUMMARY.zh-CN.md) separate source review, simulated tests and real Windows tests.
+**v0.02 preview release · Windows x64 · unsigned · experimental.** The v0.02 prerelease is published on GitHub with an all-lowercase package name. A saved policy or installed filter is configuration evidence, not proof that every app or website is blocked. The [feature ledger](docs/ultra/FEATURE_STATUS.zh-CN.md) and [audit ledger](docs/ultra/AUDIT_RECHECK_SUMMARY.zh-CN.md) separate source review, simulated tests and real Windows tests.
 
 Development continues against the [complete H01–H41 requirements](docs/ultra/HANDOVER_REQUIREMENTS_2026-10-26.zh-CN.md). Earlier beta batches do not cancel later browser, GPS, open source integration or UI requirements. Source and simulated tests do not satisfy pending Windows acceptance; the first section of the [feature ledger](docs/ultra/FEATURE_STATUS.zh-CN.md) records the current state.
 
@@ -80,7 +80,7 @@ node tools/audit-built-package.cjs dist/godusevpn-ultra-0.02-windows-amd64
 
 The script runs isolated regression tests, generates resources, builds GUI/CLI/service and creates a ZIP with checksums. It does not start the product, install a service or change network settings. Existing outputs are refused. Tests use fake registry/WFP or temporary fixtures; live tests are opt-in and excluded from CI. Development-only DOM/visual dependencies are pinned under `tools/qa`.
 
-Next release target: `v0.02`; package names use `godusevpn-ultra-0.02-windows-amd64.zip` with no uppercase letters. The Windows workflow checks source, tests, PE resources, package/ZIP inventory and embedded frontend. CI success alone does not complete release acceptance. Real UAC, managed browsers, reboot persistence and end-to-end network validation remain pending wherever the ledgers lack evidence; untested versions and scenarios are not certified.
+Current preview release: `v0.02`; package names use `godusevpn-ultra-0.02-windows-amd64.zip` with no uppercase letters. The Windows workflow checks source, tests, PE resources, package/ZIP inventory and embedded frontend. CI success alone does not complete release acceptance. Real UAC, managed browsers, reboot persistence and end-to-end network validation remain pending wherever the ledgers lack evidence; untested versions and scenarios are not certified.
 
 ## License and attribution
 
