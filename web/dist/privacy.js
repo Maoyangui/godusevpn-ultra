@@ -48,6 +48,9 @@ function renderPrivacy(el, arg) {
   model.browserStart=null;model.browserStartGeneration=0;model.browserStartCancelBusy=false;
   model.browserEngine={engineId:'webview2',version:''};model.browserRoute='ultra';
   model.browserProfileName='';model.browserSavedRecord=null;model.browserSavedDirty=false;model.browserSavedList=null;model.browserSavedSelection='';model.browserProfileGeneration=0;
+  model.browserMeta={browser:'',environmentName:'',group:'',remark:'',tags:[]};
+  model.browserExtras={storage:{cookieFormat:'json',merge:false,cookieCount:0,cookieSessionOnly:true},tabs:{urls:[],startupMode:'restore'},proxy:{mode:'no-proxy',type:'none',provider:'IP2Location',accountRef:''},fingerprint:{webrtc:'disable-non-proxied-udp',timezone:'real',geo:'real',language:'real',uiLanguage:'by-language',resolution:'ua',fonts:'default',noise:{canvas:false,webglImage:false,audio:false,media:false,clientRects:false,speechVoices:false},webglMetadata:'real',webgpu:'real',seed:''},advanced:{cpu:'real',ram:'real',deviceName:'real',mac:'real',dnt:'default',portScan:'enabled',hardwareAcceleration:'default',tls:'default',teamApps:'global',dataSync:'global',browserSettings:'global',randomFingerprint:false},readback:{state:'unknown',scope:'browser-profile',runtimeVerified:false,warnings:[]}};
+  model.browserCookieDraft=''; model.browserV2Message=''; model.browserV2Error='';
   model.browserProxy = {type:'socks5',host:'',port:1080,username:'',password:''}; model.browserProxyResult = null; model.browserProxyBusy = false; model.browserProxyError = ''; model.browserProxyGeneration = 0;
   model.metadataStatus = null; model.metadataPreview = null; model.metadataSelected = []; model.metadataValues = null; model.metadataCopy = null; model.metadataBusy = false; model.metadataError = ''; model.metadataGeneration = 0;
   model.portalDraft={latitude:'',longitude:'',label:'',trajectory:'',intervalSeconds:'2',port:'58443',certificateSHA256:'',username:'',password:''};model.portalReport=null;model.portalPreparation=null;model.portalRuntime=null;model.portalBusy=false;model.portalError='';model.portalMessage='';model.portalGeneration=0;model.portalPollGeneration=0;
@@ -164,7 +167,7 @@ function renderPrivacy(el, arg) {
     const host = model.host;
     const engines = host && Array.isArray(host.engines) ? host.engines : [];
     const badge = !host ? '尚未检查' : host.supported === false ? '当前平台不支持' : host.recommended ? 'WebView2 可用' : '未发现可用主机';
-    return `${browserProfileCard()}${browserProxyCard()}${browserEngineCard()}<details class="privacy-card"><summary>浏览器运行时 · ${safe(badge)}</summary><p>这里只读取运行时清单。客户端界面、专用浏览器及现有 Chrome / Edge 配置分别管理。</p>${engines.length ? `<dl class="privacy-probe">${engines.map(engine => `<dt>${safe(engine.name)}${engine.available && engine.version ? ' · ' + safe(engine.version) : ''}</dt><dd>${safe(engine.available ? engine.detail : engine.detail || '未发现')}</dd>`).join('')}</dl>` : '<p class="muted">点击“本地重新检查”后查看。</p>'}</details>`;
+    return `${browserProfileCard()}${browserEnvironmentEditor()}${browserProxyCard()}${browserEngineCard()}<details class="privacy-card"><summary>浏览器运行时 · ${safe(badge)}</summary><p>这里只读取运行时清单。客户端界面、专用浏览器及现有 Chrome / Edge 配置分别管理。</p>${engines.length ? `<dl class="privacy-probe">${engines.map(engine => `<dt>${safe(engine.name)}${engine.available && engine.version ? ' · ' + safe(engine.version) : ''}</dt><dd>${safe(engine.available ? engine.detail : engine.detail || '未发现')}</dd>`).join('')}</dl>` : '<p class="muted">点击“本地重新检查”后查看。</p>'}</details>`;
   };
   const browserEngineRecord = () => {
     const id = model.browserEngine && model.browserEngine.engineId, version = model.browserEngine && model.browserEngine.version;
@@ -205,6 +208,87 @@ function renderPrivacy(el, arg) {
       <p class="muted">点击测试才会经代理访问 country.is 免费 API；服务会看到该代理的出口 IP。归属地是 GeoIP 估计，与 GPS 无关。</p>
       <div class="privacy-actions"><button class="btn sm" id="privacy-proxy-test" ${disabled}>测试连通性与出口</button><button class="btn sm primary" id="privacy-proxy-launch" data-help-text="使用上方已经预览的配置和此代理打开专用浏览器。启动会重新验证连接、认证、进程与实际读回，不使用上次探测结果作为授权。" ${disabled || !canLaunch ? 'disabled' : ''}>用此代理打开浏览器</button></div><p class="muted">启动会重新核对受保护连接和代理绑定；测试成功也不替代浏览器实际导航出口验证。</p>
       ${model.browserProxyError ? `<p id="privacy-proxy-error" class="privacy-error" role="alert">${safe(model.browserProxyError)}</p>` : ''}${result ? `<div id="privacy-proxy-result"><dl class="privacy-probe"><dt>代理探测出口 IP</dt><dd>${safe(result.ip)}</dd><dt>归属地</dt><dd>${safe([result.country,result.subdivision,result.city].filter(Boolean).join(' / '))}</dd><dt>耗时 / 来源</dt><dd>${safe(result.latencyMs)} ms · ${safe(result.provider)} · ${safe(result.checkedAt)}</dd></dl><p class="muted">仅为此次代理探测结果，未证明浏览器实际使用此出口；本页不会将结果加入检测导出。</p></div>` : ''}</article>`;
+  };
+  const browserEnvironmentEditor = () => {
+    const meta=model.browserMeta||{}, x=model.browserExtras||{}, storage=x.storage||{}, tabs=x.tabs||{}, proxy=x.proxy||{}, fp=x.fingerprint||{}, noise=fp.noise||{}, advanced=x.advanced||{}, readback=x.readback||{};
+    const disabled=model.browserBusy||model.engineBusy||model.loading?'disabled':'';
+    const options=(value,list)=>list.map(pair=>`<option value="${safe(pair[0])}" ${value===pair[0]?'selected':''}>${safe(pair[1])}</option>`).join('');
+    const select=(path,label,value,list,help='')=>`<label>${safe(label)}${help?privacyHelp(help):''}<select data-browser-v2="${safe(path)}" ${disabled}>${options(value,list)}</select></label>`;
+    const input=(path,label,value,attrs='',help='')=>`<label>${safe(label)}${help?privacyHelp(help):''}<input data-browser-v2="${safe(path)}" value="${safe(value)}" ${attrs} ${disabled}></label>`;
+    const checked=(path,label,value,help='')=>`<label class="privacy-check"><input type="checkbox" data-browser-v2="${safe(path)}" ${value?'checked':''} ${disabled}>${safe(label)}${help?privacyHelp(help):''}</label>`;
+    const status=(text,kind='pending')=>`<span class="privacy-capability ${kind}">${safe(text)}</span>`;
+    const cookieCount=Number(storage.cookieCount)||0;
+    const urlCount=Array.isArray(tabs.urls)?tabs.urls.length:0;
+    const supported='运行时待验证';
+    return `<article class="privacy-card privacy-browser-v2" id="privacy-browser-environment-editor">
+      <div class="privacy-card-head"><h2>浏览器环境编辑器${privacyHelp('按 AdsPower / 比特浏览器式的完整环境配置组织。每个字段先保存为配置草稿，再在启动时按能力范围逐项读回；无法由当前宿主实现的项目保持“未知/不支持”，不会伪装成已生效。')}</h2>${status(readback.runtimeVerified?'运行时已读回':'配置已保存 · '+supported,readback.runtimeVerified?'verified':'pending')}</div>
+      <p class="muted">配置名称是浏览器配置记录名称；环境名称、分组和备注用于管理。Cookie 原文只在本次会话内存中解析，默认不落盘。</p>
+      <div class="privacy-browser-fields">
+        ${select('meta.browser','浏览器',meta.browser||'sunbrowser',[['sunbrowser','SunBrowser'],['flowerbrowser','FlowerBrowser'],['chrome-for-testing','Chrome / Chromium'],['firefox','Firefox / Gecko'],['webview2','WebView2 / Edge']], '这里只保存浏览器家族标签；实际内核仍由下方浏览器内核和版本决定。')}
+        ${input('meta.environmentName','环境名称',meta.environmentName||'','maxlength="100" placeholder="选填：环境名称"','环境名称最多 100 个字符，只用于识别配置。')}
+        ${input('meta.group','分组',meta.group||'','maxlength="100" placeholder="未分组"','分组不会改变启动参数。')}
+        ${input('meta.tags','标签（逗号分隔）',Array.isArray(meta.tags)?meta.tags.join(', '):'','maxlength="512" placeholder="例如：工作, 社媒"','标签最多 32 个，每个标签最多 64 个字符。')}
+        <label>备注${privacyHelp('备注最多 2000 个字符，只保存文本，不会发送到代理或站点。')}<textarea data-browser-v2="meta.remark" maxlength="2000" rows="3" placeholder="请输入备注" ${disabled}>${safe(meta.remark||'')}</textarea></label>
+      </div>
+      <details open><summary>Cookie 与启动标签页 ${status(cookieCount+' 个 Cookie · 会话内存')}${status(urlCount+' 个启动网址','configured')}</summary>
+        <div class="privacy-browser-fields">
+          ${select('storage.cookieFormat','Cookie 格式',storage.cookieFormat||'json',[['json','JSON'],['netscape','Netscape'],['name-value','Name=Value']], '支持 JSON、Netscape、Name=Value；只解析格式和数量。')}
+          ${checked('storage.merge','合并 Cookie',!!storage.merge,'开启后导入的 Cookie 与现有会话合并；冲突以当前会话策略为准。')}
+        </div>
+        <label>Cookie（本次会话，不落盘）${privacyHelp('粘贴后立即在本地解析并显示数量；关闭页面或切换配置后清空。保存配置只保存格式、合并策略和数量，不保存 Cookie 值。')}<textarea data-browser-v2-cookie rows="5" placeholder='JSON、Netscape 或 name=value' ${disabled}>${safe(model.browserCookieDraft||'')}</textarea></label>
+        <p class="muted">${storage.cookieSessionOnly!==false?'安全策略：Cookie 原文仅保留在本页内存。':''}解析结果：${safe(cookieCount)} 个。</p>
+        <div class="privacy-browser-fields">
+          <label>启动网址（每行一个）${privacyHelp('最多 20 个 HTTPS/HTTP URL；保存前会校验协议和长度。')}<textarea data-browser-v2="tabs.urls" rows="4" placeholder="www.google.com&#10;www.facebook.com" ${disabled}>${safe(Array.isArray(tabs.urls)?tabs.urls.join('\n'):'')}</textarea></label>
+          ${select('tabs.startupMode','标签页启动方式',tabs.startupMode||'restore',[['restore','恢复上次标签页'],['urls','打开指定网址'],['blank','空白页']], '指定网址只在启动时使用，不会自动访问或预加载。')}
+        </div>
+      </details>
+      <details open><summary>代理信息 ${status(proxy.mode==='no-proxy'?'No Proxy':proxy.mode==='custom'?'自定义':proxy.mode==='saved'?'已添加的代理':proxy.mode==='dynamic'?'动态代理':'集成代理')}</summary>
+        <div class="privacy-browser-fields">
+          ${select('proxy.mode','代理方式',proxy.mode||'no-proxy',[['no-proxy','No Proxy（本地直连）'],['custom','自定义'],['saved','已添加的代理'],['dynamic','动态代理'],['integrated','集成代理']], '代理来源只记录选择，不会把密码写入浏览器配置。')}
+          ${select('proxy.type','代理类型',proxy.type||'none',[['none','No Proxy'],['http','HTTP'],['https','HTTPS'],['socks5','SOCKS5']], '当前页面的独立代理测试仍使用下方代理卡；这里保存环境的来源策略。')}
+          ${input('proxy.provider','IP 查询渠道',proxy.provider||'IP2Location','maxlength="80" placeholder="IP2Location"','只记录查询渠道名称，查询结果不代表 GPS 或浏览器真实出口。')}
+          ${input('proxy.accountRef','账号平台',proxy.accountRef||'','maxlength="120" placeholder="账号平台 / 账号引用"','只保存账号引用，不保存账号密码。')}
+        </div>
+        <p class="muted">网络检查仍需点击“独立代理”卡片中的测试按钮；配置保存不会宣称代理已连通。</p>
+      </details>
+      <details open><summary>指纹配置 ${status('字段已保存，启动后读回')}</summary>
+        <div class="privacy-browser-fields">
+          ${select('fingerprint.webrtc','WebRTC',fp.webrtc||'disable-non-proxied-udp',[['forward','转发'],['replace','替换'],['real','真实'],['disabled','禁用'],['disable-non-proxied-udp','代理 UDP / 禁止非代理 UDP']], 'WebRTC 由浏览器内核和扩展共同决定；当前宿主仅对既有非代理 UDP 限制有运行时路径。')}
+          ${select('fingerprint.timezone','时区',fp.timezone||'real',[['ip','基于 IP'],['real','真实'],['custom','自定义']], 'IP 方案需要可信代理出口；本页面不会自动猜测时区。')}
+          ${select('fingerprint.geo','地理位置',fp.geo||'real',[['ip','基于 IP'],['custom','自定义'],['forbidden','禁止']], '网页定位需要单独的浏览器权限与系统位置提供者；无法读回时保持未知。')}
+          ${select('fingerprint.language','语言',fp.language||'real',[['ip','基于 IP'],['custom','自定义'],['real','真实']], '语言策略与请求头、navigator.languages 需在启动后一起核验。')}
+          ${select('fingerprint.uiLanguage','界面语言',fp.uiLanguage||'by-language',[['by-language','基于语言'],['real','真实'],['custom','自定义']], '只保存策略，不修改 Ultra 客户端界面语言。')}
+          ${select('fingerprint.resolution','分辨率',fp.resolution||'ua',[['random','随机'],['preset','预定义'],['custom','自定义'],['ua','基于 User-Agent']], '视口和 DPR 由现有运行时部分支持；物理显示器不会被修改。')}
+          ${select('fingerprint.fonts','字体',fp.fonts||'default',[['default','默认'],['custom','自定义']], '字体列表需要宿主级注入；当前仅保存计划并在启动后报告能力。')}
+        </div>
+        <div class="privacy-v2-noise"><strong>硬件噪音</strong>${checked('fingerprint.noise.canvas','Canvas',!!noise.canvas)}${checked('fingerprint.noise.webglImage','WebGL 图像',!!noise.webglImage)}${checked('fingerprint.noise.audio','AudioContext',!!noise.audio)}${checked('fingerprint.noise.media','媒体设备',!!noise.media)}${checked('fingerprint.noise.clientRects','ClientRects',!!noise.clientRects)}${checked('fingerprint.noise.speechVoices','SpeechVoices',!!noise.speechVoices)}</div>
+        <div class="privacy-browser-fields">
+          ${select('fingerprint.webglMetadata','WebGL 元数据',fp.webglMetadata||'real',[['real','真实'],['custom','自定义']], '厂商和渲染器可在下方编辑；真实硬件、像素和性能不会改变。')}
+          ${input('fingerprint.webglVendor','厂商',fp.webglVendor||'Google Inc. (AMD)','maxlength="128" placeholder="Google Inc. (AMD)"')}
+          ${input('fingerprint.webglRenderer','渲染器',fp.webglRenderer||'ANGLE (AMD, Radeon RX 580 Series (0x000067DF) Direct3D11 vs_5_0 ps_5_0, D3D11)','maxlength="256" placeholder="ANGLE (...)"')}
+          ${select('fingerprint.webgpu','WebGPU',fp.webgpu||'runtime',[['webgl','基于 WebGL'],['real','真实'],['disabled','禁用']], 'WebGPU 的真实/禁用状态必须由运行时读回；名称策略不能替代能力检查。')}
+        </div>
+      </details>
+      <details><summary>高级设置 ${status('真实硬件项可能仅支持读回','limited')}</summary>
+        <div class="privacy-browser-fields">
+          ${select('advanced.cpu','CPU',advanced.cpu||'real',[['real','真实'],['custom','自定义']], '当前运行时支持网页逻辑处理器数的有限覆盖；物理 CPU 不变。')}
+          ${select('advanced.ram','RAM',advanced.ram||'real',[['real','真实'],['custom','自定义']], '真实 RAM 不能由普通网页或浏览器配置安全修改。')}
+          ${select('advanced.deviceName','设备名称',advanced.deviceName||'real',[['real','真实'],['custom','自定义']], '设备名的系统级读回依赖宿主能力。')}
+          ${select('advanced.mac','MAC 地址',advanced.mac||'real',[['real','真实'],['custom','自定义']], 'MAC 地址属于系统网络适配器，普通浏览器不能修改。')}
+          ${select('advanced.dnt','Do Not Track',advanced.dnt||'default',[['default','默认'],['on','开启'],['off','关闭']], '启动后核对请求头和 navigator.doNotTrack。')}
+          ${select('advanced.portScan','端口扫描保护',advanced.portScan||'enabled',[['enabled','启用'],['disabled','关闭']], '浏览器策略只能限制部分网页探测；不能替代系统防火墙。')}
+          ${select('advanced.hardwareAcceleration','硬件加速',advanced.hardwareAcceleration||'default',[['default','默认'],['enabled','开启'],['disabled','关闭']], '需重启浏览器，并且可能受内核策略覆盖。')}
+          ${select('advanced.tls','禁用 TLS 特性',advanced.tls||'default',[['default','默认'],['enabled','开启'],['disabled','关闭']], 'TLS 参数必须由实际内核支持；当前仅记录计划并读回。')}
+          ${select('advanced.teamApps','团队应用',advanced.teamApps||'global',[['global','跟随团队应用'],['custom','自定义'],['disabled','禁用']], '应用安装需要团队应用中心，当前配置只记录策略。')}
+          ${select('advanced.dataSync','数据同步',advanced.dataSync||'global',[['global','跟随全局设置'],['custom','自定义'],['disabled','关闭']], '只记录同步策略，不上传本地配置。')}
+          ${select('advanced.browserSettings','浏览器设置',advanced.browserSettings||'global',[['global','跟随全局设置'],['custom','自定义']], '浏览器设置属于独立内核 profile。')}
+          ${checked('advanced.randomFingerprint','随机指纹（每次启动生成）',!!advanced.randomFingerprint,'生成新 seed 后必须重新读回；不代表匿名或稳定身份。')}
+        </div>
+        <label>允许被扫描的端口（选填）${privacyHelp('只记录端口清单，最多 32 个；实际拦截范围取决于浏览器和系统。')}<input data-browser-v2="advanced.allowedPorts" value="${safe(Array.isArray(advanced.allowedPorts)?advanced.allowedPorts.join(', '):'')}" maxlength="256" placeholder="例如 80, 443" ${disabled}></label>
+      </details>
+      <div class="privacy-v2-summary"><div><strong>概要</strong><dl><dt>环境</dt><dd>${safe(meta.environmentName||'未命名环境')}</dd><dt>浏览器</dt><dd>${safe(meta.browser||model.browserEngine.engineId||'未选择')} · ${safe(model.browserProfileName||'未命名配置')}</dd><dt>标签页 / Cookie</dt><dd>${safe(urlCount)} / ${safe(cookieCount)}</dd><dt>代理</dt><dd>${safe(proxy.mode||'no-proxy')} · ${safe(proxy.type||'none')}</dd><dt>读回</dt><dd>${safe(readback.state||'unknown')} · ${safe(readback.runtimeVerified?'已验证':'未运行时读回')}</dd></dl></div><div class="privacy-actions"><button type="button" class="btn sm" id="privacy-browser-v2-generate" ${disabled}>生成新指纹</button><button type="button" class="btn sm" id="privacy-browser-v2-validate" ${disabled}>检查配置</button></div></div>
+      ${model.browserV2Error?`<p class="privacy-error" role="alert">${safe(model.browserV2Error)}</p>`:''}${model.browserV2Message?`<p class="privacy-note" role="status">${safe(model.browserV2Message)}</p>`:''}
+    </article>`;
   };
   const browserProfileCard = () => {
     const info = model.browser, c = info && info.config;
@@ -491,6 +575,69 @@ function renderPrivacy(el, arg) {
     const proxyLaunch = el.querySelector('#privacy-proxy-launch'); if (proxyLaunch) proxyLaunch.disabled = !ready;
     const preview = el.querySelector('#privacy-browser-preview-result'); if (preview) preview.hidden = true;
   }
+  function browserV2EnsureState() {
+    const defaults={storage:{cookieFormat:'json',merge:false,cookieCount:0,cookieSessionOnly:true},tabs:{urls:[],startupMode:'restore'},proxy:{mode:'no-proxy',type:'none',provider:'IP2Location',accountRef:''},fingerprint:{webrtc:'disable-non-proxied-udp',timezone:'real',geo:'real',language:'real',uiLanguage:'by-language',resolution:'ua',fonts:'default',noise:{canvas:false,webglImage:false,audio:false,media:false,clientRects:false,speechVoices:false},webglMetadata:'real',webglVendor:'',webglRenderer:'',webgpu:'real',seed:''},advanced:{cpu:'real',ram:'real',deviceName:'real',mac:'real',dnt:'default',portScan:'enabled',hardwareAcceleration:'default',tls:'default',teamApps:'global',dataSync:'global',browserSettings:'global',randomFingerprint:false,allowedPorts:[]},readback:{state:'unknown',scope:'browser-profile',runtimeVerified:false,warnings:[]}};
+    const merge=(base,value)=>{if(!value||typeof value!=='object'||Array.isArray(value))return base;Object.keys(value).forEach(key=>{if(value[key]&&typeof value[key]==='object'&&!Array.isArray(value[key]))base[key]=merge(base[key]&&typeof base[key]==='object'?base[key]:{},value[key]);else base[key]=value[key];});return base;};
+    const incoming=model.browserExtras&&typeof model.browserExtras==='object'?model.browserExtras:{}; ['storage','tabs','proxy','fingerprint','advanced','readback'].forEach(key=>{if(typeof incoming[key]==='string'){try{incoming[key]=JSON.parse(incoming[key]);}catch(_){delete incoming[key];}}}); model.browserExtras=merge(defaults,incoming); model.browserMeta=model.browserMeta&&typeof model.browserMeta==='object'?model.browserMeta:{browser:'',environmentName:'',group:'',remark:'',tags:[]};
+    if(!Array.isArray(model.browserMeta.tags))model.browserMeta.tags=[];
+    return model.browserExtras;
+  }
+  function browserV2Path(path) { browserV2EnsureState(); const parts=String(path||'').split('.'); let root=model.browserExtras; if(parts[0]==='meta'){parts.shift();root=model.browserMeta;} for(const part of parts.slice(0,-1)){if(!root[part]||typeof root[part]!=='object')root[part]={};root=root[part];} return {root,key:parts[parts.length-1]}; }
+  function browserV2Set(path,value) { const ref=browserV2Path(path); if(ref.root)ref.root[ref.key]=value; if(model.browser&&model.browser.config){const c=model.browser.config,fp=model.browserExtras.fingerprint||{};if(path==='fingerprint.seed')c.randomizationSeed=String(value||'');if(path==='fingerprint.webgpu')c.webgpu=value==='disabled'?'disabled':'runtime-default';if(path==='fingerprint.webglMetadata'){if(value==='real')delete c.graphics;else c.graphics={mode:'webgl-metadata',presetId:'manual',vendor:fp.webglVendor||'',renderer:fp.webglRenderer||''};c.webgpu=value==='custom'?'disabled':c.webgpu||'runtime-default';}if(path==='fingerprint.webglVendor'||path==='fingerprint.webglRenderer'){c.graphics={mode:'webgl-metadata',presetId:'manual',vendor:fp.webglVendor||'',renderer:fp.webglRenderer||''};c.webgpu='disabled';}} model.browserExtras.readback={state:'unknown',scope:'browser-profile',runtimeVerified:false,warnings:['配置已修改，尚未启动读回。']}; }
+  function browserV2Get(path,fallback) { const ref=browserV2Path(path); return ref.root&&ref.root[ref.key]!==undefined?ref.root[ref.key]:fallback; }
+  function browserV2ParseCookies(raw,format) {
+    const text=String(raw||'').trim(); if(!text)return 0; if(text.length>512*1024)throw Error('Cookie 文本超过 512 KB。');
+    if(format==='json'){let value;try{value=JSON.parse(text);}catch(_){throw Error('Cookie JSON 格式无效。');} if(Array.isArray(value))return value.length; if(value&&Array.isArray(value.cookies))return value.cookies.length; if(value&&typeof value==='object')return Object.keys(value).length; throw Error('Cookie JSON 应为数组或对象。');}
+    const lines=text.split(/\r?\n/).map(line=>line.trim()).filter(line=>line&&!line.startsWith('#')); if(format==='netscape'){return lines.filter(line=>line.split('\t').length>=7).length;}
+    return lines.filter(line=>line.includes('=')&&line.split('=')[0].trim()).length;
+  }
+  function browserV2Validate() {
+    browserV2EnsureState(); const x=model.browserExtras, urls=Array.isArray(x.tabs.urls)?x.tabs.urls:[]; if(urls.length>20)throw Error('启动网址最多 20 个。');
+    urls.forEach(url=>{if(typeof url!=='string'||url.length>2048||!/^https?:\/\/[^\s]+$/i.test(url))throw Error('启动网址必须是完整的 HTTP 或 HTTPS URL。');});
+    if(String(model.browserMeta.environmentName||'').length>100||String(model.browserMeta.group||'').length>100||String(model.browserMeta.remark||'').length>2000)throw Error('环境名称、分组或备注超过长度限制。');
+    const ports=Array.isArray(x.advanced.allowedPorts)?x.advanced.allowedPorts:[]; if(ports.length>32||ports.some(port=>!Number.isInteger(Number(port))||Number(port)<1||Number(port)>65535))throw Error('允许端口必须是 1–65535 的整数，最多 32 个。');
+    if(Number(x.storage.cookieCount)>10000)throw Error('Cookie 数量超过 10000。'); return true;
+  }
+  function browserV2SaveExtras() { browserV2EnsureState(); const copy=JSON.parse(JSON.stringify(model.browserExtras)); if(copy.storage){delete copy.storage.values;delete copy.storage.raw;copy.storage.cookieSessionOnly=true;} if(copy.readback){copy.readback.state='unknown';copy.readback.runtimeVerified=false;} return copy; }
+  function browserV2GenerateSeed() { const bytes=new Uint8Array(16); if(window.crypto&&window.crypto.getRandomValues)window.crypto.getRandomValues(bytes); else for(let i=0;i<bytes.length;i++)bytes[i]=Math.floor(Math.random()*256); return Array.from(bytes).map(value=>value.toString(16).padStart(2,'0')).join(''); }
+  function browserV2LaunchGate() {
+    browserV2Validate(); const x=model.browserExtras, unsupported=[];
+    if((x.tabs.urls||[]).length)unsupported.push('启动标签页 URL');
+    if(Number(x.storage.cookieCount)>0)unsupported.push('Cookie 导入');
+    if(x.proxy&&x.proxy.mode&&x.proxy.mode!=='no-proxy')unsupported.push('代理来源策略');
+    const fp=x.fingerprint||{}, n=fp.noise||{};
+    if(fp.webrtc&&fp.webrtc!=='disable-non-proxied-udp')unsupported.push('WebRTC 多态策略');
+    if(fp.geo&&fp.geo!=='real')unsupported.push('地理位置策略');
+    if(fp.language&&fp.language!=='real')unsupported.push('语言策略');
+    if(fp.fonts&&fp.fonts!=='default')unsupported.push('字体策略');
+    if(Object.values(n).some(Boolean))unsupported.push('硬件噪音');
+    const a=x.advanced||{};
+    ['ram','deviceName','mac'].forEach(key=>{if(a[key]&&a[key]!=='real')unsupported.push(key.toUpperCase());});
+    if(a.dnt&&a.dnt!=='default')unsupported.push('Do Not Track');
+    if(a.portScan&&a.portScan!=='enabled')unsupported.push('端口扫描保护');
+    if(a.hardwareAcceleration&&a.hardwareAcceleration!=='default')unsupported.push('硬件加速');
+    if(a.tls&&a.tls!=='default')unsupported.push('TLS 特性');
+    if(unsupported.length)throw Error('当前宿主尚未提供这些字段的可靠启动读回：'+unsupported.join('、')+'。配置仍已保存，但为避免静默丢弃，启动已停止。');
+  }
+  function bindBrowserV2Fields() {
+    browserV2EnsureState();
+    el.querySelectorAll('[data-browser-v2]').forEach(input=>{
+      const path=input.dataset.browserV2, update=()=>{
+        if(model.browserBusy||model.engineBusy)return; let value;
+        if(input.type==='checkbox')value=!!input.checked;
+        else if(path==='meta.tags')value=input.value.split(',').map(v=>v.trim()).filter(Boolean).slice(0,32);
+        else if(path==='tabs.urls')value=input.value.split(/\r?\n/).map(v=>v.trim()).filter(Boolean).slice(0,20);
+        else if(path==='advanced.allowedPorts')value=input.value.split(',').map(v=>v.trim()).filter(Boolean).slice(0,32).map(v=>Number(v));
+        else value=input.value;
+        browserV2Set(path,value); model.browserV2Error=''; model.browserV2Message='配置草稿已修改，尚未运行时读回。'; markBrowserProfileEdited(true);
+      };
+      input.addEventListener(input.tagName==='SELECT'||input.type==='checkbox'?'change':'input',update);
+      if(input.tagName==='TEXTAREA'&&input.dataset.browserV2==='tabs.urls')input.addEventListener('blur',()=>{try{browserV2Validate();}catch(error){model.browserV2Error=errText(error);}});
+    });
+    const cookie=el.querySelector('[data-browser-v2-cookie]'); if(cookie)cookie.addEventListener('input',()=>{if(model.browserBusy)return;model.browserCookieDraft=cookie.value;try{const count=browserV2ParseCookies(cookie.value,browserV2Get('storage.cookieFormat','json'));browserV2Set('storage.cookieCount',count);model.browserV2Error='';model.browserV2Message='Cookie 已解析 '+count+' 个，仅保留在本次会话内存。';}catch(error){model.browserV2Error=errText(error);} });
+    const generate=el.querySelector('#privacy-browser-v2-generate'); if(generate)generate.addEventListener('click',()=>{if(model.browserBusy)return;const seed=browserV2GenerateSeed();browserV2Set('fingerprint.seed',seed);browserV2Set('advanced.randomFingerprint',true);model.browserSeed=seed;model.browserV2Message='已生成新指纹种子；保存并启动后才能验证实际读回。';markBrowserProfileEdited(true);draw();});
+    const validate=el.querySelector('#privacy-browser-v2-validate'); if(validate)validate.addEventListener('click',()=>{try{browserV2Validate();model.browserV2Error='';model.browserV2Message='配置校验通过；所有运行时字段仍需启动后读回。';}catch(error){model.browserV2Error=errText(error);model.browserV2Message='配置校验未通过，未启动浏览器。';}draw();});
+  }
   function bindBrowserProfile() {
     for(const button of el.querySelectorAll('[data-browser-read-start]'))button.addEventListener('click',async()=>{
       if(!alive()||model.tab!=='browser'||!el.contains(button)||model.browserBusy||model.engineBusy)return;
@@ -578,6 +725,7 @@ function renderPrivacy(el, arg) {
     const cpuMode=el.querySelector('#privacy-browser-cpu-mode');if(cpuMode)cpuMode.addEventListener('change',()=>{if(model.browserBusy||!model.browser)return;if(cpuMode.value==='native')delete model.browser.config.hardware;else model.browser.config.hardware={mode:'logical-processors',logicalProcessors:8};edited();draw();});
     const cpu=el.querySelector('#privacy-browser-cpu');if(cpu)cpu.addEventListener('input',()=>{if(model.browserBusy||!model.browser||!model.browser.config.hardware)return;model.browser.config.hardware.logicalProcessors=Number(cpu.value);edited();});
     [['preview', 'preview'], ['random', 'random'], ['launch', 'launch'], ['close', 'close']].forEach(pair => { const button = el.querySelector('#privacy-browser-' + pair[0]); if (button) button.addEventListener('click', () => {if(alive()&&model.tab==='browser'&&el.contains(button))runBrowserProfile(pair[1]);}); });
+    bindBrowserV2Fields();
   }
   function bindSavedBrowserProfiles(){
     const name=el.querySelector('#privacy-browser-profile-name');if(name)name.addEventListener('input',()=>{if(!alive()||model.tab!=='browser'||!el.contains(name)||model.browserBusy)return;model.browserProfileName=name.value;markBrowserProfileEdited(false);});
@@ -588,7 +736,7 @@ function renderPrivacy(el, arg) {
       button.addEventListener('click',async()=>{
         if(!alive()||model.tab!=='browser'||!el.contains(button)||model.browserBusy||!model.browser)return;
         const expectedGeneration=model.browserProfileGeneration;
-        const existing=model.browserSavedRecord,config=JSON.parse(JSON.stringify(model.browser.config)),engine=JSON.parse(JSON.stringify(model.browserEngine)),name=model.browserProfileName;
+        browserV2EnsureState(); const existing=model.browserSavedRecord,config=JSON.parse(JSON.stringify(model.browser.config)),engine=JSON.parse(JSON.stringify(model.browserEngine)),name=model.browserProfileName,meta=JSON.parse(JSON.stringify(model.browserMeta)),extras=browserV2SaveExtras();
         if(action==='delete'&&(!existing||!await context.confirm('删除“'+existing.name+'”的配置记录？\n仅删除此条保存的参数和历史记录，浏览数据保留。',{ok:'删除记录',danger:true})))return;
         if(action==='load'&&model.browserSavedDirty&&!await context.confirm('载入所选配置会替换当前未保存草稿。',{ok:'载入配置',danger:false}))return;
         if(!alive()||model.tab!=='browser'||!el.contains(button)||expectedGeneration!==model.browserProfileGeneration||model.browserBusy)return;
@@ -600,9 +748,9 @@ function renderPrivacy(el, arg) {
           else{
             let result;
             if(action==='load')result=await api('BrowserProfileLoad',model.browserSavedSelection);
-            else{delete config.binding;const record={schemaVersion:1,name,config,engine};if(action==='save'&&existing){record.id=existing.id;record.expectedRevision=existing.revision;}result=await api('BrowserProfileSave',JSON.stringify(record));}
+            else{browserV2Validate();delete config.binding;const record={schemaVersion:2,name,meta,extras,config,engine};if(action==='save'&&existing){record.id=existing.id;record.expectedRevision=existing.revision;}result=await api('BrowserProfileSave',JSON.stringify(record));}
             if(!result||!/^p-[0-9a-f]{32}$/.test(result.id||'')||!/^([0-9a-f]{64})$/.test(result.revision||'')||!result.config||!result.engine||result.config.profileId!==result.id)throw Error('保存配置结果无法确认。');
-            if(current()){model.browserSavedRecord=result;model.browserProfileName=result.name;model.browser.config=result.config;model.browserEngine=result.engine;model.browserSavedDirty=false;model.browserSavedSelection=result.id;model.browserPreview=null;model.browserIdentityPreview=null;model.browserIdentityRequestKey=null;model.browserIdentityGeneration++;if(result.engine.engineId!=='webview2')model.browserRoute='proxy';model.browserMessage=action==='load'?'配置已载入，启动时重新检查。':'配置已保存。';if(model.browserSavedList)model.browserSavedList=model.browserSavedList.filter(r=>r.id!==result.id).concat([result]);}
+            if(current()){model.browserSavedRecord=result;model.browserProfileName=result.name;model.browserMeta=result.meta||{browser:'',environmentName:'',group:'',remark:'',tags:[]};model.browserExtras=result.extras||model.browserExtras;browserV2EnsureState();model.browserCookieDraft='';model.browser.config=result.config;model.browserEngine=result.engine;model.browserSavedDirty=false;model.browserSavedSelection=result.id;model.browserPreview=null;model.browserIdentityPreview=null;model.browserIdentityRequestKey=null;model.browserIdentityGeneration++;if(result.engine.engineId!=='webview2')model.browserRoute='proxy';model.browserMessage=action==='load'?'配置已载入，启动时重新检查。':'配置已保存。';if(model.browserSavedList)model.browserSavedList=model.browserSavedList.filter(r=>r.id!==result.id).concat([result]);}
           }
         }catch(error){if(current()){const detail=errText(error);model.browserError=detail.includes('browser_profile_revision_conflict')?'保存记录已发生变化。请重新载入或另存为新配置；当前草稿保留。':detail.includes('browser_profile_input_refused')?'请检查配置名称、内核版本和参数格式，再重新保存。':detail.includes('browser_profile_store_busy')?'配置记录正在被使用，请稍后重试。':detail.includes('browser_profile_store_untrusted_or_corrupt')?'配置记录未通过完整性检查，请重新读取并选择其他记录，或另存当前草稿。':detail.includes('browser_profile_not_found')?'此配置记录已不存在，请重新读取清单。':detail;}}
         finally{model.browserBusy=false;if(alive())draw();}
@@ -803,6 +951,7 @@ function renderPrivacy(el, arg) {
   }
   async function runBrowserProfile(action) {
     if (!alive() || model.browserBusy || model.engineBusy || !model.browser) return;
+    if(['launch','launch-proxy'].includes(action)){try{browserV2LaunchGate();}catch(error){model.browserV2Error=errText(error);model.browserV2Message='未启动：请先处理能力边界或等待运行时适配器。';draw();return;}}
     if(model.browserEngine.engineId!=='webview2'&&['preview','launch','launch-proxy','close'].includes(action)){
       const selected=JSON.parse(JSON.stringify(model.browserEngine)),proxyJSON=JSON.stringify(model.browserProxy),route=action==='launch-proxy'?'proxy':model.browserRoute;
       model.browserBusy=true;model.browserError='';model.browserMessage='';draw();

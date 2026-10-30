@@ -321,6 +321,52 @@ func TestCRUDRenameCASAndNoRuntimeBinding(t *testing.T) {
 		t.Fatal("delete affected another record")
 	}
 }
+
+func TestSchemaV2MetaAndExtrasRoundTrip(t *testing.T) {
+	m, _ := managerFixture()
+	request := SaveRequest{
+		SchemaVersion: 2,
+		Name:          "v2 环境",
+		Meta:          ProfileMeta{EnvironmentName: "工作环境", Group: "社媒", Remark: "只保存配置，不保存 Cookie 原文", Tags: []string{"工作", "稳定"}},
+		Extras: ProfileExtras{
+			Storage:     json.RawMessage(`{"cookieFormat":"json","merge":true,"cookieCount":2,"cookieSessionOnly":true}`),
+			Tabs:        json.RawMessage(`{"urls":["https://example.com"],"startupMode":"urls"}`),
+			Proxy:       json.RawMessage(`{"mode":"dynamic","type":"socks5","provider":"IP2Location","accountRef":"acct-1"}`),
+			Fingerprint: json.RawMessage(`{"webrtc":"replace","timezone":"ip","geo":"forbidden","language":"custom","uiLanguage":"by-language","resolution":"ua","fonts":"default","noise":{"canvas":true},"webglMetadata":"custom","webglVendor":"Google Inc. (AMD)","webglRenderer":"ANGLE (AMD)","webgpu":"disabled","seed":"001122"}`),
+			Advanced:    json.RawMessage(`{"cpu":"custom","ram":"real","deviceName":"real","mac":"real","dnt":"on","portScan":"enabled","hardwareAcceleration":"default","tls":"default","teamApps":"global","dataSync":"global","browserSettings":"global","randomFingerprint":true,"allowedPorts":[80,443]}`),
+			Readback:    json.RawMessage(`{"state":"unknown","scope":"browser-profile","runtimeVerified":false,"warnings":["启动后读回"]}`),
+		},
+		Config: configFixture(t), Engine: EngineSelection{EngineID: "webview2"},
+	}
+	raw, err := json.Marshal(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	saved, err := m.Save(context.Background(), raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if saved.SchemaVersion != 2 || saved.Meta.EnvironmentName != "工作环境" || string(saved.Extras.Tabs) == "" {
+		t.Fatalf("v2 metadata missing: %#v", saved)
+	}
+	loaded, err := m.Load(context.Background(), saved.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if loaded.Meta.Group != "社媒" || !bytes.Contains(loaded.Extras.Fingerprint, []byte(`"webgpu":"disabled"`)) {
+		t.Fatalf("v2 extras missing: %#v", loaded)
+	}
+	list, err := m.List(context.Background())
+	if err != nil || len(list.Records) != 1 || list.Records[0].Meta.EnvironmentName != "工作环境" {
+		t.Fatalf("v2 list missing: %#v %v", list, err)
+	}
+	bad := mutateJSON(t, raw, func(value map[string]any) {
+		value["extras"].(map[string]any)["tabs"].(map[string]any)["unexpected"] = true
+	})
+	if _, err = m.Save(context.Background(), bad); !errors.Is(err, ErrInput) {
+		t.Fatalf("unknown v2 extra accepted: %v", err)
+	}
+}
 func TestRejectSecretsUnknownTrustAndUnusableDraftBeforeIO(t *testing.T) {
 	base := requestFixture(t, "默认", nil)
 	cases := map[string]func(map[string]any){

@@ -14,7 +14,7 @@ let serial=0,saveMode='ok',deferred=null;
 const hash=value=>crypto.createHash('sha256').update(value).digest('hex');
 function makeRecord(request){
  const id=request.id||'p-'+(++serial).toString(16).padStart(32,'0');
- const result={schemaVersion:1,id,name:request.name,revision:hash(JSON.stringify(request)+':'+(++serial)),config:{...clone(request.config),profileId:id},engine:clone(request.engine),updatedAt:'2026-10-26T00:00:00Z',applied:false,requiresLaunchValidation:true,recoveryNeeded:false};
+ const result={schemaVersion:request.schemaVersion,id,name:request.name,meta:clone(request.meta||{}),extras:clone(request.extras||{}),revision:hash(JSON.stringify(request)+':'+(++serial)),config:{...clone(request.config),profileId:id},engine:clone(request.engine),updatedAt:'2026-10-26T00:00:00Z',applied:false,requiresLaunchValidation:true,recoveryNeeded:false};
  assert.equal(Object.hasOwn(result.config,'binding'),false,'binding must be stripped before save');
  records.set(id,clone(result));return result;
 }
@@ -33,7 +33,9 @@ const api={
   const request=JSON.parse(text);calls.push(['save',clone(request)]);
   const serialized=JSON.stringify(request);
   for(const value of Object.values(privateProxy))assert.equal(serialized.includes(value),false,'proxy fields must stay in page memory');
-  assert.deepEqual(Object.keys(request).sort(),request.id?['config','engine','expectedRevision','id','name','schemaVersion']:['config','engine','name','schemaVersion']);
+  const allowed=request.schemaVersion===2?['config','engine','extras','meta','name','schemaVersion']:['config','engine','name','schemaVersion'];
+  if(request.id)allowed.push('expectedRevision','id');
+  assert.deepEqual(Object.keys(request).sort(),allowed.sort());
   assert.equal(Object.hasOwn(request.config,'binding'),false);
   if(saveMode==='conflict')throw Error('browser_profile_revision_conflict');
   if(request.id&&records.get(request.id)?.revision!==request.expectedRevision)throw Error('browser_profile_revision_conflict');

@@ -148,3 +148,20 @@
   .privacy-ua-actions { margin-left:92px; }
   .privacy-inline-controls { flex-wrap:wrap; }
 }
+.privacy-browser-v2 { border-left: 3px solid var(--brand2); }
+.privacy-browser-v2 details { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--line); }
+.privacy-browser-v2 details > summary { cursor: pointer; color: var(--text); font-weight: 600; }
+.privacy-browser-v2 textarea { display:block; width:100%; box-sizing:border-box; min-height:78px; resize:vertical; margin-top:6px; border:1px solid var(--line); border-radius:9px; background:var(--card); color:var(--text); font:12px/1.7 var(--font,sans-serif); padding:9px 11px; }
+.privacy-browser-v2 .privacy-check { display:flex; align-items:center; gap:7px; color:var(--text); }
+.privacy-browser-v2 .privacy-check input { width:auto; margin:0; }
+.privacy-capability { display:inline-flex; align-items:center; min-height:22px; padding:2px 8px; border-radius:999px; background:rgba(148,163,184,.13); color:var(--muted); font-size:11px; white-space:nowrap; }
+.privacy-capability.verified { background:rgba(34,197,94,.13); color:var(--success,#15803d); }
+.privacy-capability.configured { background:rgba(59,130,246,.12); color:var(--brand2); margin-left:5px; }
+.privacy-capability.limited { background:rgba(234,179,8,.14); color:var(--warn,#a16207); }
+.privacy-v2-noise { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin:14px 0 4px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--bg); }
+.privacy-v2-noise > strong { font-size:12px; margin-right:4px; }
+.privacy-v2-summary { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-top:16px; padding-top:14px; border-top:1px solid var(--line); }
+.privacy-v2-summary dl { display:grid; grid-template-columns:max-content minmax(0,1fr); gap:5px 14px; margin:8px 0 0; font-size:11px; }
+.privacy-v2-summary dt { color:var(--muted); }
+.privacy-v2-summary dd { margin:0; color:var(--text); overflow-wrap:anywhere; }
+@media (max-width:520px) { .privacy-v2-summary { align-items:stretch; flex-direction:column; } .privacy-v2-noise { align-items:flex-start; flex-direction:column; } }

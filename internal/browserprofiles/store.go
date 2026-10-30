@@ -92,6 +92,8 @@ type commit struct {
 	SchemaVersion int             `json:"schemaVersion"`
 	ID            string          `json:"id"`
 	Name          string          `json:"name"`
+	Meta          ProfileMeta     `json:"meta,omitempty"`
+	Extras        ProfileExtras   `json:"extras,omitempty"`
 	Config        json.RawMessage `json:"config"`
 	Engine        EngineSelection `json:"engine"`
 	UpdatedAt     time.Time       `json:"updatedAt"`
@@ -142,14 +144,14 @@ func readJournal(f recordFile, id string) (loaded, error) {
 			return value, ErrStore
 		}
 		var entry commit
-		if strictJSON(payload, &entry) != nil || entry.SchemaVersion != 1 || entry.ID != id || !validName(entry.Name) || !validateEngine(entry.Engine) || entry.Previous != previous || entry.UpdatedAt.IsZero() || !idPattern.MatchString("p-"+entry.Nonce) {
+		if strictJSON(payload, &entry) != nil || (entry.SchemaVersion != 1 && entry.SchemaVersion != 2) || entry.ID != id || !validName(entry.Name) || validateMeta(entry.Meta) != nil || validateExtras(entry.Extras) != nil || !validateEngine(entry.Engine) || entry.Previous != previous || entry.UpdatedAt.IsZero() || !idPattern.MatchString("p-"+entry.Nonce) {
 			return value, ErrStore
 		}
 		config, e := canonicalDraft(entry.Config, id)
 		if e != nil || !bytes.Equal(config, entry.Config) {
 			return value, ErrStore
 		}
-		value.record = Record{SchemaVersion: 1, ID: id, Name: entry.Name, Config: config, Engine: entry.Engine, UpdatedAt: entry.UpdatedAt, RequiresLaunchValidation: true}
+		value.record = Record{SchemaVersion: entry.SchemaVersion, ID: id, Name: entry.Name, Meta: entry.Meta, Extras: entry.Extras, Config: config, Engine: entry.Engine, UpdatedAt: entry.UpdatedAt, RequiresLaunchValidation: true}
 		previous = hex.EncodeToString(sum[:])
 		found = true
 		offset += size
@@ -239,7 +241,7 @@ func (m *Manager) List(ctx context.Context) (ListResult, error) {
 			return result, e
 		}
 		r := value.record
-		result.Records = append(result.Records, Summary{r.ID, r.Name, r.Revision, r.Engine, r.UpdatedAt, r.RecoveryNeeded})
+		result.Records = append(result.Records, Summary{ID: r.ID, Name: r.Name, Meta: r.Meta, Revision: r.Revision, Engine: r.Engine, UpdatedAt: r.UpdatedAt, RecoveryNeeded: r.RecoveryNeeded})
 	}
 	if e = m.active(ctx); e != nil {
 		return ListResult{Records: []Summary{}}, e
@@ -357,7 +359,7 @@ func (m *Manager) Save(ctx context.Context, data []byte) (Record, error) {
 	if e != nil {
 		return Record{}, e
 	}
-	entry := commit{1, id, request.Name, config, request.Engine, m.now().UTC(), previous, nonce}
+	entry := commit{SchemaVersion: 2, ID: id, Name: request.Name, Meta: request.Meta, Extras: request.Extras, Config: config, Engine: request.Engine, UpdatedAt: m.now().UTC(), Previous: previous, Nonce: nonce}
 	frame, e := encodeCommit(entry)
 	if e != nil {
 		return Record{}, e
@@ -385,7 +387,7 @@ func (m *Manager) Save(ctx context.Context, data []byte) (Record, error) {
 	if e = m.active(ctx); e != nil {
 		return Record{}, e
 	}
-	return Record{SchemaVersion: 1, ID: id, Name: entry.Name, Revision: hash(append(append([]byte{}, existing...), frame...)), Config: config, Engine: entry.Engine, UpdatedAt: entry.UpdatedAt, RequiresLaunchValidation: true}, nil
+	return Record{SchemaVersion: 2, ID: id, Name: entry.Name, Meta: entry.Meta, Extras: entry.Extras, Revision: hash(append(append([]byte{}, existing...), frame...)), Config: config, Engine: entry.Engine, UpdatedAt: entry.UpdatedAt, RequiresLaunchValidation: true}, nil
 }
 func (m *Manager) Delete(ctx context.Context, id, revision string) (DeleteResult, error) {
 	if !idPattern.MatchString(id) || !revisionPattern.MatchString(revision) {

@@ -21,6 +21,37 @@ downloaded engine or restore a live network binding. A loaded record always has
 }
 ```
 
+Schema version 2 keeps the same validated `config` draft and adds `meta` and
+`extras` for the full browser-environment editor:
+
+```json
+{
+  "schemaVersion": 2,
+  "name": "社媒工作配置",
+  "meta": {"browser":"sunbrowser","environmentName":"工作环境","group":"社媒","remark":"仅本地草稿","tags":["工作"]},
+  "extras": {
+    "storage": {"cookieFormat":"json","merge":true,"cookieCount":0,"cookieSessionOnly":true},
+    "tabs": {"urls":["https://example.com"],"startupMode":"urls"},
+    "proxy": {"mode":"no-proxy","type":"none","provider":"IP2Location","accountRef":""},
+    "fingerprint": {"webrtc":"disable-non-proxied-udp","timezone":"real","geo":"real","language":"real","uiLanguage":"by-language","resolution":"ua","fonts":"default","noise":{},"webglMetadata":"real","webgpu":"real","seed":""},
+    "advanced": {"cpu":"real","ram":"real","deviceName":"real","mac":"real","dnt":"default","portScan":"enabled","hardwareAcceleration":"default","tls":"default","teamApps":"global","dataSync":"global","browserSettings":"global","randomFingerprint":false,"allowedPorts":[]},
+    "readback": {"state":"unknown","scope":"browser-profile","runtimeVerified":false,"warnings":[]}
+  },
+  "engine": {"engineId":"webview2","version":""}
+}
+```
+
+上面为结构示意；实际请求仍必须携带完整的 `config` 对象，不能用字符串或省略运行时草稿。
+
+`meta` and every `extras` section have exact keys, bounded lengths and enum
+validation. Cookie values are intentionally not accepted in the persisted
+schema: the UI parses JSON, Netscape and `Name=Value` text in memory and saves
+only format, merge strategy and count. The editor displays unsupported or
+unverified fields as such. Launch stops when a selected v2 field has no
+reliable runtime adapter, so an unsupported setting cannot be silently
+dropped. Schema 1 records remain loadable and are returned with empty v2
+sections.
+
 `config` above must be an object, not that explanatory string. New records omit
 both `id` and `expectedRevision`. Updates and renames supply both, using the most
 recent returned revision. The ID is a backend-generated `p-` plus 32 lowercase
