@@ -483,7 +483,7 @@ function renderPrivacy(el, arg) {
       const details=Array.from(profile.querySelectorAll(':scope > details'));for(const detail of details){const text=detail.querySelector('summary')?detail.querySelector('summary').textContent:'';if(/Cookie|启动标签/.test(text))panes.environment.appendChild(detail);else if(/代理/.test(text))panes.proxy.appendChild(detail);else if(/指纹|高级/.test(text))panes.fingerprint.appendChild(detail);else panes.permissions.appendChild(detail);}
       const summary=profile.querySelector('.privacy-v2-summary');if(summary)panes.permissions.appendChild(summary);
       const proxy=panel.querySelector('.privacy-browser-proxy'), engines=panel.querySelector('.privacy-engine-manager');if(proxy)panes.proxy.appendChild(proxy);if(engines)panes.versions.appendChild(engines);
-      for(const card of Array.from(panel.children))if(card!==profile&&card!==proxy&&card!==engines)panes.permissions.appendChild(card);
+      for(const card of Array.from(panel.children))if(card!==profile&&card!==proxy&&card!==engines&&card.tagName==='DETAILS'&&/浏览器运行时/.test(card.textContent||''))panes.permissions.appendChild(card);
       profile.appendChild(navigation);for(const pair of pairs)profile.appendChild(panes[pair[0]]);
       const selectPane=id=>{model.browserPane=id;for(const button of navigation.querySelectorAll('[data-browser-pane]')){const active=button.dataset.browserPane===id;button.classList.toggle('active',active);button.setAttribute('aria-selected',String(active));button.tabIndex=active?0:-1;}for(const name of Object.keys(panes))panes[name].hidden=name!==id;};
       for(const button of navigation.querySelectorAll('[data-browser-pane]'))button.addEventListener('click',()=>selectPane(button.dataset.browserPane));
