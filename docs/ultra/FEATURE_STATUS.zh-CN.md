@@ -2,7 +2,7 @@
 
 ## 2026-10-30 当前状态（优先于下方历史记录）
 
-- v0.02 已构建并发布预览包 [godusevpn-ultra-0.02-windows-amd64.zip](https://github.com/Maoyangui/godusevpn-ultra/releases/tag/v0.02)，包名全小写；标签指向最新提交 `b038082`，远程 ZIP SHA-256 为 `194cb528f2b5f94024b9aa769a0c62993461d71177b4470bf601f796cec2242d`。构建验证还修复了 Windows PowerShell BOM 导致的资源构建失败。
+- v0.02 已构建并发布预览包 [godusevpn-ultra-0.02-windows-amd64.zip](https://github.com/Maoyangui/godusevpn-ultra/releases/tag/v0.02)，包名全小写；标签指向最新提交 `d7b299a`，远程 ZIP SHA-256 为 `ee8e17809b15953b033fbcbca03b8eafe7d2c0f2c41bcf8af43b702b207d8316`。构建验证还修复了 Windows PowerShell BOM 导致的资源构建失败。
 - `godusevpn.org/app/api/trial/*` 已由 Cloudflare Worker 版本 `608a5434-e3ee-4067-bfce-3fbfa234d9df` 接管，并绑定 GodUseVPN 自己的 `godusevpn-commerce` D1。实测 status 200、claim 200 返回真实 `hk.joinvip.vip:2056` 订阅、同设备 409、再次 status 为 `already_claimed`、OPTIONS 204、非法设备 400、恶意 Origin 无允许跨域头；D1 记录短 `t-xxxxxxxx` 标识和“来源：佛跳墙内置免费试用；套餐：free”备注。新增公开前缀健康检查 `/app/api/trial/healthz`，线上返回 `backend=d1`、`backendConfigured=true`、`upstreamConfigured=false`。`TRIAL_ENABLED`、`TRIAL_PLAN`、`TRIAL_PURCHASE_URL` 由 Worker 配置控制，客户端不接触令牌；面板 API 的 `free` 套餐映射已在 GodUseVPN 后台确认通过。
 - Azure Win10 19044/17763 曾有安装、服务、CLI、隧道和出口的有限实机证据；当前 v0.02 预览包又在 19044 VM 完成包校验、固定目录安装、服务 Running/Auto/LocalSystem、CLI 版本/状态和隐私报告回读，详见 [v0.02 VM 复测](qa/QA_V002_VM_RETEST_2026-10-30.zh-CN.md)。普通用户 VM 仍未重新完成 Chrome/Firefox 原生窗口、导航和 GPS 写入读回。代码启动链存在不等于这些运行时能力已验收。
 - 仍未关闭：真实 Chrome/Firefox 多版本窗口与代理出口矩阵、WebRTC/WebGPU/OOPIF/Worker 读回、Windows GPS provider 写入/读回、CEF/uBlock 运行集成、跨 Windows 版本完整矩阵，以及 D03/N08 等原台账范围。不得用 DOM、mock、纯 Go/C# 测试或旧包证据替代这些范围。
