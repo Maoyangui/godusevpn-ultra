@@ -89,3 +89,14 @@
 - Trial Worker 生产 `/healthz` 和 `/status` 正常，计划为 `free`；当前 `panelConfigured=false`、`subscriptionSource=static`。没有真实面板 API 前缀和服务端 token，不能把面板刷新闭环写成完成。
 
 以下仍是未完成或未取得真实证据的硬性项目：真实 Cookie 导入、启动标签页、完整 WebRTC/Canvas/Audio/媒体/ClientRects/SpeechVoices 噪音、字体/地理位置/DNT/端口扫描/TLS/同步适配器、OOPIF/Worker 全量读回、真实普通用户 Chrome/Firefox 代理出口、Win10 1809/19044 与 Win11 x64/ARM64 VPS 矩阵、GPS provider 写入/恢复、D03/N08、CEF/uBlock，以及面板 token 注入后的真实 claim/refresh。当前界面会保持“待验证/部分支持/不支持/未知”，不以静态页面或模拟数据替代这些证据。
+
+## Home Bridge 查询路由修复（独立 Worker 64fe0473 → 8b07b778）
+
+独立 `godusevpn-ultra-home-bridge` 增加语言首页通配路由和根路径查询路由，修复 `?lang=zh-Hans` 等查询 URL 未经过 Worker 的问题。Worker 对非首页路径回源到原请求源，避免接管管理端、订阅页、文章、资源和 API。
+
+真实 HTTP 回归：
+
+- 根域与五种语言首页的无参数和语言查询 URL均返回 Ultra 入口；
+- `/subscription/`、`/manage/`、文章页保持原响应；
+- `/app/api/trial/status` 仍返回 200，`/api/admin/session` 仍按未登录返回 401；
+- 中文根域查询 URL在 CUA 移动视口下显示 Ultra 入口，`scrollWidth=625`、`innerWidth=640`，无控制台错误。
