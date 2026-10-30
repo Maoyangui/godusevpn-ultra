@@ -421,6 +421,8 @@ func (s *Service) Call(name string, args []json.RawMessage) (any, error) {
 		return profiles(ipc.MGetProfiles, nil)
 	case "AddProfile":
 		return profiles(ipc.MAddProfile, map[string]string{"name": arg[string](args, 0), "url": strings.TrimSpace(arg[string](args, 1))})
+	case "UpsertTrialProfile":
+		return profiles(ipc.MUpsertTrialProfile, map[string]string{"name": arg[string](args, 0), "url": strings.TrimSpace(arg[string](args, 1))})
 	case "RemoveProfile":
 		return profiles(ipc.MRemoveProfile, map[string]string{"id": arg[string](args, 0)})
 	case "SelectProfile":

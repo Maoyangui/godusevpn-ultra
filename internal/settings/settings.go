@@ -29,6 +29,9 @@ type Profile struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 	URL  string `json:"url"`
+	// Kind identifies product-managed profiles without changing the visible
+	// name. Empty keeps older user-created profiles compatible.
+	Kind string `json:"kind,omitempty"`
 }
 
 type Settings struct {

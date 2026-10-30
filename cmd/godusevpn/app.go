@@ -630,6 +630,14 @@ func (a *App) AddProfile(name, url string) ([]ipc.ProfileView, error) {
 	return out, err
 }
 
+// UpsertTrialProfile 保存内置试用订阅:同一设备再次拿到新地址时替换原试用记录。
+func (a *App) UpsertTrialProfile(name, url string) ([]ipc.ProfileView, error) {
+	var out []ipc.ProfileView
+	err := a.call(ipc.MUpsertTrialProfile, map[string]string{"name": name, "url": strings.TrimSpace(url)}, &out)
+	go a.refresh()
+	return out, err
+}
+
 func (a *App) RemoveProfile(id string) ([]ipc.ProfileView, error) {
 	var out []ipc.ProfileView
 	err := a.call(ipc.MRemoveProfile, map[string]string{"id": id}, &out)

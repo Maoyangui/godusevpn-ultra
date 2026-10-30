@@ -358,7 +358,9 @@ function bindTrialCard(root) {
       const sub = trialURL(r && r.subscriptionUrl);
       if (!sub) throw new Error(t('trial.invalidLink'));
       purchaseURL = trialURL(r && r.purchaseUrl) || purchaseURL;
-      await api.AddProfile(t('trial.profileName'), sub);
+      // Trial links rotate. The backend keeps one product-owned trial row and
+      // replaces its URL, so this never appends stale trial subscriptions.
+      await api.UpsertTrialProfile(t('trial.profileName'), sub);
       toast(t('trial.success'), 'ok');
       state = await api.GetState();
       if (view === 'onboard') nav('home'); else nav('profiles');

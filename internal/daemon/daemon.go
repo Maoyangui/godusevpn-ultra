@@ -1819,6 +1819,48 @@ func (d *Daemon) registerHandlers() {
 		views, _ := d.profileViews()
 		return views, nil
 	})
+	h(ipc.MUpsertTrialProfile, func(p json.RawMessage) (any, error) {
+		in, err := ipc.Decode[struct {
+			Name string `json:"name"`
+			URL  string `json:"url"`
+		}](p)
+		if err != nil {
+			return nil, err
+		}
+		url := strings.TrimSpace(in.URL)
+		if !settings.ValidURL(url) {
+			return nil, errors.New("订阅地址必须以 http:// 或 https:// 开头")
+		}
+		np, err := d.fetchProfile(context.Background(), url)
+		if err != nil {
+			return nil, &ipc.CallError{Code: state.CodeOf(err), Msg: err.Error()}
+		}
+		s := d.getSettings()
+		s, primaryID, removedIDs := upsertTrialProfileSettings(s, in.Name, url)
+		if err := d.setSettings(s); err != nil {
+			return nil, err
+		}
+		// Old duplicate rows have no remaining settings entry; discard only
+		// their owned caches and leave every normal user subscription intact.
+		d.mu.Lock()
+		for _, id := range removedIDs {
+			delete(d.profiles, id)
+			delete(d.fetchErr, id)
+			delete(d.fetchLink, id)
+		}
+		d.mu.Unlock()
+		for _, id := range removedIDs {
+			_ = os.Remove(paths.ProfileCache(id))
+		}
+		d.setProfileCache(primaryID, np)
+		if s.ActiveProfile == primaryID {
+			if err := d.restart(); err != nil {
+				return nil, &ipc.CallError{Code: state.CodeOf(err), Msg: "试用订阅已更新,但重新加载失败: " + err.Error()}
+			}
+		}
+		views, _ := d.profileViews()
+		return views, nil
+	})
 	h(ipc.MRemoveProfile, func(p json.RawMessage) (any, error) {
 		in, err := ipc.Decode[struct {
 			ID string `json:"id"`
