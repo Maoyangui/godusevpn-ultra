@@ -1086,6 +1086,8 @@ function privacyDecorateHelp(el) {
     if (!text && control.hasAttribute('data-privacy-restore')) text = '恢复此项目记录的原值，可能重新允许信息读取；遇到外部变化时不强制覆盖。';
     if (!text && control.hasAttribute('data-privacy-settings')) text = '打开固定的 Windows 设置页面；打开页面不代表设置已经修改。';
     if (!text && control.hasAttribute('data-privacy-remove-rule')) text = '只移除这个程序的规则，程序的访问权限仍取决于其他防火墙与隧道规则。';
+    if (!text && control.hasAttribute('data-detection-control')) text = '打开对应的隐私保护项目查看范围和可用操作；不会直接修改设置。';
+    if (!text && control.hasAttribute('data-detection-settings')) text = '打开对应的设置引导；进入页面不会代表设置已经修改。';
     // Tabs are navigation, not actions. They do not need a help marker beside
     // every label; the selected panel and its heading already explain scope.
     if (!text && control.hasAttribute('data-privacy-tab')) return;
