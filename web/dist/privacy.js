@@ -464,16 +464,33 @@ function renderPrivacy(el, arg) {
     const cards=Array.from(panel.children), fields=Array.from(profile.querySelectorAll('.privacy-browser-fields'));
     if(fields.length!==2){
       if(!profile.querySelector('.privacy-unified-actions')){
-        const bar=document.createElement('section');bar.className='privacy-unified-actions';bar.setAttribute('aria-label','统一操作栏');
+        const bar=document.createElement('section');bar.className='privacy-unified-actions privacy-editor-footer';bar.setAttribute('aria-label','统一操作栏');
         const heading=document.createElement('h3');heading.className='privacy-data-subtitle';heading.textContent='操作与保存';heading.dataset.helpText='所有浏览器配置操作集中在这里；保存、校验、启动和删除不会绕过当前草稿与能力门禁。';bar.appendChild(heading);
         const library=profile.querySelector('.privacy-profile-library');
         const randomButton=profile.querySelector('#privacy-browser-random'), v2Generate=profile.querySelector('#privacy-browser-v2-generate');
         const finalAction=randomButton?randomButton.closest('.privacy-actions'):null;
         const v2Action=v2Generate?v2Generate.closest('.privacy-actions'):null;
-        for(const node of [library,finalAction,v2Action])if(node){bar.appendChild(node);}
+        const browserError=profile.querySelector('#privacy-browser-error'),browserMessage=profile.querySelector('#privacy-browser-message');
+        for(const node of [library,finalAction,v2Action,browserError,browserMessage])if(node){bar.appendChild(node);}
         profile.appendChild(bar);
       }
-      return;
+      const navigation=document.createElement('div');navigation.className='privacy-editor-tabs';navigation.setAttribute('role','tablist');navigation.setAttribute('aria-label','浏览器配置分类');
+      const pairs=[['environment','环境与身份'],['fingerprint','指纹设置'],['proxy','代理连接'],['versions','内核版本'],['permissions','运行时读回']];
+      const panes={};
+      for(const pair of pairs){const button=document.createElement('button');button.type='button';button.className='privacy-editor-tab';button.id='privacy-editor-tab-'+pair[0];button.dataset.browserPane=pair[0];button.setAttribute('role','tab');button.setAttribute('aria-controls','privacy-editor-pane-'+pair[0]);button.textContent=pair[1];button.dataset.helpText='切换'+pair[1]+'，保留当前填写内容；不会修改系统或启动浏览器。';navigation.appendChild(button);const section=document.createElement('section');section.id='privacy-editor-pane-'+pair[0];section.className='privacy-editor-pane';section.dataset.browserPanePanel=pair[0];section.setAttribute('role','tabpanel');section.setAttribute('aria-labelledby',button.id);panes[pair[0]]=section;}
+      const core=profile.querySelector('.privacy-browser-core');
+      if(core){const coreFields=Array.from(core.querySelectorAll(':scope > .privacy-browser-fields'));let target=panes.environment;for(const child of Array.from(core.children)){if(child===coreFields[1]||child.classList&&child.classList.contains('privacy-data-subtitle')&&/GPU|图形/.test(child.textContent))target=panes.fingerprint;if(child.id==='privacy-browser-preview-result')target=panes.environment;target.appendChild(child);}core.remove();}
+      const details=Array.from(profile.querySelectorAll(':scope > details'));for(const detail of details){const text=detail.querySelector('summary')?detail.querySelector('summary').textContent:'';if(/Cookie|启动标签/.test(text))panes.environment.appendChild(detail);else if(/代理/.test(text))panes.proxy.appendChild(detail);else if(/指纹|高级/.test(text))panes.fingerprint.appendChild(detail);else panes.permissions.appendChild(detail);}
+      const summary=profile.querySelector('.privacy-v2-summary');if(summary)panes.permissions.appendChild(summary);
+      const proxy=panel.querySelector('.privacy-browser-proxy'), engines=panel.querySelector('.privacy-engine-manager');if(proxy)panes.proxy.appendChild(proxy);if(engines)panes.versions.appendChild(engines);
+      for(const card of Array.from(panel.children))if(card!==profile&&card!==proxy&&card!==engines)panes.permissions.appendChild(card);
+      profile.appendChild(navigation);for(const pair of pairs)profile.appendChild(panes[pair[0]]);
+      const selectPane=id=>{model.browserPane=id;for(const button of navigation.querySelectorAll('[data-browser-pane]')){const active=button.dataset.browserPane===id;button.classList.toggle('active',active);button.setAttribute('aria-selected',String(active));button.tabIndex=active?0:-1;}for(const name of Object.keys(panes))panes[name].hidden=name!==id;};
+      for(const button of navigation.querySelectorAll('[data-browser-pane]'))button.addEventListener('click',()=>selectPane(button.dataset.browserPane));
+      for(const button of navigation.querySelectorAll('[data-browser-pane]'))button.addEventListener('keydown',event=>{const index=pairs.findIndex(pair=>pair[0]===model.browserPane);let next=index;if(event.key==='ArrowRight')next=(index+1)%pairs.length;else if(event.key==='ArrowLeft')next=(index+pairs.length-1)%pairs.length;else if(event.key==='Home')next=0;else if(event.key==='End')next=pairs.length-1;else return;event.preventDefault();selectPane(pairs[next][0]);navigation.querySelector('[data-browser-pane="'+pairs[next][0]+'"]').focus();});
+      const os=profile.querySelector('#privacy-browser-environment');if(os){const choices=document.createElement('div');choices.className='privacy-segmented privacy-os-choices';choices.setAttribute('role','group');choices.setAttribute('aria-label','操作系统环境');for(const option of Array.from(os.options)){const button=document.createElement('button');button.type='button';button.textContent=option.value==='native'?'本机':option.textContent.split(' · ')[0];button.dataset.browserOs=option.value;button.classList.toggle('selected',os.value===option.value);button.setAttribute('aria-pressed',String(os.value===option.value));button.disabled=os.disabled;button.dataset.helpText=option.textContent;button.addEventListener('click',()=>{os.value=option.value;os.dispatchEvent(new Event('change',{bubbles:true}));});choices.appendChild(button);}os.classList.add('privacy-native-select');os.parentNode.insertBefore(choices,os);}
+      const osVersion=profile.querySelector('#privacy-browser-os-version'),environment=model.browser&&model.browser.config.environment;if(osVersion&&environment&&environment.os==='windows'){osVersion.parentNode.classList.add('privacy-inline-controls','privacy-windows-version');for(const pair of [['Windows 10','10.0.0'],['Windows 11','13.0.0']]){const button=document.createElement('button');button.type='button';button.className='btn sm';button.textContent=pair[0];button.dataset.browserWindowsVersion=pair[1];button.disabled=osVersion.disabled;button.dataset.helpText='将平台版本填为 '+pair[1]+'；可以继续手动修改。UA 仍按现代规范保留 NT 10.0。';button.addEventListener('click',()=>{osVersion.value=pair[1];osVersion.dispatchEvent(new Event('input',{bubbles:true}));});osVersion.parentNode.appendChild(button);}}
+      selectPane(panes[model.browserPane]?model.browserPane:'environment');privacyDecorateHelp(el);scheduleBrowserIdentity();return;
     }
     const title=profile.querySelector('.privacy-card-head h2');if(title && title.firstChild)title.firstChild.nodeValue='浏览器环境';
     const intro=profile.querySelector(':scope > p');if(intro)intro.textContent='选择环境、填写参数，再打开浏览器。';
