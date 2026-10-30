@@ -28,7 +28,7 @@ async function main() {
    await context.addInitScript(({theme,files}) => {
     window.__diagnosticQACalls=[];
     const state={platform:'windows',service:true,svcState:'running',version:'fixed mock',lang:'zh',theme,view:{profiles:[],nodes:[],settings:{},state:{status:'disconnected'}}};
-    const api={GetState:async()=>state,GetLogs:async()=>[],PreviewDiag:async options=>{
+    const api={GetState:async()=>state,TrialStatus:async()=>({enabled:false,status:'disabled',plan:'free',purchaseUrl:'https://godusevpn.org/subscription/'}),GetLogs:async()=>[],PreviewDiag:async options=>{
      window.__diagnosticQACalls.push(['preview',options]);
      return {id:'fixed-diagnostic-preview',expiresAt:new Date(Date.now()+300000).toISOString(),sha256:'a'.repeat(64),selection:options,files,warnings:['固定 mock：没有读取本机日志、配置、网络或设备信息。','详细内容可能包含身份信息。本次仅以合成文字演示；审阅后再决定是否保存。']};
     },ExportDiagPreview:async()=>{window.__diagnosticQACalls.push(['FORBIDDEN_SAVE']);throw new Error('Pixel QA never exports or opens a file picker');}};
