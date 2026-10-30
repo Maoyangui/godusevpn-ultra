@@ -213,6 +213,7 @@ function renderPrivacy(el, arg) {
     const meta=model.browserMeta||{}, x=model.browserExtras||{}, storage=x.storage||{}, tabs=x.tabs||{}, proxy=x.proxy||{}, fp=x.fingerprint||{}, noise=fp.noise||{}, advanced=x.advanced||{}, readback=x.readback||{};
     const familyNames={sunbrowser:'SunBrowser（家族标签）',flowerbrowser:'FlowerBrowser（家族标签）',chromium:'Chrome / Chromium',firefox:'Firefox / Gecko',webview2:'WebView2 / Edge'};
     const engineNames={'chrome-for-testing':'Chrome for Testing','firefox':'Firefox','webview2':'WebView2'};
+    const actualProxyLabel=model.browserRoute==='proxy'&&model.browserProxy?((model.browserProxy.type||'proxy').toUpperCase()+' · '+(model.browserProxy.host||'未填写')+':'+(model.browserProxy.port||'')):'Ultra 严格连接';
     const graphicsEditable=fp.webglMetadata==='custom';
     const runtimeConfig=model.browser&&model.browser.config||{}, runtimeGraphics=runtimeConfig.graphics||{};
     const savedRecord=model.browserSavedRecord||{}, conflicts=[];
@@ -300,7 +301,7 @@ function renderPrivacy(el, arg) {
         </div>
         <label>允许被扫描的端口（选填）${privacyHelp('只记录端口清单，最多 32 个；实际拦截范围取决于浏览器和系统。')}<input data-browser-v2="advanced.allowedPorts" value="${safe(Array.isArray(advanced.allowedPorts)?advanced.allowedPorts.join(', '):'')}" maxlength="256" placeholder="例如 80, 443" ${disabled}></label>
       </details>
-      <div class="privacy-v2-summary"><div><strong>概要</strong><dl><dt>环境</dt><dd>${safe(meta.environmentName||'未命名环境')}</dd><dt>浏览器家族</dt><dd>${safe(familyNames[meta.browser]||meta.browser||'未选择')}</dd><dt>实际内核</dt><dd>${safe(engineNames[model.browserEngine.engineId]||model.browserEngine.engineId||'未选择')} ${safe(model.browserEngine.version||'')}</dd><dt>标签页 / Cookie</dt><dd>${safe(urlCount)} / ${safe(cookieCount)}</dd><dt>代理</dt><dd>${safe(proxy.mode||'no-proxy')} · ${safe(proxy.type||'none')}</dd><dt>读回</dt><dd>${safe(readback.state||'unknown')} · ${safe(readback.runtimeVerified?'已验证':'未运行时读回')}</dd></dl></div><div class="privacy-actions"><button type="button" class="btn sm" id="privacy-browser-v2-generate" data-help-text="生成新的本地指纹种子并标记为待读回；不会改变物理硬件，也不会自动启动浏览器。" ${disabled}>生成新指纹</button><button type="button" class="btn sm" id="privacy-browser-v2-validate" data-help-text="只检查当前草稿的字段、URL、端口和长度；校验通过不等于运行时已经生效。" ${disabled}>检查配置</button></div></div>
+      <div class="privacy-v2-summary"><div><strong>概要</strong><dl><dt>环境</dt><dd>${safe(meta.environmentName||'未命名环境')}</dd><dt>浏览器家族</dt><dd>${safe(familyNames[meta.browser]||meta.browser||'未选择')}</dd><dt>实际内核</dt><dd>${safe(engineNames[model.browserEngine.engineId]||model.browserEngine.engineId||'未选择')} ${safe(model.browserEngine.version||'')}</dd><dt>标签页 / Cookie</dt><dd>${safe(urlCount)} / ${safe(cookieCount)}</dd><dt>保存代理策略</dt><dd>${safe(proxy.mode||'no-proxy')} · ${safe(proxy.type||'none')}</dd><dt>实际连接</dt><dd>${safe(actualProxyLabel)}</dd><dt>读回</dt><dd>${safe(readback.state||'unknown')} · ${safe(readback.runtimeVerified?'已验证':'未完整验证')} · ${safe(Array.isArray(readback.warnings)?readback.warnings.length:0)} 项说明</dd></dl></div><div class="privacy-actions"><button type="button" class="btn sm" id="privacy-browser-v2-generate" data-help-text="生成新的本地指纹配置并运行预览；不会改变物理硬件。" ${disabled}>生成新指纹</button><button type="button" class="btn sm" id="privacy-browser-v2-validate" data-help-text="只检查当前草稿的字段、URL、端口和长度；校验通过不等于运行时已经生效。" ${disabled}>检查配置</button></div></div>
       ${model.browserV2Error?`<p class="privacy-error" role="alert">${safe(model.browserV2Error)}</p>`:''}${model.browserV2Message?`<p class="privacy-note" role="status">${safe(model.browserV2Message)}</p>`:''}
     </article>`;
   };
@@ -633,11 +634,19 @@ function renderPrivacy(el, arg) {
     const savedSeed=String(model.browserExtras.fingerprint.seed||'');
     if(!savedSeed&&configSeed)model.browserExtras.fingerprint.seed=configSeed;
     else if(savedSeed&&model.browser&&model.browser.config)model.browser.config.randomizationSeed=savedSeed;
+    const runtimeConfig=model.browser&&model.browser.config;
+    if(runtimeConfig){
+      const runtimeGraphics=runtimeConfig.graphics&&runtimeConfig.graphics.mode==='webgl-metadata'?runtimeConfig.graphics:null;
+      model.browserExtras.fingerprint.webglMetadata=runtimeGraphics?'custom':'real';
+      model.browserExtras.fingerprint.webglVendor=runtimeGraphics?runtimeGraphics.vendor:'';
+      model.browserExtras.fingerprint.webglRenderer=runtimeGraphics?runtimeGraphics.renderer:'';
+      model.browserExtras.fingerprint.webgpu=runtimeConfig.webgpu==='disabled'?(runtimeGraphics?'webgl':'disabled'):'real';
+    }
     model.browserSeed=String(model.browserExtras.fingerprint.seed||'');
     return model.browserExtras;
   }
   function browserV2Path(path) { browserV2EnsureState(); const parts=String(path||'').split('.'); let root=model.browserExtras; if(parts[0]==='meta'){parts.shift();root=model.browserMeta;} for(const part of parts.slice(0,-1)){if(!root[part]||typeof root[part]!=='object')root[part]={};root=root[part];} return {root,key:parts[parts.length-1]}; }
-  function browserV2Set(path,value) { const ref=browserV2Path(path); if(ref.root)ref.root[ref.key]=value; if(path==='fingerprint.seed')model.browserSeed=String(value||''); if(model.browser&&model.browser.config){const c=model.browser.config,fp=model.browserExtras.fingerprint||{};if(path==='fingerprint.seed')c.randomizationSeed=String(value||'');if(path==='fingerprint.webgpu')c.webgpu=value==='disabled'?'disabled':'runtime-default';if(path==='fingerprint.webglMetadata'){if(value==='real')delete c.graphics;else c.graphics={mode:'webgl-metadata',presetId:'manual',vendor:fp.webglVendor||'',renderer:fp.webglRenderer||''};c.webgpu=value==='custom'?'disabled':c.webgpu||'runtime-default';}if(path==='fingerprint.webglVendor'||path==='fingerprint.webglRenderer'){c.graphics={mode:'webgl-metadata',presetId:'manual',vendor:fp.webglVendor||'',renderer:fp.webglRenderer||''};c.webgpu='disabled';}} model.browserExtras.readback={state:'unknown',scope:'browser-profile',runtimeVerified:false,warnings:['配置已修改，尚未启动读回。']}; }
+  function browserV2Set(path,value) { const ref=browserV2Path(path); if(ref.root)ref.root[ref.key]=value; if(path==='fingerprint.seed')model.browserSeed=String(value||''); if(model.browser&&model.browser.config){const c=model.browser.config,fp=model.browserExtras.fingerprint||{};if(path==='fingerprint.seed')c.randomizationSeed=String(value||'');if(path==='fingerprint.webgpu')c.webgpu=(value==='disabled'||value==='webgl')?'disabled':'runtime-default';if(path==='fingerprint.webglMetadata'){if(value==='real')delete c.graphics;else c.graphics={mode:'webgl-metadata',presetId:'manual',vendor:fp.webglVendor||'',renderer:fp.webglRenderer||''};c.webgpu=value==='custom'?'disabled':c.webgpu||'runtime-default';}if(path==='fingerprint.webglVendor'||path==='fingerprint.webglRenderer'){c.graphics={mode:'webgl-metadata',presetId:'manual',vendor:fp.webglVendor||'',renderer:fp.webglRenderer||''};c.webgpu='disabled';}} model.browserExtras.readback={state:'unknown',scope:'browser-profile',runtimeVerified:false,warnings:['配置已修改，尚未启动读回。']}; }
   function browserV2Get(path,fallback) { const ref=browserV2Path(path); return ref.root&&ref.root[ref.key]!==undefined?ref.root[ref.key]:fallback; }
   function browserV2ParseCookies(raw,format) {
     const text=String(raw||'').trim(); if(!text)return 0; if(text.length>512*1024)throw Error('Cookie 文本超过 512 KB。');
@@ -668,10 +677,17 @@ function renderPrivacy(el, arg) {
     if(fp.uiLanguage&&fp.uiLanguage!=='by-language')unsupported.push('界面语言策略');
     if(fp.resolution&&fp.resolution!=='ua')unsupported.push('分辨率策略');
     if(fp.fonts&&fp.fonts!=='default')unsupported.push('字体策略');
+    const runtimeConfig=model.browser&&model.browser.config||{}, runtimeGraphics=runtimeConfig.graphics&&runtimeConfig.graphics.mode==='webgl-metadata'?runtimeConfig.graphics:null;
     if(fp.webglMetadata==='custom'&&model.browserEngine.engineId==='chrome-for-testing')unsupported.push('Chrome 不支持自定义 WebGL 元数据');
+    if(fp.webglMetadata==='custom'&&(!runtimeGraphics||!runtimeGraphics.vendor||!runtimeGraphics.renderer))unsupported.push('WebGL 元数据与基础配置不一致');
+    if(fp.webglMetadata==='real'&&runtimeGraphics)unsupported.push('WebGL 元数据与基础配置不一致');
     if(fp.webglMetadata&&fp.webglMetadata!=='real'&&fp.webglMetadata!=='custom')unsupported.push('WebGL 元数据');
-    if(fp.webgpu==='webgl'||(fp.webgpu==='disabled'&&model.browserEngine.engineId==='chrome-for-testing'))unsupported.push('WebGPU 策略');
-    if(fp.seed&&model.browserEngine.engineId!=='webview2')unsupported.push('指纹种子');
+    if(fp.webgpu==='webgl'&&runtimeConfig.webgpu!=='disabled')unsupported.push('WebGPU 与基础配置不一致');
+    if(fp.webgpu==='disabled'&&runtimeConfig.webgpu!=='disabled')unsupported.push('WebGPU 与基础配置不一致');
+    if(fp.webgpu==='real'&&runtimeConfig.webgpu==='disabled')unsupported.push('WebGPU 与基础配置不一致');
+    if(fp.webgpu!=='real'&&fp.webgpu!=='webgl'&&fp.webgpu!=='disabled')unsupported.push('WebGPU 策略');
+    if(fp.webgpu!=='real'&&model.browserEngine.engineId==='chrome-for-testing')unsupported.push('Chrome 不支持当前 WebGPU 策略');
+    if(fp.seed&&(!model.browserPreview||!model.browserPreview.config||model.browserPreview.config.randomizationSeed!==fp.seed))unsupported.push('指纹种子尚未生成实际配置');
     if(Object.values(n).some(Boolean))unsupported.push('硬件噪音');
     const a=x.advanced||{};
     if(a.cpu&&a.cpu!=='real')unsupported.push('CPU');
@@ -708,14 +724,14 @@ function renderPrivacy(el, arg) {
     const newURL=el.querySelector('[data-browser-v2-new-url]'),addURL=el.querySelector('#privacy-browser-v2-add-url'); if(addURL)addURL.addEventListener('click',()=>{const value=String(newURL&&newURL.value||'').trim(),urls=Array.isArray(model.browserExtras.tabs.urls)?model.browserExtras.tabs.urls.slice():[];try{if(!/^https?:\/\/[^\s]+$/i.test(value)||value.length>2048)throw Error('启动网址必须是完整的 HTTP 或 HTTPS URL。');if(urls.length>=20)throw Error('启动网址最多 20 个。');urls.push(value);browserV2Set('tabs.urls',urls);model.browserV2Error='';model.browserV2Message='已添加启动网址。';markBrowserProfileEdited(true);draw();}catch(error){model.browserV2Error=errText(error);model.browserV2Message='未添加启动网址。';draw();}});
     const clearURLs=el.querySelector('#privacy-browser-v2-clear-urls'); if(clearURLs)clearURLs.addEventListener('click',()=>{browserV2Set('tabs.urls',[]);model.browserV2Error='';model.browserV2Message='启动网址列表已清空。';markBrowserProfileEdited(true);draw();});
     el.querySelectorAll('[data-browser-v2-remove-url]').forEach(button=>button.addEventListener('click',()=>{const urls=Array.isArray(model.browserExtras.tabs.urls)?model.browserExtras.tabs.urls.slice():[],index=Number(button.dataset.browserV2RemoveUrl);if(Number.isInteger(index)&&index>=0&&index<urls.length){urls.splice(index,1);browserV2Set('tabs.urls',urls);model.browserV2Message='已删除启动网址。';markBrowserProfileEdited(true);draw();}}));
-    const generate=el.querySelector('#privacy-browser-v2-generate'); if(generate)generate.addEventListener('click',()=>{if(model.browserBusy)return;const seed=browserV2GenerateSeed();browserV2Set('fingerprint.seed',seed);model.browserV2Message='已生成新指纹种子；请先检查配置并在支持的内核中启动，实际效果仍需运行时读回。';markBrowserProfileEdited(true);draw();});
+    const generate=el.querySelector('#privacy-browser-v2-generate'); if(generate)generate.addEventListener('click',()=>{if(model.browserBusy)return;const seed=browserV2GenerateSeed();browserV2Set('fingerprint.seed',seed);browserV2Set('advanced.randomFingerprint',false);model.browserSeed=seed;model.browserV2Message='正在按新种子生成实际配置预览；预览成功后再启动并读回。';markBrowserProfileEdited(true);runBrowserProfile('random');});
     const validate=el.querySelector('#privacy-browser-v2-validate'); if(validate)validate.addEventListener('click',()=>{try{browserV2Validate();model.browserV2Error='';model.browserV2Message='配置校验通过；所有运行时字段仍需启动后读回。';}catch(error){model.browserV2Error=errText(error);model.browserV2Message='配置校验未通过，未启动浏览器。';}draw();});
   }
   function bindBrowserProfile() {
     for(const button of el.querySelectorAll('[data-browser-read-start]'))button.addEventListener('click',async()=>{
       if(!alive()||model.tab!=='browser'||!el.contains(button)||model.browserBusy||model.engineBusy)return;
       const id=button.dataset.browserReadStart;model.browserBusy=true;draw();
-      try{let result=await api('BrowserEngineProfileStatus');if(!validBrowserStart(result,id))throw new Error('会话状态已变化。');model.browserStart=result;model.browserError='';if(['starting','cancelling'].includes(result.status.state))result=await watchBrowserStart(result,++model.browserStartGeneration);if(alive())model.browserMessage=browserStartMessage(result);}
+      try{let result=await api('BrowserEngineProfileStatus');if(!validBrowserStart(result,id))throw new Error('会话状态已变化。');model.browserStart=result;browserV2ApplyReadback(result,'runtime');model.browserError='';if(['starting','cancelling'].includes(result.status.state))result=await watchBrowserStart(result,++model.browserStartGeneration);if(alive())model.browserMessage=browserStartMessage(result);}
       catch(error){model.browserError='会话状态仍无法确认，请关闭独立内核后重新检查。';}
       finally{model.browserBusy=false;if(alive())draw();}
     });
@@ -939,6 +955,29 @@ function renderPrivacy(el, arg) {
     if(state==='ready'&&result.status.graphics){const g=result.status.graphics;return g.implementation==='gecko-native-preferences'&&g.windowScopesVerified===4&&g.workerApiRuntimeReadback===false?'Firefox 原生图形已完成四类 Window 读回；Worker 执行已封锁，未作 Worker API 运行读回。':'浏览器已打开，图形证据范围请核对本次状态。';}
     return explain({starting:'正在准备浏览器，可以取消启动。',cancelling:'已请求取消，正在等待浏览器完成清理。',start_cancelled:'本次启动已取消。',start_failed:'浏览器未启动，本次准备已结束。',ready:'浏览器已打开并完成启动检查。',closed:'浏览器已关闭。',closed_filters_unknown:'浏览器已退出，网络规则清理仍未确认，请关闭会话后重新检查。',closing_or_unknown:'浏览器清理仍未确认，请关闭会话后重新检查。'}[state]||'浏览器状态尚未确认，请重新检查。');
   }
+  function browserV2ApplyReadback(result, scope='runtime') {
+    browserV2EnsureState();
+    const status=result&&result.status&&typeof result.status==='object'?result.status:result;
+    if(!status||typeof status.state!=='string')return;
+    const warnings=[];
+    let state='unknown',runtimeVerified=false;
+    if(status.state==='ready'&&status.ready===true&&status.canNavigate===true){
+      state='partial';
+      warnings.push('启动状态已读回；UA、环境、代理出口、Cookie、标签页和跨上下文结果仍需分别核验。');
+      const graphics=status.graphics;
+      if(graphics&&typeof graphics==='object'){
+        if(graphics.windowScopesVerified===4&&graphics.workerExecutionBlocked===true)warnings.push('图形 Window 范围与 Worker 封锁已由宿主回报；Worker API 读回仍未声称完成。');
+        else warnings.push('图形证据范围未完整回报，保持部分支持。');
+      }
+    }else if(status.state==='closed'){
+      state='unknown';warnings.push('浏览器已关闭；上一轮运行时证据不再作为当前会话读回。');
+    }else if(status.state==='start_failed'||status.state==='closing_or_unknown'||status.state==='closed_filters_unknown'){
+      state='unknown';warnings.push(status.detail||'浏览器运行时未完成，未生成可用读回。');
+    }else{
+      warnings.push('会话仍在准备或状态未确认，未生成运行时读回。');
+    }
+    model.browserExtras.readback={state,scope,runtimeVerified,timestamp:new Date().toISOString(),warnings};
+  }
   function validBrowserStart(result,id){
     return !!(result&&/^[a-f0-9]{64}$/.test(result.startId||'')&&(!id||result.startId===id)&&typeof result.canCancelStart==='boolean'&&result.status&&typeof result.status.state==='string'&&!(result.status.state==='ready'&&(result.status.ready!==true||result.status.canNavigate!==true)));
   }
@@ -977,6 +1016,7 @@ function renderPrivacy(el, arg) {
       if(changed&&alive())draw();
     }
     result.detail=browserStartMessage(result);
+    browserV2ApplyReadback(result,'runtime');
     if(result.status.state==='start_failed')throw new Error(result.detail);
     return result;
   }
@@ -984,7 +1024,7 @@ function renderPrivacy(el, arg) {
     await api('BrowserEngineProfileClose');
     if(Object.prototype.hasOwnProperty.call(App(),'BrowserEngineProfileStatus')){
       const result=await api('BrowserEngineProfileStatus');
-      if(validBrowserStart(result))model.browserStart=result;
+      if(validBrowserStart(result)){model.browserStart=result;browserV2ApplyReadback(result,'runtime');}
       else if(result&&result.status&&result.status.state==='closed'&&!result.startId)model.browserStart=null;
       else throw new Error('关闭结果仍无法确认，请重新检查会话状态。');
     }

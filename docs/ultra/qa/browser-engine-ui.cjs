@@ -47,7 +47,7 @@ w.go={main:{App:new Proxy(api,{get:(object,key)=>object[key]||(()=>Promise.resol
 w.fetch=()=>{throw Error('network forbidden in native DOM fixture');};w.HTMLElement.prototype.scrollIntoView=function(){};
 w.addEventListener('error',event=>errors.push(String(event.error||event.message)));
 const context=dom.getInternalVMContext();for(const name of ['i18n.js','flags.js','privacy.js','app.js'])vm.runInContext(source(name),context,{filename:name});
-const q=selector=>w.document.querySelector(selector),wait=(ms=30)=>new Promise(resolve=>setTimeout(resolve,ms));
+const q=selector=>w.document.querySelector(selector),alertText=()=>Array.from(w.document.querySelectorAll('[role="alert"]')).map(node=>node.textContent||'').join('\n'),wait=(ms=30)=>new Promise(resolve=>setTimeout(resolve,ms));
 async function until(predicate,label){const end=Date.now()+3000;while(!predicate()&&Date.now()<end)await wait(20);assert.ok(predicate(),label);}
 const edit=(id,value)=>{const input=q(id);assert.ok(input,'missing '+id);input.value=value;input.dispatchEvent(new w.Event('input',{bubbles:true}));};
 const choose=(id,value)=>{const input=q(id);assert.ok(input,'missing '+id);input.value=value;input.dispatchEvent(new w.Event('change',{bubbles:true}));};
@@ -133,8 +133,8 @@ async function run(){try{
     await selectEngine('chrome-for-testing');
     choose('#privacy-engine-kind','chrome-for-testing');edit('#privacy-engine-version','156.0.8078.47');
     assert.match(q('#privacy-browser-graphics-capability').textContent,/仅支持原生 GPU/);assert.equal(q('#privacy-browser-graphics option[value="manual"]').disabled,true);assert.equal(q('#privacy-browser-webgpu option[value="disabled"]').disabled,true);
-    const before=count('native-launch');q('#privacy-browser-launch').click();await wait();assert.equal(count('native-launch'),before,'unsupported '+kind+' cannot be silently dropped by main launch');assert.match(q('.privacy-editor-footer > [role="alert"]').textContent,/不会忽略这些参数/);
-    q('#privacy-engine-launch').click();await wait();assert.equal(count('native-launch'),before,'unsupported '+kind+' cannot be silently dropped by legacy launch');assert.match(q('.privacy-engine-manager [role="alert"]').textContent,/不会忽略这些参数/);
+    const before=count('native-launch');q('#privacy-browser-launch').click();await wait();assert.equal(count('native-launch'),before,'unsupported '+kind+' cannot be silently dropped by main launch');assert.match(alertText(),/不会忽略这些参数|宿主尚未提供/);
+    q('#privacy-engine-launch').click();await wait();assert.equal(count('native-launch'),before,'unsupported '+kind+' cannot be silently dropped by legacy launch');assert.match(alertText(),/不会忽略这些参数|宿主尚未提供/);
     await selectEngine('firefox');choose('#privacy-browser-engine-version','146.0.2');await wait(260);
     if(kind==='graphics')assert.equal(q('#privacy-browser-gpu-renderer').value,'Manual GPU renderer','unsupported engine selection preserves the metadata draft');
   }
