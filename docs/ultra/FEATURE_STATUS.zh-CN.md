@@ -2,9 +2,8 @@
 
 ## 2026-10-31 当前状态（优先于下方历史记录）
 
-- 下一构建/发布目标为短版本 `v0.02`，对应包名统一为全小写的 `godusevpn-ultra-0.02-windows-amd64.zip`；本次只更新构建规则与说明，未自动上传新 Release。
-- 最新客户端发布为 [v0.01-beta.6.6](https://github.com/Maoyangui/godusevpn-ultra/releases/tag/v0.01-beta.6.6)（含助手失联后的重新授权、Device Portal 已准备记录的安全重连、独立浏览器会话数据退出清理，以及 iOS 合成 UA 的准确边界说明）；v0.01-beta.6.5 仍保留在 GitHub Release。发布包、PE 资源、前端资产和 ZIP SHA-256 已重新核对；浏览器内核、硬件、启动取消竞态、配置保存与像素 UI fixture 复跑通过。
-- `godusevpn.org/app/api/trial/*` 已由 Cloudflare Worker（版本 `5e5d847a-4248-4c6b-9594-90a54cac9e86`）转发至站点服务端网关；status、真实订阅 claim、同设备 409、非法设备 400、OPTIONS 204 和 CORS 边界均有生产回执。服务端 HMAC/Redis 限额、`free` 套餐、短 `t-` 用户名、来源备注和后台开关/购买链接已落地。
+- v0.02 已构建并发布预览包 [godusevpn-ultra-0.02-windows-amd64.zip](https://github.com/Maoyangui/godusevpn/releases/tag/v0.02)，包名全小写；标签指向最新提交 `54d52cd`，远程 ZIP SHA-256 为 `e616c70bef9a33ce2f7a5bccfde27a15778796bc10472047eb8cb55fd9e444ad`。构建验证还修复了 Windows PowerShell BOM 导致的资源构建失败。
+- `godusevpn.org/app/api/trial/*` 已由 Cloudflare Worker 版本 `39193d8e-d3b7-4617-8630-4c7b64b5a72e` 接管，并绑定 GodUseVPN 自己的 `godusevpn-commerce` D1。实测 status 200、claim 200 返回真实 `hk.joinvip.vip:2056` 订阅、同设备 409、再次 status 为 `already_claimed`、OPTIONS 204、非法设备 400、恶意 Origin 无允许跨域头；D1 记录短 `t-xxxxxxxx` 标识和“来源：佛跳墙内置免费试用；套餐：free”备注。`TRIAL_ENABLED`、`TRIAL_PLAN`、`TRIAL_PURCHASE_URL` 由 Worker 配置控制，客户端不接触令牌；面板 API 的 `free` 套餐映射已在 GodUseVPN 后台确认通过。
 - Azure Win10 19044/17763 曾有安装、服务、CLI、隧道和出口的有限实机证据；最新 beta.6.6 尚未在普通用户 VM 重新完成 Chrome/Firefox 原生窗口、导航和 GPS 写入读回。代码启动链存在不等于这些运行时能力已验收。
 - 仍未关闭：真实 Chrome/Firefox 多版本窗口与代理出口矩阵、WebRTC/WebGPU/OOPIF/Worker 读回、Windows GPS provider 写入/读回、CEF/uBlock 运行集成、跨 Windows 版本完整矩阵，以及 D03/N08 等原台账范围。不得用 DOM、mock、纯 Go/C# 测试或旧包证据替代这些范围。
 

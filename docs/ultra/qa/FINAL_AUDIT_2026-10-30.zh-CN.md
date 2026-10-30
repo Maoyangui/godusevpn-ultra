@@ -27,7 +27,7 @@
 | GPS/Windows Location Provider | Win10 build 19044 低于 GeolocationProvider 23504 门禁，UI 正确显示不可用；Win11 只提供“可能支持”检查。现有代码是只读观察与恢复边界，没有可证明的系统位置写入、独立读回和冲突恢复闭环 |
 | CEF/uBlock | 仓库只有候选/审计记录，没有可运行集成和更新/权限流程 |
 | Win10 1809/LTSC 2019/22H2 与 Win11 多版本 | 本轮只真实验收 build 19044；其余版本仍需各自 VM/接口矩阵证据 |
-| godusevpn.org 线上免费试用 | 已通过 Cloudflare Worker 路由 `godusevpn.org/app/api/trial/*` → 站点服务端生产网关（Vercel `liumeiti.vip`）上线；服务端只保存设备 HMAC 摘要并以 Redis 月份键限额，再由服务端调用面板创建 `free` 用户，客户端不接触令牌。实测 status 200、claim 200 返回真实 `hk.joinvip.vip:2056` 订阅、同设备再次 status 为 `already_claimed`、再次 claim 为 HTTP 409，OPTIONS 为 204，恶意 Origin 不返回允许跨域头；测试用户备注带“来源：佛跳墙内置免费试用”。 |
+| godusevpn.org 线上免费试用 | 已通过 Cloudflare Worker 版本 `39193d8e-d3b7-4617-8630-4c7b64b5a72e` + `godusevpn-commerce` D1 上线；服务端只保存设备 HMAC 摘要、月份、短标识、订阅 URL、来源备注和时间，不把面板令牌交给客户端。实测 status 200、claim 200 返回真实 `hk.joinvip.vip:2056` 订阅且订阅 URL 返回 HTTP 200、同设备再次 status 为 `already_claimed`、再次 claim 为 HTTP 409，OPTIONS 为 204，非法设备为 400，恶意 Origin 不返回允许跨域头；D1 备注为“来源：佛跳墙内置免费试用；套餐：free”。后台截图确认面板 API 已就绪、`free` 套餐存在并完成映射。 |
 
 ## 结论
 

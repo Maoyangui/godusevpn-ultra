@@ -21,9 +21,9 @@ node C:\Temp\ultra-trial-ui-qa\trial-card.cjs
 - `go test -tags with_clash_api ./...`（Ultra）通过。
 - `go test ./internal/trial ./internal/uiapi ./cmd/godusevpn` 通过。
 - `go test ./web ./database/...`（m-ui）通过。
-- 后端并发测试确认同一设备同一 UTC 月份只有一个 200，其余为 409，数据库只创建一个 `free trial` 用户。
-- 生产回归通过 `https://godusevpn.org/app/api/trial/*`：Worker 路由转发到站点服务端；status 200，claim 200 返回真实 `hk.joinvip.vip:2056` 订阅；同设备随后 status 为 `already_claimed`、claim 为 409；OPTIONS 为 204，非法设备为 400，恶意 Origin 不获得允许跨域头。
-- 生产试用用户由服务端生成 `t-` 加 10 位十六进制短标识，并在面板备注记录“来源：佛跳墙内置免费试用”；客户端只发送设备安装标识，永不接收面板令牌。
+- 后端并发测试确认同一设备同一 UTC 月份只有一个 200，其余为 409，D1 只创建一个试用领取记录。
+- 生产回归通过 `https://godusevpn.org/app/api/trial/*`：Cloudflare Worker + GodUseVPN D1 status 200，claim 200 返回真实 `hk.joinvip.vip:2056` 订阅且 URL 可访问；同设备随后 status 为 `already_claimed`、claim 为 409；OPTIONS 为 204，非法设备为 400，恶意 Origin 不获得允许跨域头。
+- 生产后端生成 `t-` 加 8 位十六进制短标识，并在 D1 备注记录“来源：佛跳墙内置免费试用；套餐：free”；客户端只发送设备安装标识，永不接收面板令牌。GodUseVPN 后台截图确认面板 API 已就绪、`free` 套餐存在并完成映射。
 - `node docs/ultra/qa/browser-profile-ui.cjs C:\Temp\ultra-trial-ui-qa\node_modules\jsdom` 通过，现有浏览器配置与试用卡片改动无回归。
 - `ULTRA_QA_SMOKE=1 node docs/ultra/qa/pixel-qa.cjs C:\Users\Administrator\Desktop\友善\m-ui\node_modules\playwright-core C:\Program Files\Google\Chrome\Application\chrome.exe C:\Temp\ultra-trial-ui-qa\pixel` 通过：8 张截图、0 个页面错误、0 个外连请求；隐私中心和检测中心无横向溢出。
 
@@ -32,5 +32,5 @@ node C:\Temp\ultra-trial-ui-qa\trial-card.cjs
 - Windows/Linux 优先使用系统机器标识的本地单向哈希，无法读取时才保存随机安装实例密钥；不读取 MAC、序列号或 UA，也不上传原始机器标识。
 - m-ui 只保存 HMAC 后的设备摘要和月份联合主键，管理员 API token 不进入客户端。
 - 用户目录文件删除不会在 Windows/Linux 常见场景下换出新设备标识；macOS/Android/iOS 当前仍使用兼容回退，后续可接入 Keychain/Keystore/Secure Enclave 做更强的不可导出密钥绑定。
-- 后台设置页可关闭试用、修改试用套餐名称和购买链接；链接只接受 `http://` 或 `https://`。
+- Worker 配置可关闭试用、修改试用套餐名称和购买链接；链接只接受 `http://` 或 `https://`。生产默认值为 `free` 与 `https://godusevpn.org/subscription/`。
 - 后端返回的订阅地址在客户端再次做协议校验，失败不会写入订阅列表。
