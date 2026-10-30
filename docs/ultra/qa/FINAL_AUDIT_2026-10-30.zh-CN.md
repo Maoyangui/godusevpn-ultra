@@ -27,7 +27,7 @@
 | GPS/Windows Location Provider | Win10 build 19044 低于 GeolocationProvider 23504 门禁，UI 正确显示不可用；Win11 只提供“可能支持”检查。现有代码是只读观察与恢复边界，没有可证明的系统位置写入、独立读回和冲突恢复闭环 |
 | CEF/uBlock | 仓库只有候选/审计记录，没有可运行集成和更新/权限流程 |
 | Win10 1809/LTSC 2019、22H2 与 Win11 多版本 | 17763/19044 已有有限安装与服务/CLI/隐私报告证据，19044 另有 GUI/隧道扩展证据；1809 的普通用户 GUI、22H2 完整功能和 Win11 多版本仍需各自 VM/接口矩阵证据 |
-| godusevpn.org 线上免费试用 | 已通过 Cloudflare Worker 版本 `820c2b67-9884-419e-9da0-6cbdd6259d33` + `godusevpn-commerce` D1 上线；服务端只保存设备 HMAC 摘要、月份、短标识、订阅 URL、来源备注和时间，不把面板令牌交给客户端。实测 status 200、claim 200 返回真实 `hk.joinvip.vip:2056` 订阅且订阅 URL 返回 HTTP 200、同设备再次 status 为 `already_claimed`、再次 claim 为 HTTP 409，OPTIONS 为 204，非法设备为 400，恶意 Origin 不返回允许跨域头；D1 备注为“来源：佛跳墙内置免费试用；套餐：free”。健康检查返回 `backend=d1`、`backendConfigured=true`。后台截图确认面板 API 已就绪、`free` 套餐存在并完成映射。详细回执见 [D1 线上回归](TRIAL_PRODUCTION_D1_2026-10-30.md)。 |
+| godusevpn.org 线上免费试用 | 已通过 Cloudflare Worker 版本 `608a5434-e3ee-4067-bfce-3fbfa234d9df` + `godusevpn-commerce` D1 上线；服务端只保存设备 HMAC 摘要、月份、短标识、订阅 URL、来源备注和时间，不把面板令牌交给客户端。实测 status 200、claim 200 返回真实 `hk.joinvip.vip:2056` 订阅且订阅 URL 返回 HTTP 200、同设备再次 status 为 `already_claimed`、再次 claim 为 HTTP 409，OPTIONS 为 204，非法设备为 400，恶意 Origin 不返回允许跨域头；D1 备注为“来源：佛跳墙内置免费试用；套餐：free”。公开前缀健康检查 `/app/api/trial/healthz` 返回 `backend=d1`、`backendConfigured=true`、`upstreamConfigured=false`。后台截图确认面板 API 已就绪、`free` 套餐存在并完成映射。详细回执见 [D1 线上回归](TRIAL_PRODUCTION_D1_2026-10-30.md)。 |
 
 ## 结论
 
