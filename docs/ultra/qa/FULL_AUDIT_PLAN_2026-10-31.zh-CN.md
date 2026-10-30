@@ -100,6 +100,7 @@
 - 面板地址固定为用户提供的 `https://hk.joinvip.vip:2053/ad/api/v1`，面板请求仍由服务端发出，客户端只收到订阅 URL。
 - 生产管理页注入检查：原始页面 35018 字节，集成页 38435 字节，仅增加 Ultra 卡片；未登录接口 `/manage/ultra-settings` 返回 401。
 - 生产健康检查：`/app/api/trial/healthz` 返回 200、D1/HMAC 正常、计划 `free`；当前仍为 `panelConfigured=false`，必须由管理员在管理页输入令牌后才能取得真实面板 claim/refresh 证据。
+- 本地加密链路回归：管理页保存令牌返回 200；D1 中没有明文令牌；面板模拟调用收到 `Bearer` 令牌，同一设备首次 `claimed`、第二次 `refreshed`，轮换后的订阅 URL 替换成功。
 - Worker 本地 `node --check src/index.js` 与 6 项测试全部通过；部署版本为 `7680be35-2c12-4ef7-b685-ac85169d936c`。
 
 以下仍是未完成或未取得真实证据的硬性项目：真实 Cookie 导入、启动标签页、完整 WebRTC/Canvas/Audio/媒体/ClientRects/SpeechVoices 噪音、字体/地理位置/DNT/端口扫描/TLS/同步适配器、OOPIF/Worker 全量读回、真实普通用户 Chrome/Firefox 代理出口、Win10 1809/19044 与 Win11 x64/ARM64 VPS 矩阵、GPS provider 写入/恢复、D03/N08、CEF/uBlock，以及面板 token 注入后的真实 claim/refresh。当前界面会保持“待验证/部分支持/不支持/未知”，不以静态页面或模拟数据替代这些证据。
