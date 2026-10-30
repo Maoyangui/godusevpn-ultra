@@ -57,3 +57,20 @@
 8. **最终发布批次**：Go test/vet、全部 UI fixture、Edge 像素 QA、构建包 SHA、README、中英文发布页、Cloudflare 线上回归、Azure 资源清单与删除核对。
 
 任何批次只有在代码、测试、真实运行（适用时）和视觉证据都对应后才合并；DOM、mock、静态页面和旧包证据不会替代真实浏览器、代理或 GPS 证据。
+
+## 统一编辑器阶段更新（99d73c4）
+
+本轮把旧浏览器配置卡的运行控件合并到唯一的
+`#privacy-browser-environment-editor`。旧内核、版本、UA、视口、GPU、WebGPU、CPU、保存、启动和关闭控件现在作为同一编辑器的基础配置与统一操作栏使用；v2 区域只保留元数据、Cookie/标签页、代理策略、指纹计划、高级字段和运行时读回，不再渲染第二套 GPU/CPU/WebGPU 输入。
+
+新增核验包括：
+
+- DOM 只渲染一个浏览器编辑器和一个统一操作栏；核心控件 ID 均唯一；
+- 浏览器家族标签与实际内核同时展示，避免把 SunBrowser/FlowerBrowser 标签伪装成真实内核；
+- 配置头部展示状态、配置 ID、Revision、保存时间和读回时间；冲突保留本地草稿；
+- Cookie 解析/清空按钮、启动 URL 添加/删除/清空、数量和格式状态；
+- 每个 v2 字段显示配置已保存、部分支持、运行时待验证或当前宿主不支持；
+- 不支持字段启动前阻断，预览不作为运行时证据；
+- `browser-saved-profiles-ui.cjs` 覆盖统一编辑器、Cookie、URL 操作、保存/载入/CAS 和无重复核心控件。
+
+仍未宣称完成的项目：真实 Cookie 导入、启动标签页、完整 WebRTC/噪音/字体/地理位置、RAM/MAC/设备名、DNT/端口扫描/TLS/同步、OOPIF/Worker/WebGPU 全上下文读回，以及 ARM64 和真实 Windows VPS 矩阵。这些继续按“运行时待验证”“当前宿主不支持”或“需要原生适配器”分类。
