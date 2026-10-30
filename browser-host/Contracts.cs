@@ -22,7 +22,7 @@ namespace GodUseVPN.Ultra.BrowserHost
         internal GraphicsOptions Graphics;
         internal EnvironmentOptions Environment;
         internal HardwareOptions Hardware;
-        internal bool WebGpuDisabled;
+        internal bool WebGpuDisabled, DeleteOwnedProfile;
         internal IDictionary<string, object> ClientHints;
         internal static JavaScriptSerializer Json { get { return new JavaScriptSerializer { MaxJsonLength = 32768, RecursionLimit = 20 }; } }
 
@@ -89,7 +89,9 @@ namespace GodUseVPN.Ultra.BrowserHost
             result.Width = Number(viewport, "width"); result.Height = Number(viewport, "height");
             if (result.Width < (result.Environment.Mobile ? 320 : 800) || result.Width > 3840 || result.Height < (result.Environment.Mobile ? 568 : 600) || result.Height > 2160) throw Reject("unsupported_viewport");
             string webgpu = Text(p, "webgpu");
-            if (Text(p, "webrtc") != "disable-non-proxied-udp" || Text(p, "webgl") != "runtime-default" || (webgpu != "runtime-default" && webgpu != "disabled") || Text(p, "cookies") != "runtime-default" || Text(p, "exitCleanup") != "retain-profile") throw Reject("unsupported_runtime_setting");
+            string exitCleanup = Text(p, "exitCleanup");
+            if (Text(p, "webrtc") != "disable-non-proxied-udp" || Text(p, "webgl") != "runtime-default" || (webgpu != "runtime-default" && webgpu != "disabled") || Text(p, "cookies") != "runtime-default" || (exitCleanup != "retain-profile" && exitCleanup != "delete-owned-profile")) throw Reject("unsupported_runtime_setting");
+            result.DeleteOwnedProfile = exitCleanup == "delete-owned-profile";
             result.WebGpuDisabled = webgpu == "disabled";
             result.Graphics = GraphicsOptions.Parse(p, result.WebGpuDisabled);
             if (result.Environment.Emulated && result.Environment.OS != "windows" && result.Graphics.Metadata && result.Graphics.PresetId != "manual") throw Reject("non_windows_named_d3d_graphics_refused");

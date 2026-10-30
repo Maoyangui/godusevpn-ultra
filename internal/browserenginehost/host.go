@@ -26,6 +26,7 @@ func NativeLaunchEnabled() bool {
 type Config struct {
 	EngineID, Version, ProfileID, Language, Timezone string
 	Width, Height                                    int
+	ExitCleanup                                      string
 	Proxy                                            browserproxy.Config
 	Identity                                         browserhost.ProfileIdentity
 	Environment                                      *browserhost.EnvironmentConfig

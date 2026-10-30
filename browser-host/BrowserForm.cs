@@ -98,7 +98,7 @@ namespace GodUseVPN.Ultra.BrowserHost
             {
                 if (revoked) { Close(); return; }
                 watcher.Start(); binding.CheckAlive();
-                dataLease = WindowsGuard.NewDataDirectory(options.ProfileId);
+                dataLease = WindowsGuard.NewDataDirectory(options.ProfileId, options.DeleteOwnedProfile);
                 string data = dataLease.Path;
                 relay = new SocksRelay(binding, options, AuthorizeFrontend, Revoke);
                 var environmentOptions = new CoreWebView2EnvironmentOptions

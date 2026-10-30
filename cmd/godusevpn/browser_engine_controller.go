@@ -37,6 +37,7 @@ type browserEngineProfileRequest struct {
 	Hardware    *browserhost.HardwareConfig    `json:"hardware,omitempty"`
 	Graphics    *browserhost.GraphicsConfig    `json:"graphics,omitempty"`
 	WebGPU      string                         `json:"webgpu,omitempty"`
+	ExitCleanup string                         `json:"exitCleanup,omitempty"`
 }
 type BrowserEngineLaunchResult struct {
 	Status         browserenginehost.Status `json:"status"`
@@ -109,7 +110,7 @@ func parseBrowserEngineRequest(data string) (browserEngineProfileRequest, error)
 		}
 		seen[strings.ToLower(key)] = true
 		switch key {
-		case "engineId", "version", "profileId", "language", "timezone", "width", "height", "identity", "environment", "hardware", "graphics", "webgpu":
+		case "engineId", "version", "profileId", "language", "timezone", "width", "height", "identity", "environment", "hardware", "graphics", "webgpu", "exitCleanup":
 		default:
 			return request, errBrowserEngineConfig
 		}
@@ -162,6 +163,12 @@ func parseBrowserEngineRequest(data string) (browserEngineProfileRequest, error)
 		return request, errBrowserEngineConfig
 	}
 	if request.Hardware != nil && request.EngineID != browserengine.Chrome {
+		return request, errBrowserEngineConfig
+	}
+	if request.ExitCleanup == "" {
+		request.ExitCleanup = "retain-profile"
+	}
+	if request.ExitCleanup != "retain-profile" && request.ExitCleanup != "delete-owned-profile" {
 		return request, errBrowserEngineConfig
 	}
 	if browserenginehost.ValidateGraphicsConfig(request.hostConfig(browserproxy.Config{})) != nil {
@@ -232,7 +239,7 @@ func strictBrowserEngineFields(data []byte, allowed map[string]bool) bool {
 	return err == io.EOF
 }
 func (r browserEngineProfileRequest) hostConfig(proxy browserproxy.Config) browserenginehost.Config {
-	return browserenginehost.Config{EngineID: r.EngineID, Version: r.Version, ProfileID: r.ProfileID, Language: r.Language, Timezone: r.Timezone, Width: r.Width, Height: r.Height, Identity: r.Identity, Environment: r.Environment, Hardware: r.Hardware, Graphics: r.Graphics, WebGPU: r.WebGPU, Proxy: proxy}
+	return browserenginehost.Config{EngineID: r.EngineID, Version: r.Version, ProfileID: r.ProfileID, Language: r.Language, Timezone: r.Timezone, Width: r.Width, Height: r.Height, ExitCleanup: r.ExitCleanup, Identity: r.Identity, Environment: r.Environment, Hardware: r.Hardware, Graphics: r.Graphics, WebGPU: r.WebGPU, Proxy: proxy}
 }
 
 // BrowserEngineIdentity is a local plan for the selected actual engine version.

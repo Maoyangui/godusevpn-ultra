@@ -701,7 +701,7 @@ function renderPrivacy(el, arg) {
     const c=model.browser&&model.browser.config;
     if(!c||!version)throw new Error('请先选择已下载的内核版本。');
     if(!identityOnly&&engineId!=='firefox'&&(c.graphics&&c.graphics.mode==='webgl-metadata'||c.webgpu!=='runtime-default'))throw new Error('此内核尚未支持所选 GPU / WebGPU 设置；本次不启动，也不会忽略这些参数。请先恢复原生图形信息或选择 Firefox / WebView2。');
-    const request={engineId,version,profileId:c.profileId,language:c.region.language,timezone:c.region.timezone,width:c.viewport.width,height:c.viewport.height,identity:JSON.parse(JSON.stringify(c.identity))};
+    const request={engineId,version,profileId:c.profileId,language:c.region.language,timezone:c.region.timezone,width:c.viewport.width,height:c.viewport.height,identity:JSON.parse(JSON.stringify(c.identity)),exitCleanup:c.exitCleanup==='delete-owned-profile'?'delete-owned-profile':'retain-profile'};
     if(c.hardware){if(engineId==='firefox')throw new Error('Firefox 当前不支持自定义网页 CPU 核数；请恢复原生信息或选择 Chrome / WebView2。');request.hardware=JSON.parse(JSON.stringify(c.hardware));}
     if(!identityOnly&&engineId==='firefox'){if(c.graphics)request.graphics=JSON.parse(JSON.stringify(c.graphics));if(c.webgpu==='disabled')request.webgpu='disabled';}
     if(c.environment)request.environment=JSON.parse(JSON.stringify(c.environment));return request;

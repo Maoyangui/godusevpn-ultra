@@ -152,7 +152,7 @@ func browserHostProfileSupported(config browserhost.ProfileConfig) error {
 	identitySupported := config.Identity.Mode == "native" || config.Identity.Mode == "generated" || config.Identity.Mode == "manual"
 	if config.EngineID != "webview2" || !identitySupported || (config.Identity.Mode != "manual" && config.Identity.UserAgent != "") || config.Identity.ClientHints != nil ||
 		config.WebRTC != "disable-non-proxied-udp" || config.WebGL != "runtime-default" || (config.WebGPU != "runtime-default" && config.WebGPU != "disabled") ||
-		config.Cookies != "runtime-default" || config.ExitCleanup != "retain-profile" {
+		config.Cookies != "runtime-default" || (config.ExitCleanup != "retain-profile" && config.ExitCleanup != "delete-owned-profile") {
 		return errBrowserConfig
 	}
 	p := config.Permissions

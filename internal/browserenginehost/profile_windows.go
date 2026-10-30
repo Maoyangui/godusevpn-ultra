@@ -20,6 +20,7 @@ import (
 
 type profileLease struct {
 	directory, sessionRoot string
+	deleteOnClose         bool
 	files                  []*os.File
 	release                func()
 	once                   sync.Once
@@ -42,7 +43,9 @@ func (p *profileLease) Close() {
 		// code lease have been closed; never touch the shared engine cache or a
 		// saved BrowserProfiles record.  A failed or suspicious cleanup remains
 		// visible to lifetime.go instead of being reported as a clean close.
-		p.cleanupErr = removeSessionTree(p.sessionRoot)
+		if p.deleteOnClose {
+			p.cleanupErr = removeSessionTree(p.sessionRoot)
+		}
 	})
 }
 
@@ -265,7 +268,7 @@ func createProfile(manager *browserengine.Manager, sessionID string, c Config, r
 	if err != nil {
 		return nil, ErrRefused
 	}
-	lease := &profileLease{release: release}
+	lease := &profileLease{release: release, deleteOnClose: c.ExitCleanup == "delete-owned-profile"}
 	complete := false
 	defer func() {
 		if !complete {

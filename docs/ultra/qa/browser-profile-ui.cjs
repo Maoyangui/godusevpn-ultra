@@ -183,7 +183,7 @@ async function run() {
     choose('#privacy-browser-environment','native');choose('#privacy-browser-graphics','native');assert.equal(q('#privacy-browser-os-version').disabled,true);assert.equal(q('#privacy-browser-width').min,'800');
     choose('#privacy-engine-route','ultra');q('#privacy-engine-launch').click();await settle();assert.equal(calls.filter(c=>c[0]==='engine-launch').length,1);assert.match(q('.privacy-engine-manager [role="alert"]').textContent,/本页独立代理/);
     choose('#privacy-engine-route','proxy');q('#privacy-engine-launch').click();await settle();const engineLaunch=calls.filter(c=>c[0]==='engine-launch').at(-1);
-    assert.deepEqual(engineLaunch[1],{engineId:'firefox',version:'133.0.3',profileId:'private-2',language:'zh-CN',timezone:'Asia/Shanghai',width:800,height:844,identity:{mode:'native'}});assert.deepEqual(engineLaunch[2],catalogRoute);
+    assert.deepEqual(engineLaunch[1],{engineId:'firefox',version:'133.0.3',profileId:'private-2',language:'zh-CN',timezone:'Asia/Shanghai',width:800,height:844,identity:{mode:'native'},exitCleanup:'delete-owned-profile'});assert.deepEqual(engineLaunch[2],catalogRoute);
     assert.match(q('.privacy-engine-manager [role="alert"]').textContent,/BROWSER_ENGINE_OPERATION_REFUSED/);assert.equal(q('.privacy-engine-manager [role="status"]'),null,'backend refusal must not display ready');
     q('#privacy-engine-close').click();await settle();assert.equal(calls.filter(c=>c[0]==='engine-close').length,1);assert.equal(calls.filter(c=>c[0]==='proxy').length,probesBeforeEngine,'engine actions must not reuse or silently refresh the IP probe as launch proof');
     edit('#privacy-browser-width', '1281');

@@ -21,6 +21,7 @@ namespace GodUseVPN.Ultra.BrowserHost
             {
                 const string valid = "{\"schemaVersion\":1,\"servicePid\":42,\"proxyPort\":2080,\"connectedStrictVerified\":true,\"profile\":{\"schemaVersion\":1,\"engineId\":\"webview2\",\"profileId\":\"sample\",\"identity\":{\"mode\":\"native\"},\"region\":{\"presetId\":\"en-us-pacific\",\"language\":\"en-US\",\"locale\":\"en-US\",\"timezone\":\"America/Los_Angeles\",\"acceptLanguages\":[\"en-US\",\"en\"]},\"viewport\":{\"width\":1280,\"height\":720},\"webrtc\":\"disable-non-proxied-udp\",\"webgl\":\"runtime-default\",\"webgpu\":\"runtime-default\",\"permissions\":{\"camera\":\"block\",\"microphone\":\"block\",\"geolocation\":\"block\",\"notifications\":\"block\",\"clipboardRead\":\"block\"},\"cookies\":\"runtime-default\",\"binding\":{\"mode\":\"loopback-proxy\",\"referenceId\":\"service-main\",\"proxyUrl\":\"socks5://127.0.0.1:2080\",\"allowDirectFallback\":false},\"exitCleanup\":\"retain-profile\"}}";
                 var options = LaunchOptions.Parse(valid); Check(options.ProxyPort == 2080 && options.Width == 1280 && options.Timezone == "America/Los_Angeles", "valid_contract");
+                var deleteOptions = LaunchOptions.Parse(valid.Replace("\"exitCleanup\":\"retain-profile\"", "\"exitCleanup\":\"delete-owned-profile\"")); Check(deleteOptions.DeleteOwnedProfile, "delete_owned_profile_contract");
                 foreach (var change in new[] {
                     new[] { "\"connectedStrictVerified\":true", "\"connectedStrictVerified\":false" },
                     new[] { "\"servicePid\":42", "\"servicePid\":0" },
@@ -36,7 +37,6 @@ namespace GodUseVPN.Ultra.BrowserHost
                     new[] { "\"webgl\":\"runtime-default\"", "\"webgl\":\"disabled\"" },
                     new[] { "\"webgpu\":\"runtime-default\"", "\"webgpu\":\"unknown\"" },
                     new[] { "\"cookies\":\"runtime-default\"", "\"cookies\":\"block-third-party\"" },
-                    new[] { "\"exitCleanup\":\"retain-profile\"", "\"exitCleanup\":\"delete-owned-profile\"" },
                     new[] { "socks5://127.0.0.1:2080", "socks5://example.invalid:2080" },
                     new[] { "socks5://127.0.0.1:2080", "http://127.0.0.1:2080" },
                     new[] { "\"allowDirectFallback\":false", "\"allowDirectFallback\":true" },

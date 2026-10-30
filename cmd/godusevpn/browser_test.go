@@ -164,7 +164,7 @@ func TestBrowserRejectsFrontendTrustAndUnsupportedHostParameters(t *testing.T) {
 	}
 	for _, mutate := range []func(map[string]any){
 		func(c map[string]any) { c["webgl"] = "disabled" }, func(c map[string]any) { c["cookies"] = "block-third-party" },
-		func(c map[string]any) { c["webrtc"] = "runtime-default" }, func(c map[string]any) { c["exitCleanup"] = "delete-owned-profile" },
+		func(c map[string]any) { c["webrtc"] = "runtime-default" },
 		func(c map[string]any) { c["permissions"].(map[string]any)["camera"] = "ask" },
 	} {
 		var config map[string]any

@@ -17,7 +17,7 @@ var chromeVersion = regexp.MustCompile(`^[0-9]{1,5}\.[0-9]{1,5}\.[0-9]{1,5}\.[0-
 var firefoxVersion = regexp.MustCompile(`^[0-9]{1,3}\.[0-9]{1,3}(?:\.[0-9]{1,3})?(?:esr)?$`)
 
 func validateConfig(c Config) error {
-	if c.EngineID != browserengine.Chrome && c.EngineID != browserengine.Firefox || !safeProfileID.MatchString(c.ProfileID) || strings.HasSuffix(c.ProfileID, "-") || browserproxy.Validate(c.Proxy) != nil || validateIdentity(c) != nil || validateNativeHardware(c) != nil || ValidateGraphicsConfig(c) != nil {
+	if c.EngineID != browserengine.Chrome && c.EngineID != browserengine.Firefox || !safeProfileID.MatchString(c.ProfileID) || strings.HasSuffix(c.ProfileID, "-") || c.ExitCleanup != "" && c.ExitCleanup != "retain-profile" && c.ExitCleanup != "delete-owned-profile" || browserproxy.Validate(c.Proxy) != nil || validateIdentity(c) != nil || validateNativeHardware(c) != nil || ValidateGraphicsConfig(c) != nil {
 		return ErrRefused
 	}
 	minimumWidth, minimumHeight := 800, 600

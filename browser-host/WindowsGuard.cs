@@ -249,6 +249,7 @@ namespace GodUseVPN.Ultra.BrowserHost
         {
             private readonly List<IntPtr> handles = new List<IntPtr>();
             internal string Path { get; set; }
+            internal bool DeleteOwnedProfile { get; set; }
             internal IntPtr Current { get { if (handles.Count == 0) throw LaunchOptions.Reject("data_parent_missing"); return handles[handles.Count - 1]; } }
             internal void PinVolumeRoot(string path, string sid)
             {
@@ -273,11 +274,11 @@ namespace GodUseVPN.Ultra.BrowserHost
                 }
                 catch { CloseHandle(handle); throw; }
             }
-            public void Dispose() { for (int n = handles.Count - 1; n >= 0; n--) CloseHandle(handles[n]); handles.Clear(); }
+            public void Dispose() { for (int n = handles.Count - 1; n >= 0; n--) CloseHandle(handles[n]); handles.Clear(); if (DeleteOwnedProfile && !String.IsNullOrEmpty(Path)) DeleteOwnedDirectory(Path); }
         }
-        internal static DataLease NewDataDirectory(string id)
+        internal static DataLease NewDataDirectory(string id, bool deleteOwnedProfile = false)
         {
-            var lease = new DataLease();
+            var lease = new DataLease { DeleteOwnedProfile = deleteOwnedProfile };
             try
             {
                 string root = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
@@ -302,6 +303,27 @@ namespace GodUseVPN.Ultra.BrowserHost
                 lease.Path = target; return lease;
             }
             catch { lease.Dispose(); throw; }
+        }
+        private static void DeleteOwnedDirectory(string path)
+        {
+            string full = System.IO.Path.GetFullPath(path).TrimEnd('\\');
+            string leaf = System.IO.Path.GetFileName(full), parent = System.IO.Path.GetFileName(System.IO.Path.GetDirectoryName(full));
+            if (!System.Text.RegularExpressions.Regex.IsMatch(leaf, "^[a-z][a-z0-9-]{0,47}-[0-9a-f]{32}$") || !String.Equals(parent, "BrowserSessions", StringComparison.OrdinalIgnoreCase)) return;
+            try
+            {
+                NoReparse(full);
+                int count = 0;
+                var pending = new Stack<DirectoryInfo>(); pending.Push(new DirectoryInfo(full));
+                while (pending.Count > 0)
+                {
+                    var directory = pending.Pop();
+                    if ((directory.Attributes & FileAttributes.ReparsePoint) != 0) return;
+                    foreach (var file in directory.GetFiles()) { if ((file.Attributes & FileAttributes.ReparsePoint) != 0 || ++count > 100000) return; }
+                    foreach (var child in directory.GetDirectories()) { if (++count > 100000) return; pending.Push(child); }
+                }
+                Directory.Delete(full, true);
+            }
+            catch { }
         }
         internal delegate int NtDirectoryCall(out IntPtr handle, uint access, ref OBJECT_ATTRIBUTES attributes, out IO_STATUS_BLOCK io, IntPtr allocation, uint fileAttributes, uint share, uint disposition, uint options, IntPtr ea, uint eaLength);
         internal static IntPtr OpenRelativeDirectory(IntPtr parent, string name, byte[] descriptor, uint disposition, NtDirectoryCall create, Action<IntPtr> close)
