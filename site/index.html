@@ -1,180 +1,23 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>佛跳墙 · godusevpn —— m-ui 面板的多平台客户端</title>
-<meta name="description" content="Windows、macOS、Linux、Android 共用一个守护进程和一套界面。内嵌 sing-box,TUN 全机接管,规则 / 全局 / 直连三种模式,默认关掉 IPv6。">
-<meta name="author" content="Maoyangui">
-<meta name="application-name" content="godusevpn">
-<link rel="canonical" href="https://maoyangui.github.io/godusevpn/">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="佛跳墙 · godusevpn">
-<meta property="og:locale" content="zh_CN">
-<meta property="og:title" content="佛跳墙 · godusevpn —— m-ui 面板的多平台客户端">
-<meta property="og:description" content="四端一套界面。内嵌 sing-box,TUN 全机接管,默认关掉 IPv6。">
-<meta property="og:url" content="https://maoyangui.github.io/godusevpn/">
-<meta property="og:image" content="https://maoyangui.github.io/godusevpn/assets/shots/home.png">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#2f8bff">
-<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css">
-<script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareApplication","name":"佛跳墙 (godusevpn)","applicationCategory":"UtilitiesApplication","operatingSystem":"Windows 10 1809+, macOS 13+, Linux, Android 8+","license":"https://www.gnu.org/licenses/gpl-3.0.html","author":{"@type":"Person","name":"Maoyangui","url":"https://github.com/Maoyangui"},"url":"https://maoyangui.github.io/godusevpn/","downloadUrl":"https://github.com/Maoyangui/godusevpn/releases","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
-</script>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GodUseVPN Ultra · Windows 隐私工作台</title>
+<meta name="description" content="GodUseVPN Ultra 是 GodUseVPN 的 Windows 隐私增强客户端，提供隐私中心、检测中心、浏览器环境配置、代理测试与可审计的恢复记录。">
+<meta name="keywords" content="GodUseVPN Ultra,Windows隐私,浏览器环境,UA,GPU,SOCKS5,隐私检测">
+<link rel="canonical" href="https://maoyangui.github.io/godusevpn-ultra/"><meta name="theme-color" content="#080c14">
+<meta property="og:type" content="website"><meta property="og:title" content="GodUseVPN Ultra · Windows 隐私工作台"><meta property="og:description" content="让每个隐私选项都能看见、能编辑、能复核。"><meta property="og:url" content="https://maoyangui.github.io/godusevpn-ultra/"><meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="ultra.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"GodUseVPN Ultra","applicationCategory":"SecurityApplication","operatingSystem":"Windows 10 1809+, Windows 11","softwareVersion":"0.02","license":"https://www.gnu.org/licenses/gpl-3.0.html","url":"https://maoyangui.github.io/godusevpn-ultra/","downloadUrl":"https://github.com/Maoyangui/godusevpn-ultra/releases/tag/v0.02","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
 </head>
-<body>
-<header class="top">
-  <div class="wrap bar">
-    <a class="brand" href="./">
-      <svg viewBox="-16 -50 400 400" aria-hidden="true"><defs><linearGradient id="bg" gradientUnits="userSpaceOnUse" x1="70" y1="70" x2="310" y2="270"><stop offset="0" stop-color="#6a44f2"/><stop offset=".55" stop-color="#2f8bff"/><stop offset="1" stop-color="#18e3e8"/></linearGradient></defs><g fill="none" stroke="url(#bg)" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"><path d="M86 248V84l146 124v52"/><path d="M332 78l-88 96"/></g><path fill="url(#bg)" d="M118 192l52 30-52 30z"/></svg>
-      <span>佛跳墙</span><small>godusevpn</small>
-    </a>
-    <nav class="nav" aria-label="主导航">
-      <a href="./" aria-current="page">首页</a>
-      <a href="docs.html">文档</a>
-      <a href="demo/">在线演示</a>
-      <a href="#platforms">平台</a>
-    </nav>
-    <div class="right">
-      <a class="gh" href="https://github.com/Maoyangui/godusevpn" rel="noopener">GitHub</a>
-      <a class="cta" href="https://github.com/Maoyangui/godusevpn/releases">下载</a>
-    </div>
-  </div>
-</header>
-
+<body><div class="glow glow-a"></div><div class="glow glow-b"></div>
+<header class="nav"><div class="wrap nav-in"><a class="brand" href="./"><i>U</i><span>GodUseVPN <b>Ultra</b></span><small>v0.02</small></a><nav><a href="#privacy">隐私中心</a><a href="#browser">浏览器环境</a><a href="#evidence">检测证据</a><a href="#download">下载</a></nav><div class="nav-cta"><a href="https://godusevpn.org/subscription/" rel="noopener">订阅节点</a><a class="button mini" href="https://github.com/Maoyangui/godusevpn-ultra/releases/tag/v0.02" rel="noopener">下载 v0.02</a></div></div></header>
 <main>
-<section class="hero">
-  <div class="wrap">
-    <span class="eyebrow">m-ui 面板的官方客户端</span>
-    <h1>四个平台,<span class="grad">一套界面</span></h1>
-    <p class="lead">填一条订阅链接就能用。内嵌 sing-box,开 TUN 接管全机流量,规则 / 全局 / 直连三种模式,默认把 IPv6 关到网卡这一层。</p>
-    <div class="actions">
-      <a class="cta" href="https://github.com/Maoyangui/godusevpn/releases">下载客户端</a>
-      <a class="btn ghost" href="demo/">先试试在线演示</a>
-      <a class="btn ghost" href="docs.html">看文档</a>
-    </div>
-    <div class="proof">
-      <span>Windows / macOS / Linux / Android</span>
-      <span>不用配 inbound、outbound</span>
-      <span>开源 GPL-3.0</span>
-    </div>
-  </div>
-</section>
-
-<div class="showcase">
-  <div class="shot"><img src="assets/shots/nodes.png" alt="节点列表:每行带地区旗帜与延迟条,顶上按地区筛选" width="420" height="760" loading="lazy"></div>
-  <div class="shot lead-shot"><img src="assets/shots/home.png" alt="首页:连接时长、出口地址与城市、实时速度与最近一分钟的曲线" width="420" height="760"></div>
-  <div class="shot"><img src="assets/shots/drawer.png" alt="侧边菜单:状态卡,可以就地切换模式" width="420" height="760" loading="lazy"></div>
-</div>
-
-<section class="block">
-  <div class="wrap">
-    <h2>装完就生效的几件事</h2>
-    <p class="sub">下面这些不是可选项,是默认行为。</p>
-    <div class="grid">
-      <div class="card">
-        <div class="ic"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/><circle cx="18" cy="17" r="2.5"/></svg></div>
-        <h3>全机接管,不靠系统代理</h3>
-        <p>开 TUN 网卡把流量整个接进内核,不改系统代理设置,不挑应用。严格路由会拦掉绕过隧道的 DNS 与直连尝试。</p>
-      </div>
-      <div class="card">
-        <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l8 3.6v5c0 4.5-3.2 8.2-8 9.4-4.8-1.2-8-4.9-8-9.4v-5z"/><path d="M9 12l2 2 4-4"/></svg></div>
-        <h3>默认没有 IPv6<span class="tag">五层</span></h3>
-        <p>DNS 只回 A、不发 v6 fake-ip、隧道里按协议族拒绝、v6 接进隧道再丢掉,最后连网卡的 IPv6 协议也停用——地址不存在,应用就读不到。断开按动手前的状态还原。</p>
-      </div>
-      <div class="card">
-        <div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18"/></svg></div>
-        <h3>看得见的出口</h3>
-        <p>首页显示这条线路真正的出口地址与城市——节点名写的是机房位置,真正的出口未必在那儿。换节点立刻重测。</p>
-      </div>
-      <div class="card">
-        <div class="ic"><svg viewBox="0 0 24 24"><path d="M4 6h3l8 12h5M4 18h3l2.5-3.7M13.5 9.7L15 7.5h5"/><path d="M17 4l3 3-3 3M17 14l3 4-3 3"/></svg></div>
-        <h3>规则组自己排</h3>
-        <p>名称、出口、任意多条条件(域名 / 关键词 / 正则 / IP 段 / 端口 / 进程名 / geosite / geoip),自上而下匹配,可启停排序。内置那三条默认规则也能改。</p>
-      </div>
-      <div class="card">
-        <div class="ic"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg></div>
-        <h3>订阅刷新有回退链</h3>
-        <p>经当前节点刷新失败就改用自动选择组,再不行直连刷新。回退只作用于这一条请求,选中的节点和其它流量的路由都不动。</p>
-      </div>
-      <div class="card">
-        <div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></div>
-        <h3>四端同一份代码</h3>
-        <p>守护进程、页面、数据布局都是同一份。Linux 上多一个网关模式:局域网设备把网关指过来就走,每台可单独设策略。</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="block" id="platforms">
-  <div class="wrap">
-    <h2>支持的平台</h2>
-    <p class="sub">安装细节见<a href="docs.html">文档</a>。</p>
-    <div class="plats">
-      <div class="plat">
-        <h3>Windows</h3>
-        <p class="req">10 1809(17763)及以上 · x64 / ARM64</p>
-        <p>安装包带后台服务、托盘客户端与命令行,注册 <code>godusevpn://</code> 供落地页一键导入。程序未签名,SmartScreen 提示时点"仍要运行"。</p>
-        <div class="go"><a class="btn ghost" href="https://github.com/Maoyangui/godusevpn/releases">取安装包</a></div>
-      </div>
-      <div class="plat">
-        <h3>macOS</h3>
-        <p class="req">13 Ventura 及以上 · Apple / Intel</p>
-        <p>curl 一行装,不用买开发者证书,也不用去系统设置里点允许。</p>
-        <pre><code>curl -fsSL https://raw.githubusercontent.com/Maoyangui/godusevpn/master/deploy/macos-install.sh | sudo sh</code></pre>
-        <div class="go"><a class="btn ghost" href="docs.html#mac">安装说明</a></div>
-      </div>
-      <div class="plat">
-        <h3>Linux</h3>
-        <p class="req">桌面 / 服务器 / 软路由</p>
-        <p>一个静态二进制,自带浏览器面板。软路由可开网关模式,局域网设备逐台设策略。</p>
-        <pre><code>curl -fsSL https://raw.githubusercontent.com/Maoyangui/godusevpn/master/deploy/install.sh | sh</code></pre>
-        <div class="go"><a class="btn ghost" href="docs.html#linux">安装说明</a></div>
-      </div>
-      <div class="plat">
-        <h3>Android</h3>
-        <p class="req">8.0 及以上 · 手机与电视</p>
-        <p>侧载 APK,VpnService 接管。电视上遥控器能走完全部操作,按应用直连在设置里选包名。</p>
-        <div class="go"><a class="btn ghost" href="https://github.com/Maoyangui/godusevpn/releases">取 APK</a></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="block">
-  <div class="wrap">
-    <div class="ctaband">
-      <h2>不想装也能先看</h2>
-      <p>在线演示就是客户端里那一份界面,跑在一组示例数据上。连接、换节点、切模式、编规则都能点,刷新即恢复。</p>
-      <a class="cta" href="demo/">打开在线演示</a>
-    </div>
-  </div>
-</section>
-</main>
-
-<footer class="foot">
-  <div class="wrap">
-    <div class="cols">
-      <div>
-        <a class="brand" href="./">
-          <svg viewBox="-16 -50 400 400" aria-hidden="true"><defs><linearGradient id="fg" gradientUnits="userSpaceOnUse" x1="70" y1="70" x2="310" y2="270"><stop offset="0" stop-color="#6a44f2"/><stop offset=".55" stop-color="#2f8bff"/><stop offset="1" stop-color="#18e3e8"/></linearGradient></defs><g fill="none" stroke="url(#fg)" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"><path d="M86 248V84l146 124v52"/><path d="M332 78l-88 96"/></g><path fill="url(#fg)" d="M118 192l52 30-52 30z"/></svg>
-          <span>佛跳墙</span>
-        </a>
-        <p class="muted small">m-ui 面板的多平台客户端<br>GPL-3.0,与内嵌的 sing-box 一致</p>
-      </div>
-      <div>
-        <a href="docs.html">文档</a>
-        <a href="demo/">在线演示</a>
-        <a href="https://github.com/Maoyangui/godusevpn" rel="noopener">GitHub</a>
-        <a href="https://github.com/Maoyangui/godusevpn/releases" rel="noopener">下载</a>
-        <a href="https://github.com/Maoyangui/godusevpn/issues" rel="noopener">反馈</a>
-        <a href="https://github.com/Maoyangui/m-ui" rel="noopener">m-ui 面板</a>
-      </div>
-    </div>
-    <p class="muted small">© <a href="https://github.com/Maoyangui" rel="noopener">Maoyangui</a> · 第三方素材出处见 <a href="https://github.com/Maoyangui/godusevpn/blob/master/NOTICE" rel="noopener">NOTICE</a></p>
-  </div>
-</footer>
-</body>
-</html>
+<section class="hero wrap"><div class="hero-copy"><span class="eyebrow"><em></em>Windows 隐私工作台 · 预览版</span><h1>让每个隐私选项<br><strong>都能看见、能编辑、能复核。</strong></h1><p>GodUseVPN Ultra 把隐私策略、浏览器环境、代理连通性和检测证据收进一套清晰的 Windows 界面。配置可以调整，证据会保留边界。</p><div class="actions"><a class="button" href="https://github.com/Maoyangui/godusevpn-ultra/releases/tag/v0.02" rel="noopener">获取 Windows 版</a><a class="button ghost" href="https://godusevpn.org/subscription/" rel="noopener">订阅节点</a></div><div class="proof"><span>Windows 10 1809+ / Windows 11</span><span>Chrome / Firefox 环境预览</span><span>GPL-3.0 开源</span></div></div><div class="console"><div class="console-top"><span>● ULTRA CONTROL</span><b>LOCAL · READY</b></div><h3>隐私状态 <small>v0.02</small></h3><div class="score"><strong>26</strong><span>可审计项目<br><small>0 项待确认</small></span><i>已连接</i></div><div class="bars"><label>浏览器环境 <b><i style="width:92%"></i></b><strong>92%</strong></label><label>系统策略 <b><i style="width:78%"></i></b><strong>78%</strong></label><label>检测证据 <b><i style="width:64%"></i></b><strong>64%</strong></label></div><footer>最近复核 · 本地时间 <span>⌁ 仅本机</span></footer></div></section>
+<section class="stats"><div class="wrap stat-grid"><div><b>0.02</b><span>当前预览</span></div><div><b>4+</b><span>浏览器系统环境</span></div><div><b>2</b><span>引擎目录</span></div><div><b>1</b><span>本地证据链</span></div></div></section>
+<section id="privacy" class="section wrap"><div class="heading"><div><small>01 / PRIVACY CENTER</small><h2>隐私中心，给设置一个清楚的边界。</h2></div><p>每个选项都标注作用范围、实际状态和限制。你看到的是证据层级，不是夸大的匿名承诺。</p></div><div class="cards"><article class="card wide"><i>◈</i><h3>系统与浏览器策略</h3><p>广告标识、诊断、定位、WebRTC、第三方 Cookie、通知、传感器和 WebGL 统一放进可搜索的策略面板。</p><div><span>可编辑</span><span>可恢复</span><span>状态分层</span></div></article><article class="card"><i>◎</i><h3>本地证据</h3><p>记录观察者身份、读取时间和剩余边界，避免把“已保存”误写成“已阻断”。</p></article><article class="card"><i>↗</i><h3>安全恢复</h3><p>写入前保留记录，冲突时保留原值和外部变化，恢复入口轻量且可审计。</p></article></div></section>
+<section id="browser" class="browser"><div class="wrap browser-in"><div class="browser-copy"><small>02 / BROWSER PROFILE</small><h2>浏览器环境，像专业多开工具一样可编辑。</h2><p>为每个浏览器保存独立环境：Windows、macOS、Linux、Android、iOS 预览，UA 可生成也可手改，GPU/WebGL 名称、CPU、RAM、设备名和 MAC 地址都有清晰的真实/自定义边界。</p><ul><li><b>引擎目录</b> Chrome for Testing / Firefox 版本校验与轻量删除</li><li><b>代理配置</b> 每个浏览器单独设置 SOCKS、HTTP、HTTPS 并测试连通性</li><li><b>启动前复核</b> 修改后预览立即失效，避免带着旧配置启动</li></ul><a class="link" href="https://github.com/Maoyangui/godusevpn-ultra/blob/codex/windows-privacy/README-ULTRA.zh-CN.md" rel="noopener">阅读完整中文说明 →</a></div><div class="browser-ui"><header><span class="active">● Chrome</span><span>● Firefox</span><b>•••</b></header><label>系统环境 <strong>Windows 11 · 23H2</strong><em>可编辑</em></label><label>User-Agent <strong class="mono">Mozilla/5.0 (Windows NT 10.0; Win64; x64)</strong><i>↻</i></label><label>GPU / WebGL <strong>Google Inc. (AMD) · ANGLE</strong><em>自定义</em></label><div class="proxy"><span>SOCKS5</span><strong>hk.joinvip.vip:2056</strong><b>连通</b></div><footer>预览 UA <span>最后复核 · 刚刚</span></footer></div></div></section>
+<section id="evidence" class="section wrap"><div class="heading"><div><small>03 / DETECTION CENTER</small><h2>检测中心，告诉你现在知道了什么。</h2></div><p>结果按网站、应用、网络和系统分组。未知就是未知，等待真实运行时证据，而不是用演示数据充数。</p></div><div class="evidence"><div class="evidence-main"><header>本地检测快照 <small>2026/10/30 22:26</small></header><div class="counts"><b>5 <small>本次观察项</small></b><b>1 <small>待确认</small></b><span>普通用户观察</span></div><p>🟡　时区、语言与地区可见 <small>网站 · 浏览器指纹</small><strong>已观察</strong></p><p>🔵　程序网络过滤器 <small>网络 · 回环未覆盖</small><strong>有限</strong></p><p>⚪　原生程序硬件读取 <small>应用 · 没有完整读取审计</small><strong>未知</strong></p></div><aside>“配置存在”与“所有页面都被阻断”之间，需要一条证据链。<small>✓ 快照可筛选<br>✓ 导出前预览<br>✓ 本地时间</small></aside></div></section>
+<section id="download" class="download"><div class="wrap download-in"><div><small>04 / GET ULTRA</small><h2>下载 Ultra，节点订阅仍在 GodUseVPN。</h2><p>Ultra 是 Windows 隐私增强客户端。需要节点时，进入 GodUseVPN 官方订阅页；客户端不会把面板密钥放到本地。</p></div><div class="actions"><a class="button" href="https://github.com/Maoyangui/godusevpn-ultra/releases/tag/v0.02" rel="noopener">下载 v0.02</a><a class="button ghost" href="https://godusevpn.org/subscription/" rel="noopener">节点订阅</a></div></div></section>
+</main><footer class="footer"><div class="wrap"><span><i class="brand-mark">U</i> GodUseVPN Ultra</span><small>Windows 隐私增强客户端 · <a href="https://github.com/Maoyangui/godusevpn-ultra" rel="noopener">GitHub</a> · <a href="https://godusevpn.org/" rel="noopener">godusevpn.org</a></small></div></footer>
+</body></html>
