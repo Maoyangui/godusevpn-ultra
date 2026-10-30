@@ -77,7 +77,7 @@
 
 ## 最终复核追加（968c618，2026-10-31）
 
-本轮只修改 `godusevpn-ultra`，没有触碰 `m-ui`、`godusevpn` 或 `liumeiti.vip`。当前 `main` 与 `codex/windows-privacy` 均指向 `968c618`，工作树干净。
+本轮只修改 `godusevpn-ultra`，没有触碰 `m-ui`、`godusevpn` 或 `liumeiti.vip`。当前 `main` 与 `codex/windows-privacy` 均指向 `0ae95e3`，工作树干净。
 
 - 统一编辑器状态源已修正：浏览器家族、实际内核、GPU/WebGL、WebGPU、保存代理策略和实际连接分别显示；保存值与运行时值冲突时启动被阻断。
 - 指纹种子必须先生成实际配置预览，未形成预览的种子不能直接启动；运行时读回默认保持 `partial/unknown`，不会冒充完整验证。
@@ -87,6 +87,19 @@
 - v0.02 Release 包已用 `968c618` 重新构建并替换旧包，当前 ZIP SHA-256 为 `b2d5835fc7dd3cd8e63e412f9394764b0df0e1f47ba1ea73bea5798300156b8f`；`ULTRA_PACKAGE.json` 为 `sourceDirty=false`。
 - GitHub Pages、Ultra 文档/演示页和五种 GodUseVPN 首页语言入口均可访问；正式首页在无查询参数的浏览器页面中可见 Ultra 入口，入口链接到 Ultra 展示页和节点订阅页，控制台无错误且无横向溢出。
 - Trial Worker 生产 `/healthz` 和 `/status` 正常，计划为 `free`；当前 `panelConfigured=false`、`subscriptionSource=static`。没有真实面板 API 前缀和服务端 token，不能把面板刷新闭环写成完成。
+
+## 原有管理后台集成（Trial Worker 19601b87）
+
+本轮没有新增第二个试用 Worker，也没有修改 `m-ui`、`godusevpn` 或商业站仓库。现有
+`godusevpn-trial-api` 继续承载 `/app/api/trial/*`，并接管原有
+`https://godusevpn.org/manage/` 的同域路由：管理页保留原页面和登录流程，设置面板追加 Ultra 免费试用卡片。
+
+- 管理页可设置试用开关、面板套餐名（默认 `free`）和“购买节点”跳转地址；关闭只停止新领取，不删除历史记录。
+- 管理页可一次性填写面板令牌；令牌不回显、不返回客户端，使用已有 HMAC 密钥派生 AES-GCM 密钥后加密存入现有 D1；留空保存会保留原令牌。
+- 面板地址固定为用户提供的 `https://hk.joinvip.vip:2053/ad/api/v1`，面板请求仍由服务端发出，客户端只收到订阅 URL。
+- 生产管理页注入检查：原始页面 35018 字节，集成页 38435 字节，仅增加 Ultra 卡片；未登录接口 `/manage/ultra-settings` 返回 401。
+- 生产健康检查：`/app/api/trial/healthz` 返回 200、D1/HMAC 正常、计划 `free`；当前仍为 `panelConfigured=false`，必须由管理员在管理页输入令牌后才能取得真实面板 claim/refresh 证据。
+- Worker 本地 `node --check src/index.js` 与 6 项测试全部通过；部署版本为 `19601b87-0318-4986-b05e-53ca022dd86f`。
 
 以下仍是未完成或未取得真实证据的硬性项目：真实 Cookie 导入、启动标签页、完整 WebRTC/Canvas/Audio/媒体/ClientRects/SpeechVoices 噪音、字体/地理位置/DNT/端口扫描/TLS/同步适配器、OOPIF/Worker 全量读回、真实普通用户 Chrome/Firefox 代理出口、Win10 1809/19044 与 Win11 x64/ARM64 VPS 矩阵、GPS provider 写入/恢复、D03/N08、CEF/uBlock，以及面板 token 注入后的真实 claim/refresh。当前界面会保持“待验证/部分支持/不支持/未知”，不以静态页面或模拟数据替代这些证据。
 
