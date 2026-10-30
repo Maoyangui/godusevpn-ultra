@@ -20,6 +20,9 @@ function fixture(){
   GetState:async()=>({platform:'windows',service:true,lang:'zh',theme:'light',view:{profiles:[],nodes:[],settings:{},state:{status:'disconnected'}}}),
   PrivacyReport:async()=>({platform:'windows',controls:[],capabilities:[],warnings:[]}),PrivacyFirewallReport:async()=>({supported:true,rules:[]}),PrivacyHelperStatus:async()=>({state:'not_requested'}),PrivacyTimeReport:async()=>({supported:false,choices:[],status:'unsupported'}),BrowserHostReport:async()=>({supported:true,engines:[]}),
   BrowserProfileDefaults:async()=>({config:clone(config),regions:[clone(region)],graphicsPresets:[],environmentPresets:[{config:clone(environment),recommendedViewport:{width:1280,height:720}}],hostAvailable:true}),
+  TrialStatus:async()=>({enabled:true,status:'available',plan:'free',purchaseUrl:'https://godusevpn.org/subscription/'}),
+  TrialClaim:async()=>({status:'claimed',subscriptionUrl:'https://sub.example/free',purchaseUrl:'https://godusevpn.org/subscription/'}),
+  UpsertTrialProfile:async()=>[],
   BrowserEngineCatalog:async()=>{calls.push(['catalog']);return {releases:initial.map(v=>({engineId:v.engineId,version:v.version})),fetchedAt:'fixed synthetic time'}},
   BrowserEngineVersions:async()=>{calls.push(['inventory']);return clone(inventory)},
   BrowserEngineProfileStatus:async()=>{calls.push(['status']);return onStatus?onStatus():clone(current)},
@@ -63,8 +66,10 @@ async function staleAndPendingOperations(f){
  await f.click('[data-browser-pane="versions"]');await f.click('#privacy-engine-local');assert.equal(f.button(),null,'an explicit fresh local read reconciles an earlier completed deletion');
 }
 async function activeStateBlocksDeletion(f,name){
- await f.open();f.setStatus(name);f.edit('#privacy-engine-version',version);f.edit('#privacy-engine-route','proxy','change');f.edit('#privacy-proxy-host','synthetic.proxy.invalid');await f.click('#privacy-engine-launch');
- assert.equal(f.button().disabled,true,name+' disables deletion');f.button().dispatchEvent(new f.w.Event('click',{bubbles:true}));await wait();assert.equal(f.count('delete'),0);assert.equal(f.q('#dialog-yes'),null);
+ await f.open();f.onStatus(()=>status(name));f.setStatus(name);f.edit('#privacy-engine-version',version);f.edit('#privacy-engine-route','proxy','change');f.edit('#privacy-proxy-host','synthetic.proxy.invalid');
+ // Deletion performs a fresh status preflight. Active, cancelling and unknown
+ // owners must be rejected without removing the cached engine row.
+ await f.confirm();assert.equal(f.count('status'),1,name+' performs a fresh deletion preflight');assert.equal(f.count('delete'),0,name+' refuses deletion');assert.ok(f.button(),name+' keeps the cached version row');
 }
 async function freshActiveOwnerRefusesBeforeDelete(f){
  await f.open();f.setStatus('ready');await f.confirm();assert.equal(f.count('status'),1);assert.equal(f.count('delete'),0,'fresh active state must refuse before calling Delete');assert.ok(f.button());assert.match(f.q('.privacy-engine-manager [role="alert"]').textContent,/关闭|状态/);

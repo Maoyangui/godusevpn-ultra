@@ -4,8 +4,8 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const {JSDOM}=require(process.argv[2]||'jsdom');
 const root=path.resolve(__dirname,'../../..');
 const dom=new JSDOM(`<!doctype html><html><body><section id="scope" class="privacy">
- <div class="privacy-toolbar"><button id="toolbar-action">检查</button><button id="toolbar-existing">已有帮助</button><button id="toolbar-help" type="button" class="privacy-help" data-privacy-help="固定已有帮助">?</button></div>
- <div class="privacy-actions"><button id="row-action">执行</button><input id="row-input"><span id="status">尚未操作</span></div>
+ <div class="privacy-toolbar"><button id="toolbar-action" data-help-text="检查当前范围">检查</button><button id="toolbar-existing" data-help-text="查看已有状态">已有帮助</button><button id="toolbar-help" type="button" class="privacy-help" data-privacy-help="固定已有帮助">?</button></div>
+ <div class="privacy-actions"><button id="row-action" data-help-text="执行当前项目">执行</button><input id="row-input"><span id="status">尚未操作</span></div>
  <details id="plain"><summary id="plain-summary">范围</summary><p>说明</p></details>
  <article class="privacy-module-guide"><details id="guide"><summary id="guide-summary"><strong>模块标题</strong><span class="privacy-badge">部分范围</span><span class="privacy-guide-summary">简短说明</span></summary><button id="guide-existing-help" type="button" class="privacy-help" data-privacy-help="模块已有帮助">?</button><p>说明</p></details></article>
  <details id="existing"><summary id="existing-summary">已有内部帮助<button id="inside-help" type="button" class="privacy-help" data-privacy-help="内部已有帮助">?</button></summary><p>说明</p></details>
