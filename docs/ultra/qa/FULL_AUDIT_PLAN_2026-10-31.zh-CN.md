@@ -86,7 +86,7 @@
 - GitHub Actions：Ultra Pages 与 Windows Beta 在 `968c618` 均通过；Windows Beta 完成包校验、Go 回归、浏览器 UI、Edge 视觉、打包和最终 payload 审计。
 - v0.02 Release 包已用 `968c618` 重新构建并替换旧包，当前 ZIP SHA-256 为 `b2d5835fc7dd3cd8e63e412f9394764b0df0e1f47ba1ea73bea5798300156b8f`；`ULTRA_PACKAGE.json` 为 `sourceDirty=false`。
 - GitHub Pages、Ultra 文档/演示页和五种 GodUseVPN 首页语言入口均可访问；正式首页在无查询参数的浏览器页面中可见 Ultra 入口，入口链接到 Ultra 展示页和节点订阅页，控制台无错误且无横向溢出。
-- Trial Worker 生产 `/healthz` 和 `/status` 正常，计划为 `free`；当前 `panelConfigured=false`、`subscriptionSource=static`。没有真实面板 API 前缀和服务端 token，不能把面板刷新闭环写成完成。
+- Trial Worker 生产 `/healthz` 和 `/status` 正常，计划为 `free`；当前 `panelConfigured=false`、`subscriptionSource=static`。真实面板 API 前缀已固定为用户提供的地址，服务端令牌尚未由管理页写入，因此不能把面板刷新闭环写成完成。
 
 ## 原有管理后台集成（Trial Worker 19601b87）
 
