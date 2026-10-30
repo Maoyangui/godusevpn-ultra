@@ -74,3 +74,18 @@
 - `browser-saved-profiles-ui.cjs` 覆盖统一编辑器、Cookie、URL 操作、保存/载入/CAS 和无重复核心控件。
 
 仍未宣称完成的项目：真实 Cookie 导入、启动标签页、完整 WebRTC/噪音/字体/地理位置、RAM/MAC/设备名、DNT/端口扫描/TLS/同步、OOPIF/Worker/WebGPU 全上下文读回，以及 ARM64 和真实 Windows VPS 矩阵。这些继续按“运行时待验证”“当前宿主不支持”或“需要原生适配器”分类。
+
+## 最终复核追加（968c618，2026-10-31）
+
+本轮只修改 `godusevpn-ultra`，没有触碰 `m-ui`、`godusevpn` 或 `liumeiti.vip`。当前 `main` 与 `codex/windows-privacy` 均指向 `968c618`，工作树干净。
+
+- 统一编辑器状态源已修正：浏览器家族、实际内核、GPU/WebGL、WebGPU、保存代理策略和实际连接分别显示；保存值与运行时值冲突时启动被阻断。
+- 指纹种子必须先生成实际配置预览，未形成预览的种子不能直接启动；运行时读回默认保持 `partial/unknown`，不会冒充完整验证。
+- `site/docs.html` 与 `site/demo/index.html` 已改为 Ultra 所有权的 canonical、OG、GitHub、Release 和 Issues 链接，并明确基础客户端演示不等于原生运行时证据。
+- 本地测试：`go test -tags with_clash_api ./...`、`go vet`、`node --check`、静态站点构建、演示页资源扫描、8 组浏览器 UI fixture、Edge 视觉回归均通过；视觉 QA 结果为 20/92/12 张截图，错误、阻断请求和布局问题均为 0。
+- GitHub Actions：Ultra Pages 与 Windows Beta 在 `968c618` 均通过；Windows Beta 完成包校验、Go 回归、浏览器 UI、Edge 视觉、打包和最终 payload 审计。
+- v0.02 Release 包已用 `968c618` 重新构建并替换旧包，当前 ZIP SHA-256 为 `b2d5835fc7dd3cd8e63e412f9394764b0df0e1f47ba1ea73bea5798300156b8f`；`ULTRA_PACKAGE.json` 为 `sourceDirty=false`。
+- GitHub Pages、Ultra 文档/演示页和五种 GodUseVPN 首页语言入口均可访问；正式首页在无查询参数的浏览器页面中可见 Ultra 入口，入口链接到 Ultra 展示页和节点订阅页，控制台无错误且无横向溢出。
+- Trial Worker 生产 `/healthz` 和 `/status` 正常，计划为 `free`；当前 `panelConfigured=false`、`subscriptionSource=static`。没有真实面板 API 前缀和服务端 token，不能把面板刷新闭环写成完成。
+
+以下仍是未完成或未取得真实证据的硬性项目：真实 Cookie 导入、启动标签页、完整 WebRTC/Canvas/Audio/媒体/ClientRects/SpeechVoices 噪音、字体/地理位置/DNT/端口扫描/TLS/同步适配器、OOPIF/Worker 全量读回、真实普通用户 Chrome/Firefox 代理出口、Win10 1809/19044 与 Win11 x64/ARM64 VPS 矩阵、GPS provider 写入/恢复、D03/N08、CEF/uBlock，以及面板 token 注入后的真实 claim/refresh。当前界面会保持“待验证/部分支持/不支持/未知”，不以静态页面或模拟数据替代这些证据。
