@@ -27,7 +27,7 @@
 | GPS/Windows Location Provider | Win10 build 19044 低于 GeolocationProvider 23504 门禁，UI 正确显示不可用；Win11 只提供“可能支持”检查。现有代码是只读观察与恢复边界，没有可证明的系统位置写入、独立读回和冲突恢复闭环 |
 | CEF/uBlock | 仓库只有候选/审计记录，没有可运行集成和更新/权限流程 |
 | Win10 1809/LTSC 2019、22H2 与 Win11 多版本 | 17763/19044 已有有限安装与服务/CLI/隐私报告证据，19044 另有 GUI/隧道扩展证据；1809 的普通用户 GUI、22H2 完整功能和 Win11 多版本仍需各自 VM/接口矩阵证据 |
-| godusevpn.org 线上免费试用 | 已通过 Cloudflare Worker 版本 `608a5434-e3ee-4067-bfce-3fbfa234d9df` + `godusevpn-commerce` D1 上线；服务端只保存设备 HMAC 摘要、月份、短标识、订阅 URL、来源备注和时间，不把面板令牌交给客户端。实测 status 200、claim 200 返回真实 `hk.joinvip.vip:2056` 订阅且订阅 URL 返回 HTTP 200、同设备再次 status 为 `already_claimed`、再次 claim 为 HTTP 409，OPTIONS 为 204，非法设备为 400，恶意 Origin 不返回允许跨域头；D1 备注为“来源：佛跳墙内置免费试用；套餐：free”。公开前缀健康检查 `/app/api/trial/healthz` 返回 `backend=d1`、`backendConfigured=true`、`upstreamConfigured=false`。后台截图确认面板 API 已就绪、`free` 套餐存在并完成映射。详细回执见 [D1 线上回归](TRIAL_PRODUCTION_D1_2026-10-30.md)。 |
+| godusevpn.org 线上免费试用 | 已通过 Cloudflare Worker `godusevpn-trial-api` 当前版本 `b497bed8-9017-4ce3-bf34-640850a1fe93` + `godusevpn-commerce` D1 上线；服务端只保存设备 HMAC 摘要、月份、短标识、订阅 URL、来源备注和时间，不把面板令牌交给客户端。实测 status 200、claim 200 返回真实 `hk.joinvip.vip:2056` 订阅且订阅 URL 返回 HTTP 200、同设备再次 status 为 `already_claimed`、再次 claim 为 HTTP 409，OPTIONS 为 204，非法设备为 400，恶意 Origin 不返回允许跨域头；D1 备注为“来源：佛跳墙内置免费试用；套餐：free”。公开前缀健康检查 `/app/api/trial/healthz` 返回 `backend=d1`、`backendConfigured=true`、`upstreamConfigured=false`。后台截图确认面板 API 已就绪、`free` 套餐存在并完成映射。Worker 源码不属于 GitHub 仓库。详细回执见 [D1 线上回归](TRIAL_PRODUCTION_D1_2026-10-30.md)。 |
 
 ## 结论
 
@@ -40,4 +40,5 @@
 - DOM QA：浏览器环境、UA/GPU、代理草稿、内核管理、错误转义、过期快照与未支持入口全部通过；v0.02 发布后再次执行七组 UI fixture，结果全部通过。
 - 像素 QA：420px 窄屏与 900px 深浅色完整审计共 32 张截图，`errors=[]`、`outboundRequests=[]`；v0.02 发布后以 Chrome headless 在 420×760 浅色视口再次生成 8 张截图，`errors=[]`、`outboundRequests=[]`，输出目录为 `C:\Temp\ultra-v002-final-visual`。beta.6.6 发布包重新执行 ZIP/PE/前端资产审计，payload 1998、ZIP 成员 1999，SHA-256 与 GitHub Release sidecar 一致。试用卡片另以 420×760 快照核对，正文和状态各只出现一次，两按钮同排。
 - 视觉结论只代表布局、层级、可读性和交互反馈通过；不升级为浏览器宿主、代理出口或 GPS 运行时通过。
+
 
