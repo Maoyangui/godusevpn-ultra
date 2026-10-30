@@ -1,6 +1,6 @@
 # GodUseVPN 线上免费试用 D1 回归（2026-10-30）
 
-本次回归验证的是 Cloudflare Worker `godusevpn-trial-api` 版本 `39193d8e-d3b7-4617-8630-4c7b64b5a72e`，路由为 `godusevpn.org/app/api/trial/*`，绑定 D1 `godusevpn-commerce`。测试没有读取或输出订阅令牌、HMAC 密钥或面板令牌。
+本次回归验证的是 Cloudflare Worker `godusevpn-trial-api` 版本 `820c2b67-9884-419e-9da0-6cbdd6259d33`，路由为 `godusevpn.org/app/api/trial/*`，绑定 D1 `godusevpn-commerce`。测试没有读取或输出订阅令牌、HMAC 密钥或面板令牌。健康检查返回 `backend=d1`、`backendConfigured=true`。
 
 ## 实测结果
 
