@@ -73,6 +73,9 @@ async function run() {
     assert.equal(q('#privacy-browser-launch').disabled, false);
     assert.equal(calls.length, 0, 'loading the form must never launch or configure a browser');
     assert.ok(q('.privacy-browser-profile [data-privacy-help]'));
+    choose('#privacy-browser-exit-cleanup', 'delete-owned-profile');
+    q('#privacy-browser-preview').click(); await settle();
+    assert.equal(calls.at(-1)[1].exitCleanup, 'delete-owned-profile', 'exit cleanup choice is forwarded in the reviewed browser config');
     edit('#privacy-browser-id', 'private-2');
     q('#privacy-browser-preview').click(); await settle();
     assert.equal(q('#privacy-browser-launch').disabled, false);

@@ -4,7 +4,7 @@
 
 - v0.02 已构建并发布预览包 [godusevpn-ultra-0.02-windows-amd64.zip](https://github.com/Maoyangui/godusevpn-ultra/releases/tag/v0.02)，包名全小写；发布标签 `v0.02` 固定在发布提交 `98249d7`，当前主线源码与文档已推进到 `245e1e2`，远程 ZIP SHA-256 为 `5f3d23a7d912429c244da080a734a172c6df1766a9a40198145dbaf55a1d1ff3`。下载包后仍必须以同名 `.sha256` sidecar 校验实际 ZIP。构建验证还修复了 Windows PowerShell BOM 导致的资源构建失败。
 - Ultra 介绍页已发布到 [maoyangui.github.io/godusevpn-ultra](https://maoyangui.github.io/godusevpn-ultra/)，GodUseVPN 生产首页由 `godusevpn-ultra-home-bridge` Worker（版本 `7547a7ef-1edd-469c-ad90-38d19b4d0a84`）在下载区域追加 Ultra 入口、问号说明和订阅跳转；生产 HTML 复核为单个入口，按钮与 tooltip 可见。该桥接不修改 liumeiti.vip，也不覆盖 Pages 源站。
-- `godusevpn.org/app/api/trial/*` 已由 Cloudflare Worker 版本 `608a5434-e3ee-4067-bfce-3fbfa234d9df` 接管，并绑定 GodUseVPN 自己的 `godusevpn-commerce` D1。实测 status 200、claim 200 返回真实 `hk.joinvip.vip:2056` 订阅、同设备 409、再次 status 为 `already_claimed`、OPTIONS 204、非法设备 400、恶意 Origin 无允许跨域头；D1 记录短 `t-xxxxxxxx` 标识和“来源：佛跳墙内置免费试用；套餐：free”备注。新增公开前缀健康检查 `/app/api/trial/healthz`，线上返回 `backend=d1`、`backendConfigured=true`、`upstreamConfigured=false`。`TRIAL_ENABLED`、`TRIAL_PLAN`、`TRIAL_PURCHASE_URL` 由 Worker 配置控制，客户端不接触令牌；面板 API 的 `free` 套餐映射已在 GodUseVPN 后台确认通过。
+- `godusevpn.org/app/api/trial/*` 由 Cloudflare Worker `godusevpn-trial-api` 直接部署在 GodUseVPN 的 Cloudflare 项目中，当前版本 `b497bed8-9017-4ce3-bf34-640850a1fe93`，绑定 `godusevpn-commerce` D1。实测 status 200、claim 200 返回真实 `hk.joinvip.vip:2056` 订阅、同设备 409、再次 status 为 `already_claimed`、OPTIONS 204、非法设备 400、恶意 Origin 无允许跨域头；D1 记录短 `t-xxxxxxxx` 标识和“来源：佛跳墙内置免费试用；套餐：free”备注。公开前缀健康检查 `/app/api/trial/healthz` 返回 `backend=d1`、`backendConfigured=true`、`upstreamConfigured=false`。`TRIAL_ENABLED`、`TRIAL_PLAN`、`TRIAL_PURCHASE_URL` 由 Worker 配置控制，客户端不接触令牌；面板 API 的 `free` 套餐映射已在 GodUseVPN 后台确认通过。Worker 源码不属于 GitHub 仓库。
 - Azure Win10 19044/17763 曾有安装、服务、CLI、隧道和出口的有限实机证据；当前 v0.02 预览包又在 19044 VM 完成包校验、固定目录安装、服务 Running/Auto/LocalSystem、CLI 版本/状态和隐私报告回读，详见 [v0.02 VM 复测](qa/QA_V002_VM_RETEST_2026-10-30.zh-CN.md)。普通用户 VM 仍未重新完成 Chrome/Firefox 原生窗口、导航和 GPS 写入读回。代码启动链存在不等于这些运行时能力已验收。
 - 仍未关闭：真实 Chrome/Firefox 多版本窗口与代理出口矩阵、WebRTC/WebGPU/OOPIF/Worker 读回、Windows GPS provider 写入/读回、CEF/uBlock 运行集成、跨 Windows 版本完整矩阵，以及 D03/N08 等原台账范围。不得用 DOM、mock、纯 Go/C# 测试或旧包证据替代这些范围。
 
@@ -85,7 +85,7 @@ QA9 普通用户保存、列举和载入的有限往返、单条独立磁盘证�
 |---|---|---|
 | B01 WebRTC | Chrome/Edge固定策略、扩展正式API限制非代理UDP；新TEMP Edge配置真实设置/控制权/journal/恢复往返通过 | 不是完全关闭或公网IP消失证明；未做STUN/流量、其他配置或来源路径验收 |
 | B02 第三方Cookie | 固定策略、扩展控制权/读回；新TEMP Edge配置实际API设置/恢复通过 | 不证明所有Cookie请求被阻止；例外、Storage Access、第一方关联仍存在，不清理旧数据 |
-| B03 独立身份/退出清理 | 独立会话使用生成的 `BrowserInstances/<session-id>` 私有树；进程树与防火墙撤销确认后，以 `os.Root` 相对句柄扫描、拒绝重解析点并删除本次会话树，失败明确保留 `closing_or_unknown`，不会触碰共享内核缓存或 `BrowserProfiles`。源码/Windows 交叉编译与纯文件回归已通过 | 真实浏览器窗口退出、异常进程与跨版本数据目录仍需 VM 验收；持久化浏览数据选择器尚未开放，不能把清理回归外推为所有浏览器数据类型覆盖 |
+| B03 独立身份/退出清理 | 独立会话使用生成的 `BrowserInstances/<session-id>` 私有树；浏览器配置新增“退出时数据”选择，可保留数据或请求删除本会话拥有的数据树。进程树与防火墙撤销确认后，以 `os.Root` 相对句柄扫描、拒绝重解析点并删除，失败明确保留 `closing_or_unknown`，不会触碰共享内核缓存或 `BrowserProfiles`。源码/Windows 交叉编译与纯文件回归已通过 | 真实浏览器窗口退出、异常进程与跨版本数据目录仍需 VM 验收；选择器已接入配置但不能把 UI 选择或纯测试外推为实际浏览数据删除完成 |
 | B04 跟踪参数/Referer/ping | 扩展正式API；用户粘贴链接、预览后复制，敏感模式保守保留 | 无后台自动改写；签名语义无法通用识别；逐站例外管理仍需开发 |
 | B05 预测/建议/诊断 | 固定策略；扩展支持的预测等；新TEMP Edge配置的network prediction实际API设置/恢复通过 | 其他设置/版本与企业策略页仍待验；保留安全浏览/更新防护，设置值不证明流量行为 |
 | B06 网站设备/内容权限 | 正式API按类型选择allow/ask/block（JS仅两态，摄像头/麦克风allow须HTTPS）；fake/DOM通过，新TEMP Edge仅通知example.invalid的block/ask/clear抽样通过 | 本次仍verified=false，不推断所有站点或规则均撤销；其余API/企业覆盖/隐身待验；改变来源替换本扩展同类规则 |

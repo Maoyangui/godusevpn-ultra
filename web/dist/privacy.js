@@ -228,12 +228,14 @@ function renderPrivacy(el, arg) {
     const pendingVersion=model.browserEngine.version&&!localVersions.some(v=>v.version===model.browserEngine.version);
     const selectedVersion = browserEngineRecord();
     const ready = browserEngineReady();
+    const exitCleanup = c.exitCleanup === 'delete-owned-profile' ? 'delete-owned-profile' : 'retain-profile';
     const launchLabel = ready ? (model.browserPreview ? '打开浏览器' : '检查并打开') : model.browserEngine.engineId === 'webview2' ? (info.hostAvailable ? '检查并打开' : '需完整安装') : selectedVersion ? '检查并打开' : '请选择已核验内核';
     return `<article class="privacy-card privacy-browser-profile"><div class="privacy-card-head"><h2>专用浏览器${privacyHelp('独立保存浏览数据；只在已确认的受保护隧道内打开。隧道或控制连接失效时停止浏览，不改你的 VPN 设置。')}</h2><span class="privacy-badge">${!info.hostAvailable ? '需要完整安装' : info.canLaunch === true ? '启动路径已开放' : '组件已核验，待启动验收'}</span></div>
       <p>先选配置并预览，再打开浏览器。</p><div class="privacy-browser-fields">
       <label>浏览器内核${privacyHelp('选择实际内核。Chrome / Firefox 可从“内核版本”下载多个官方版本；选中后 UA、环境检查和启动都使用此版本。网页系统环境模拟不替换实际内核。')}<select id="privacy-browser-engine" aria-label="专用浏览器内核" ${disabled}><option value="webview2" ${model.browserEngine.engineId==='webview2'?'selected':''}>WebView2 / Edge</option><option value="chrome-for-testing" ${model.browserEngine.engineId==='chrome-for-testing'?'selected':''}>Google Chrome / Chromium</option><option value="firefox" ${model.browserEngine.engineId==='firefox'?'selected':''}>Firefox / Gecko</option></select></label>
       <label>内核版本${privacyHelp('列出已下载并核对的版本；载入的历史版本会标记缓存待检查。安装新版本请切换“内核版本”；不会把 UA 数字当成已安装内核。启动时重新核对。')}<select id="privacy-browser-engine-version" aria-label="使用的浏览器内核版本" ${disabled || model.browserEngine.engineId==='webview2'?'disabled':''}>${model.browserEngine.engineId==='webview2'?'<option value="">使用本机 WebView2 运行时</option>':'<option value="">请选择已下载版本</option>'+(pendingVersion?`<option value="${safe(model.browserEngine.version)}" selected>${safe(model.browserEngine.version)}（本地缓存待检查）</option>`:'')+localVersions.map(v=>`<option value="${safe(v.version)}" ${v.version===model.browserEngine.version?'selected':''}>${safe(v.version)}</option>`).join('')}</select></label>
       <label>配置名称${privacyHelp('可填写中文，保存时生成独立标识。只保存本页环境、UA、图形和内核选择；不保存代理地址、认证、订阅或启动授权。')}<input id="privacy-browser-profile-name" aria-label="浏览器配置名称" maxlength="80" value="${safe(model.browserProfileName)}" placeholder="例如：日常浏览" ${disabled}></label>
+      <label>退出时数据${privacyHelp('选择关闭专用会话后的数据处理方式。删除只针对本次会话拥有的数据树，失败会保留并报告；共享内核缓存和其他配置不会删除。')}<select id="privacy-browser-exit-cleanup" aria-label="浏览器退出时数据处理" ${disabled}><option value="retain-profile" ${exitCleanup==='retain-profile'?'selected':''}>保留浏览数据</option><option value="delete-owned-profile" ${exitCleanup==='delete-owned-profile'?'selected':''}>删除本会话数据</option></select></label>
       <label>语言与时区${privacyHelp('成组选取语言、地区和时区，避免相互矛盾。仅影响专用浏览器，不改系统设置。')}<select id="privacy-browser-region" aria-label="浏览器语言与时区" ${disabled}>${regions.map(r => `<option value="${safe(r.presetId)}" ${r.presetId === c.region.presetId ? 'selected' : ''}>${safe(r.language)} · ${safe(r.timezone)}</option>`).join('')}</select></label>
       <label>系统环境${privacyHelp('选择网页可见的系统、设备、视口与触控模板，之后可手动编辑。实际运行所选 Windows 浏览器内核；iOS 是合成环境，UA 保留真实 Blink/Gecko 标识，不是零售 iOS 浏览器或 Safari，也不改变全部字体、渲染与硬件特征。')}<select id="privacy-browser-environment" aria-label="浏览器系统环境" ${disabled}><option value="native" ${!environment ? 'selected' : ''}>使用本机浏览器环境</option>${environments.map(p=>`<option value="${safe(p.config.devicePresetId)}" ${environment && environment.devicePresetId===p.config.devicePresetId?'selected':''}>${safe(environmentNames[p.config.os] || p.config.os)} · ${safe(p.model || '桌面')}</option>`).join('')}</select></label>
       <label>${environment&&environment.os==='windows'?'平台版本':'系统版本'}${privacyHelp(environment&&environment.os==='windows'?'这是 Windows Client Hints 的 API 合约平台版本，不是营销版号。快捷预设为 Windows 10 → 10.0.0、Windows 11 → 13.0.0；可以继续手动编辑。现代生成 UA 均保留 Windows NT 10.0。':'输入 1–3 段数字，例如 16.0。浏览器版本来自实际内核；现代 UA 可能使用规范冻结的 OS 字符串，详细环境参数独立协调。iOS 为合成环境。')}<input id="privacy-browser-os-version" aria-label="浏览器环境系统版本" value="${safe(environment ? environment.osVersion : '')}" maxlength="11" inputmode="decimal" placeholder="使用原生信息" ${disabled || !environment ? 'disabled' : ''}></label>
@@ -579,6 +581,7 @@ function renderPrivacy(el, arg) {
   }
   function bindSavedBrowserProfiles(){
     const name=el.querySelector('#privacy-browser-profile-name');if(name)name.addEventListener('input',()=>{if(!alive()||model.tab!=='browser'||!el.contains(name)||model.browserBusy)return;model.browserProfileName=name.value;markBrowserProfileEdited(false);});
+    const exitCleanup=el.querySelector('#privacy-browser-exit-cleanup');if(exitCleanup)exitCleanup.addEventListener('change',()=>{if(!alive()||model.tab!=='browser'||!model.browser||model.browserBusy)return;model.browser.config.exitCleanup=exitCleanup.value==='delete-owned-profile'?'delete-owned-profile':'retain-profile';markBrowserProfileEdited(true);draw();});
     const select=el.querySelector('#privacy-browser-profile-select');if(select)select.addEventListener('change',()=>{model.browserSavedSelection=select.value;const button=el.querySelector('#privacy-browser-profile-load');if(button)button.disabled=!select.value;});
     for(const action of ['save','list','load','new','delete']){
       const button=el.querySelector('#privacy-browser-profile-'+action);if(!button)continue;
@@ -1039,6 +1042,7 @@ function privacyDecorateHelp(el) {
     , 'privacy-browser-engine': '选择专用浏览器实际使用的宿主内核。'
     , 'privacy-browser-engine-version': '选择已经下载并核验的具体内核版本。'
     , 'privacy-browser-profile-name': '给当前浏览器环境起一个本地配置名称。'
+    , 'privacy-browser-exit-cleanup': '选择关闭专用会话后的数据处理方式；删除只作用于本组件拥有的数据树。'
     , 'privacy-browser-region': '选择语言、地区和时区组合，只影响专用浏览器环境。'
     , 'privacy-browser-environment': '选择网页可见的系统设备模板，可继续手动编辑。'
     , 'privacy-browser-os-version': '填写系统环境版本提示；不会改变真实 Windows 版本。'
