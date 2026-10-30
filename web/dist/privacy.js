@@ -467,8 +467,9 @@ function renderPrivacy(el, arg) {
         const bar=document.createElement('section');bar.className='privacy-unified-actions';bar.setAttribute('aria-label','统一操作栏');
         const heading=document.createElement('h3');heading.className='privacy-data-subtitle';heading.textContent='操作与保存';heading.dataset.helpText='所有浏览器配置操作集中在这里；保存、校验、启动和删除不会绕过当前草稿与能力门禁。';bar.appendChild(heading);
         const library=profile.querySelector('.privacy-profile-library');
-        const finalAction=profile.querySelector('#privacy-browser-random')?.closest('.privacy-actions');
-        const v2Action=profile.querySelector('#privacy-browser-v2-generate')?.closest('.privacy-actions');
+        const randomButton=profile.querySelector('#privacy-browser-random'), v2Generate=profile.querySelector('#privacy-browser-v2-generate');
+        const finalAction=randomButton?randomButton.closest('.privacy-actions'):null;
+        const v2Action=v2Generate?v2Generate.closest('.privacy-actions'):null;
         for(const node of [library,finalAction,v2Action])if(node){bar.appendChild(node);}
         profile.appendChild(bar);
       }
