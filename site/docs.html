@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>文档 —— 佛跳墙 · godusevpn</title>
-<meta name="description" content="四端安装、日常使用、路由规则、IPv6 处理、命令行与排障。">
+<title>基础客户端文档 —— GodUseVPN Ultra</title>
+<meta name="description" content="GodUseVPN 基础客户端的安装、日常使用、路由规则、IPv6 处理、命令行与排障；Ultra 当前发布版仅支持 Windows。">
 <meta name="author" content="Maoyangui">
-<link rel="canonical" href="https://maoyangui.github.io/godusevpn/docs.html">
+<link rel="canonical" href="https://maoyangui.github.io/godusevpn-ultra/docs.html">
 <meta property="og:type" content="article">
-<meta property="og:site_name" content="佛跳墙 · godusevpn">
+<meta property="og:site_name" content="GodUseVPN Ultra">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:title" content="文档 —— 佛跳墙 · godusevpn">
-<meta property="og:description" content="四端安装、日常使用、路由规则、IPv6 处理、命令行与排障。">
-<meta property="og:url" content="https://maoyangui.github.io/godusevpn/docs.html">
-<meta property="og:image" content="https://maoyangui.github.io/godusevpn/assets/shots/home.png">
+<meta property="og:title" content="基础客户端文档 —— GodUseVPN Ultra">
+<meta property="og:description" content="GodUseVPN 基础客户端的安装、日常使用、路由规则、IPv6 处理、命令行与排障；Ultra 当前发布版仅支持 Windows。">
+<meta property="og:url" content="https://maoyangui.github.io/godusevpn-ultra/docs.html">
+<meta property="og:image" content="https://maoyangui.github.io/godusevpn-ultra/assets/shots/home.png">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#2f8bff">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
@@ -24,7 +24,7 @@
   <div class="wrap bar">
     <a class="brand" href="./">
       <svg viewBox="-16 -50 400 400" aria-hidden="true"><defs><linearGradient id="bg" gradientUnits="userSpaceOnUse" x1="70" y1="70" x2="310" y2="270"><stop offset="0" stop-color="#6a44f2"/><stop offset=".55" stop-color="#2f8bff"/><stop offset="1" stop-color="#18e3e8"/></linearGradient></defs><g fill="none" stroke="url(#bg)" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"><path d="M86 248V84l146 124v52"/><path d="M332 78l-88 96"/></g><path fill="url(#bg)" d="M118 192l52 30-52 30z"/></svg>
-      <span>佛跳墙</span><small>godusevpn</small>
+      <span>GodUseVPN</span><small>Ultra · 基础文档</small>
     </a>
     <nav class="nav" aria-label="主导航">
       <a href="./">首页</a>
@@ -32,8 +32,8 @@
       <a href="demo/">在线演示</a>
     </nav>
     <div class="right">
-      <a class="gh" href="https://github.com/Maoyangui/godusevpn" rel="noopener">GitHub</a>
-      <a class="cta" href="https://github.com/Maoyangui/godusevpn/releases">下载</a>
+      <a class="gh" href="https://github.com/Maoyangui/godusevpn-ultra" rel="noopener">GitHub</a>
+      <a class="cta" href="https://github.com/Maoyangui/godusevpn-ultra/releases">下载 Ultra</a>
     </div>
   </div>
 </header>
@@ -55,8 +55,9 @@
   </aside>
 
   <article class="doc">
-    <h1>文档</h1>
-    <p class="lead">四端装法不同,装完之后的界面和操作是同一套。先找到自己的平台。</p>
+    <h1>基础客户端文档</h1>
+    <p class="lead">这里保留 GodUseVPN 基础客户端的安装、网络和排障说明，供理解通用客户端行为。</p>
+    <div class="note"><b>阅读范围。</b>本页是基础客户端文档，不是 Ultra 原生运行时的兼容性承诺。Ultra 当前公开预览版只支持 Windows 10 1809+ / Windows 11；隐私中心、检测中心、浏览器环境和 GPU/UA 配置请以 Windows 客户端实际读回为准。macOS、Linux、Android 段落不会把对应平台标记为 Ultra 已发布。</div>
 
     <h2 id="win">Windows</h2>
     <p>需要 <b>Windows 10 1809(内部版本 17763)或更高</b>,x64 与 ARM64 各一个包。Windows 7 / 8 用不了,也不打算支持:Go 从 1.21 起不再支持它们,微软也停了那两个系统的 WebView2。</p>
@@ -167,20 +168,20 @@ godusevpn-svc uninstall</code></pre></div>
     <h3>远程 SSH 会不会被切断</h3>
     <p>不会。Linux 上连上后会给每个物理网卡地址加一条"回包走主表"的策略路由,本机对外服务的回包不进 TUN。</p>
     <h3>要提交问题</h3>
-    <p>日志 → 导出诊断包,里面订阅地址已经打码。连同现象一起发到 <a href="https://github.com/Maoyangui/godusevpn/issues" rel="noopener">Issues</a>。</p>
+    <p>日志 → 导出诊断包,里面订阅地址已经打码。连同现象一起发到 <a href="https://github.com/Maoyangui/godusevpn-ultra/issues" rel="noopener">Ultra Issues</a>。</p>
   </article>
 </main>
 
 <footer class="foot">
   <div class="wrap">
     <div class="cols">
-      <div><p class="muted small">更细的实现说明在仓库的 <a href="https://github.com/Maoyangui/godusevpn#readme" rel="noopener">README</a>。<br>GPL-3.0,与内嵌的 sing-box 一致。</p></div>
+      <div><p class="muted small">Ultra 的实现说明在 <a href="https://github.com/Maoyangui/godusevpn-ultra#readme" rel="noopener">README</a>。<br>GPL-3.0,与内嵌的 sing-box 一致。</p></div>
       <div>
         <a href="./">首页</a>
         <a href="demo/">在线演示</a>
-        <a href="https://github.com/Maoyangui/godusevpn" rel="noopener">GitHub</a>
-        <a href="https://github.com/Maoyangui/godusevpn/releases" rel="noopener">下载</a>
-        <a href="https://github.com/Maoyangui/godusevpn/issues" rel="noopener">反馈</a>
+        <a href="https://github.com/Maoyangui/godusevpn-ultra" rel="noopener">Ultra GitHub</a>
+        <a href="https://github.com/Maoyangui/godusevpn-ultra/releases" rel="noopener">下载 Ultra</a>
+        <a href="https://github.com/Maoyangui/godusevpn-ultra/issues" rel="noopener">反馈</a>
       </div>
     </div>
   </div>

@@ -1,6 +1,6 @@
-// 演示页冒烟:不开浏览器,只把 site/dist 里跟演示相关的几件事逐个核一遍。
+// 演示页冒烟:不开浏览器,把 site/dist 的演示、归属元数据和本地资源逐个核一遍。
 // 想挡住的是这几种翻车:demo.js 没插进去(页面会去 fetch /api/,线上一片空白)、
-// 客户端页面少拷了文件、演示数据里混进了真实地址或密钥。
+// 客户端页面少拷了文件、演示数据里混进了真实地址或密钥、上线后静态资源 404。
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -43,6 +43,58 @@ if (fs.existsSync(DIST)) {
   }
   const shots = path.join(DIST, 'assets/shots');
   need(fs.existsSync(shots) && fs.readdirSync(shots).filter(f => f.endsWith('.png')).length >= 4, '截图少于 4 张');
+
+  // 5. 站内引用与样式资源。build.mjs 也会拦 href/src,这里独立重扫产物，
+  // 另外覆盖 CSS url()，避免构建脚本漏掉背景图、字体等资源。
+  const skipExternal = u => /^(?:https?:|mailto:|data:|javascript:|\/\/|#)/i.test(u);
+  const resolveLocal = (file, ref) => {
+    const raw = ref.split(/[?#]/, 1)[0];
+    if (!raw || skipExternal(raw)) return null;
+    const target = raw.startsWith('/') ? path.join(DIST, raw) : path.resolve(path.dirname(file), raw);
+    const rel = path.relative(DIST, target);
+    if (rel.startsWith('..' + path.sep) || path.isAbsolute(rel)) return { target, outside: true };
+    return { target: raw.endsWith('/') ? path.join(target, 'index.html') : target, outside: false };
+  };
+  const files = [];
+  const walk = dir => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const file = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(file); else files.push(file);
+    }
+  };
+  walk(DIST);
+  for (const file of files) {
+    const text = fs.readFileSync(file, 'utf8');
+    if (file.endsWith('.html')) {
+      for (const match of text.matchAll(/(?:href|src)="([^"#?]+)"/gi)) {
+        const ref = match[1], resolved = resolveLocal(file, ref);
+        if (!resolved) continue;
+        need(!resolved.outside, path.relative(DIST, file) + ' 引用了产物目录外资源:' + ref);
+        if (!resolved.outside) need(fs.existsSync(resolved.target), path.relative(DIST, file) + ' → ' + ref + ' 不存在');
+      }
+    }
+    if (file.endsWith('.css')) {
+      for (const match of text.matchAll(/url\(\s*(['"]?)([^'"\)]+)\1\s*\)/gi)) {
+        const ref = match[2].trim(), resolved = resolveLocal(file, ref);
+        if (!resolved) continue;
+        need(!resolved.outside, path.relative(DIST, file) + ' 引用了产物目录外资源:' + ref);
+        if (!resolved.outside) need(fs.existsSync(resolved.target), path.relative(DIST, file) + ' → ' + ref + ' 不存在');
+      }
+    }
+  }
+
+  // 6. docs/demo 是基础客户端文档与合成演示，不能再把 SEO 或下载入口指向原仓库，
+  // 也不能让读者误以为网页已执行 Ultra 原生隐私/浏览器运行时。
+  const docs = fs.readFileSync(path.join(DIST, 'docs.html'), 'utf8');
+  const demoPage = fs.readFileSync(path.join(DIST, 'demo/index.html'), 'utf8');
+  need(docs.includes('https://maoyangui.github.io/godusevpn-ultra/docs.html'), 'docs canonical 未指向 Ultra Pages');
+  need(demoPage.includes('https://maoyangui.github.io/godusevpn-ultra/demo/'), 'demo canonical 未指向 Ultra Pages');
+  for (const [name, html] of [['docs.html', docs], ['demo/index.html', demoPage]]) {
+    need(!html.includes('github.com/Maoyangui/godusevpn"'), name + ' 仍含原仓库 GitHub 入口');
+    need(!html.includes('github.com/Maoyangui/godusevpn/'), name + ' 仍含原仓库 GitHub 子路径入口');
+    need(html.includes('基础客户端'), name + ' 未标明基础客户端范围');
+    need(html.includes('Ultra 原生'), name + ' 未标明 Ultra 原生运行时边界');
+  }
 }
 
 if (fail.length) {
