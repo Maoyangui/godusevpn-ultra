@@ -198,6 +198,9 @@ func validateMeta(meta ProfileMeta) error {
 	if utf8.RuneCountInString(meta.Browser) > 80 || utf8.RuneCountInString(meta.EnvironmentName) > 100 || utf8.RuneCountInString(meta.Group) > 100 || utf8.RuneCountInString(meta.Remark) > 2000 || len(meta.Tags) > 32 {
 		return ErrInput
 	}
+	if meta.Browser != "" && meta.Browser != "sunbrowser" && meta.Browser != "flowerbrowser" && meta.Browser != "chromium" && meta.Browser != "firefox" && meta.Browser != "webview2" {
+		return ErrInput
+	}
 	for _, value := range []string{meta.Browser, meta.EnvironmentName, meta.Group, meta.Remark} {
 		if !utf8.ValidString(value) {
 			return ErrInput
