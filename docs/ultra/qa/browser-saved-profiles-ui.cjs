@@ -71,12 +71,19 @@ async function run(){try{
 	 // BrowserProfile v2 is a single editable contract: all persisted sections are
 	 // present, cookies stay in memory, and URL validation happens before save.
 	 assert.ok(q('#privacy-browser-environment-editor'),'v2 editor is visible');
+	 assert.equal(w.document.querySelectorAll('#privacy-browser-environment-editor').length,1,'only one unified browser editor is rendered');
+	 assert.equal(w.document.querySelectorAll('.privacy-browser-profile').length,1,'legacy browser card is merged into the unified editor');
+	 assert.equal(w.document.querySelectorAll('.privacy-unified-actions').length,1,'only one browser action bar is rendered');
+	 for(const id of ['privacy-browser-engine','privacy-browser-engine-version','privacy-browser-ua','privacy-browser-width','privacy-browser-height','privacy-browser-graphics','privacy-browser-webgpu','privacy-browser-cpu','privacy-browser-profile-save','privacy-browser-launch']) assert.equal(w.document.querySelectorAll('#'+id).length,1,`duplicate unified control ${id}`);
 	 const v2Fields=Array.from(w.document.querySelectorAll('[data-browser-v2]')), coreFields=Array.from(w.document.querySelectorAll('.privacy-browser-profile input,.privacy-browser-profile select,.privacy-browser-profile textarea'));
 	 assert.ok(v2Fields.length+coreFields.length>=43,`expected at least 43 unified editor fields, got ${v2Fields.length+coreFields.length}`);
 	 for(const path of ['meta.browser','meta.environmentName','meta.group','meta.tags','meta.remark','storage.cookieFormat','storage.merge','tabs.urls','tabs.startupMode','fingerprint.webrtc','fingerprint.timezone','fingerprint.geo','fingerprint.language','fingerprint.uiLanguage','fingerprint.resolution','fingerprint.fonts','fingerprint.noise.canvas','fingerprint.noise.webglImage','fingerprint.noise.audio','fingerprint.noise.media','fingerprint.noise.clientRects','fingerprint.noise.speechVoices','advanced.ram','advanced.deviceName','advanced.mac','advanced.dnt','advanced.portScan','advanced.allowedPorts','advanced.hardwareAcceleration','advanced.tls','advanced.teamApps','advanced.dataSync','advanced.browserSettings','advanced.randomFingerprint']) assert.ok(q(`[data-browser-v2="${path}"]`),`missing v2 field ${path}`);
 	 edit('[data-browser-v2="meta.environmentName"]','工作环境');
 	 edit('[data-browser-v2-cookie]','[{"name":"sid","value":"memory-only"}]');
 	 edit('[data-browser-v2="tabs.urls"]','https://example.com');
+	 await click('#privacy-browser-v2-cookie-parse');assert.match(q('#privacy-browser-environment-editor').textContent,/已解析/,'cookie parser action reports success');
+	 edit('[data-browser-v2-new-url]','https://example.org');await click('#privacy-browser-v2-add-url');assert.match(q('#privacy-browser-v2-tabs-list').textContent,/example\.org/,'URL add action renders the list');
+	 await click('[data-browser-v2-remove-url="1"]');assert.doesNotMatch(q('#privacy-browser-v2-tabs-list').textContent,/example\.org/,'URL remove action removes only the selected row');
 	 await click('#privacy-browser-v2-validate');
 	 assert.match(q('#privacy-browser-environment-editor').textContent,/Cookie 已解析|配置校验通过/);
 	 edit('[data-browser-v2="tabs.urls"]','file:///not-allowed');await click('#privacy-browser-v2-validate');

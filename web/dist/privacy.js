@@ -167,7 +167,7 @@ function renderPrivacy(el, arg) {
     const host = model.host;
     const engines = host && Array.isArray(host.engines) ? host.engines : [];
     const badge = !host ? '尚未检查' : host.supported === false ? '当前平台不支持' : host.recommended ? 'WebView2 可用' : '未发现可用主机';
-    return `${browserProfileCard()}${browserEnvironmentEditor()}${browserProxyCard()}${browserEngineCard()}<details class="privacy-card"><summary>浏览器运行时 · ${safe(badge)}</summary><p>这里只读取运行时清单。客户端界面、专用浏览器及现有 Chrome / Edge 配置分别管理。</p>${engines.length ? `<dl class="privacy-probe">${engines.map(engine => `<dt>${safe(engine.name)}${engine.available && engine.version ? ' · ' + safe(engine.version) : ''}</dt><dd>${safe(engine.available ? engine.detail : engine.detail || '未发现')}</dd>`).join('')}</dl>` : '<p class="muted">点击“本地重新检查”后查看。</p>'}</details>`;
+    return `${browserEnvironmentEditor()}${browserProxyCard()}${browserEngineCard()}<details class="privacy-card"><summary>浏览器运行时 · ${safe(badge)}</summary><p>这里只读取运行时清单。客户端界面、专用浏览器及现有 Chrome / Edge 配置分别管理。</p>${engines.length ? `<dl class="privacy-probe">${engines.map(engine => `<dt>${safe(engine.name)}${engine.available && engine.version ? ' · ' + safe(engine.version) : ''}</dt><dd>${safe(engine.available ? engine.detail : engine.detail || '未发现')}</dd>`).join('')}</dl>` : '<p class="muted">点击“本地重新检查”后查看。</p>'}</details>`;
   };
   const browserEngineRecord = () => {
     const id = model.browserEngine && model.browserEngine.engineId, version = model.browserEngine && model.browserEngine.version;
@@ -215,18 +215,29 @@ function renderPrivacy(el, arg) {
     const engineNames={'chrome-for-testing':'Chrome for Testing','firefox':'Firefox','webview2':'WebView2'};
     const graphicsEditable=fp.webglMetadata==='custom';
     const runtimeConfig=model.browser&&model.browser.config||{}, runtimeGraphics=runtimeConfig.graphics||{};
+    const savedRecord=model.browserSavedRecord||{}, conflicts=[];
+    if(fp.webgpu==='disabled'&&runtimeConfig.webgpu!=='disabled')conflicts.push('WebGPU 草稿与基础配置不一致');
+    if(fp.webglMetadata==='custom'&&!runtimeGraphics.vendor&&!runtimeGraphics.renderer)conflicts.push('WebGL 自定义草稿缺少基础配置值');
+    if(fp.seed&&runtimeConfig.randomizationSeed&&fp.seed!==runtimeConfig.randomizationSeed)conflicts.push('指纹种子不一致');
+    if(advanced.cpu==='custom'&&!runtimeConfig.hardware)conflicts.push('CPU 草稿与基础配置不一致');
+    const editorState=conflicts.length?'配置冲突':model.browserError&&/版本冲突|变化/.test(model.browserError)?'版本冲突':model.browserV2Error?'启动不可用':model.browserSavedDirty?'未保存':readback.runtimeVerified?'运行时已读回':savedRecord.id?'已保存':'未保存';
     const disabled=model.browserBusy||model.engineBusy||model.loading?'disabled':'';
     const options=(value,list)=>list.map(pair=>`<option value="${safe(pair[0])}" ${value===pair[0]?'selected':''}>${safe(pair[1])}</option>`).join('');
-    const select=(path,label,value,list,help='')=>`<label>${safe(label)}${help?privacyHelp(help):''}<select data-browser-v2="${safe(path)}" ${disabled}>${options(value,list)}</select></label>`;
-    const input=(path,label,value,attrs='',help='')=>`<label>${safe(label)}${help?privacyHelp(help):''}<input data-browser-v2="${safe(path)}" value="${safe(value)}" ${attrs} ${disabled}></label>`;
-    const checked=(path,label,value,help='')=>`<label class="privacy-check"><input type="checkbox" data-browser-v2="${safe(path)}" ${value?'checked':''} ${disabled}>${safe(label)}${help?privacyHelp(help):''}</label>`;
+    const fieldState=(path)=>{if(/^advanced\.(ram|deviceName|mac)$/.test(path))return ['unsupported','当前宿主不支持'];if(path.includes('noise')||path==='fingerprint.fonts'||path==='advanced.randomFingerprint')return ['pending','运行时待验证'];if(/^(storage|tabs|meta|proxy)\./.test(path))return ['configured','配置已保存'];return ['partial','部分支持'];};
+    const stateBadge=(path)=>{const [kind,text]=fieldState(path);return `<span class="privacy-field-state ${kind}">${text}</span>`;};
+    const select=(path,label,value,list,help='')=>`<label>${safe(label)}${help?privacyHelp(help):''}<span class="privacy-field-control"><select data-browser-v2="${safe(path)}" ${disabled}>${options(value,list)}</select>${stateBadge(path)}</span></label>`;
+    const input=(path,label,value,attrs='',help='')=>`<label>${safe(label)}${help?privacyHelp(help):''}<span class="privacy-field-control"><input data-browser-v2="${safe(path)}" value="${safe(value)}" ${attrs} ${disabled}>${stateBadge(path)}</span></label>`;
+    const checked=(path,label,value,help='')=>`<label class="privacy-check"><span class="privacy-field-control"><input type="checkbox" data-browser-v2="${safe(path)}" ${value?'checked':''} ${disabled}>${stateBadge(path)}</span>${safe(label)}${help?privacyHelp(help):''}</label>`;
     const status=(text,kind='pending')=>`<span class="privacy-capability ${kind}">${safe(text)}</span>`;
     const cookieCount=Number(storage.cookieCount)||0;
     const urlCount=Array.isArray(tabs.urls)?tabs.urls.length:0;
     const supported='运行时待验证';
-    return `<article class="privacy-card privacy-browser-v2" id="privacy-browser-environment-editor">
-      <div class="privacy-card-head"><h2>浏览器环境编辑器${privacyHelp('按 AdsPower / 比特浏览器式的完整环境配置组织。每个字段先保存为配置草稿，再在启动时按能力范围逐项读回；无法由当前宿主实现的项目保持“未知/不支持”，不会伪装成已生效。')}</h2>${status(readback.runtimeVerified?'运行时已读回':'配置已保存 · '+supported,readback.runtimeVerified?'verified':'pending')}</div>
+    return `<article class="privacy-card privacy-browser-v2 privacy-browser-profile" id="privacy-browser-environment-editor">
+      <div class="privacy-card-head"><div><h2>浏览器环境编辑器${privacyHelp('按 AdsPower / 比特浏览器式的完整环境配置组织。每个字段先保存为配置草稿，再在启动时按能力范围逐项读回；无法由当前宿主实现的项目保持“未知/不支持”，不会伪装成已生效。')}</h2><p class="privacy-profile-kicker">${safe(model.browserProfileName||'未命名浏览器')} · ${safe(meta.environmentName||'未命名环境')}</p></div>${status(editorState,editorState==='运行时已读回'?'verified':editorState==='已保存'?'configured':editorState==='配置冲突'||editorState==='版本冲突'?'limited':'pending')}</div>
+      <dl class="privacy-profile-meta"><dt>配置 ID</dt><dd>${safe(savedRecord.id||runtimeConfig.profileId||'未保存')}</dd><dt>Revision</dt><dd>${safe(savedRecord.revision||'未保存')}</dd><dt>最后保存</dt><dd>${safe(savedRecord.updatedAt||'未保存')}</dd><dt>最后读回</dt><dd>${safe(readback.timestamp||'未读回')}</dd></dl>
+      ${conflicts.length?`<p class="privacy-profile-conflict" role="alert">配置冲突：${safe(conflicts.join('；'))}。未自动覆盖旧值，请检查后保存或另存。</p>`:''}
       <p class="muted">配置名称是浏览器配置记录名称；环境名称、分组和备注用于管理。Cookie 原文只在本次会话内存中解析，默认不落盘。</p>
+      <section class="privacy-browser-core" aria-label="基础浏览器配置"><h3 class="privacy-data-subtitle">基础浏览器配置</h3>${browserCoreFields()}</section>
       <div class="privacy-browser-fields">
         ${select('meta.browser','浏览器家族',meta.browser||'chromium',[['sunbrowser','SunBrowser（家族标签）'],['flowerbrowser','FlowerBrowser（家族标签）'],['chromium','Chrome / Chromium'],['firefox','Firefox / Gecko'],['webview2','WebView2 / Edge']], '家族标签与实际内核分开保存；选择 SunBrowser 或 FlowerBrowser 不会伪装成未安装的真实内核。')}
         ${input('meta.environmentName','环境名称',meta.environmentName||'','maxlength="100" placeholder="选填：环境名称"','环境名称最多 100 个字符，只用于识别配置。')}
@@ -239,10 +250,13 @@ function renderPrivacy(el, arg) {
           ${select('storage.cookieFormat','Cookie 格式',storage.cookieFormat||'json',[['json','JSON'],['netscape','Netscape'],['name-value','Name=Value']], '支持 JSON、Netscape、Name=Value；只解析格式和数量。')}
           ${checked('storage.merge','合并 Cookie',!!storage.merge,'开启后导入的 Cookie 与现有会话合并；冲突以当前会话策略为准。')}
         </div>
-        <label>Cookie（本次会话，不落盘）${privacyHelp('粘贴后立即在本地解析并显示数量；关闭页面或切换配置后清空。保存配置只保存格式、合并策略和数量，不保存 Cookie 值。')}<textarea data-browser-v2-cookie rows="5" placeholder='JSON、Netscape 或 name=value' ${disabled}>${safe(model.browserCookieDraft||'')}</textarea></label>
-        <p class="muted">${storage.cookieSessionOnly!==false?'安全策略：Cookie 原文仅保留在本页内存。':''}解析结果：${safe(cookieCount)} 个。</p>
+        <label>Cookie（本次会话，不落盘）${privacyHelp('粘贴后在本页解析并显示数量；关闭页面或切换配置后清空。保存配置只保存格式、合并策略和数量，不保存 Cookie 值。')}<textarea data-browser-v2-cookie rows="5" placeholder='JSON、Netscape 或 name=value' ${disabled}>${safe(model.browserCookieDraft||'')}</textarea></label>
+        <div class="privacy-actions privacy-cookie-actions"><button type="button" class="btn sm" id="privacy-browser-v2-cookie-parse" data-help-text="按当前格式解析 Cookie 文本，只在当前页面内存中读取数量；解析失败保留原文。" ${disabled}>解析 Cookie</button><button type="button" class="btn sm" id="privacy-browser-v2-cookie-clear" data-help-text="清除当前页面内存中的 Cookie 原文和数量；不会修改已保存的浏览器配置。" ${disabled}>清空 Cookie</button></div>
+        <p class="muted">${storage.cookieSessionOnly!==false?'安全策略：Cookie 原文仅保留在本页内存。':''}解析结果：${safe(cookieCount)} 个。${status(cookieCount?'已解析':'未输入',cookieCount?'configured':'pending')}</p>
         <div class="privacy-browser-fields">
-          <label>启动网址（每行一个）${privacyHelp('最多 20 个 HTTPS/HTTP URL；保存前会校验协议和长度。')}<textarea data-browser-v2="tabs.urls" rows="4" placeholder="www.google.com&#10;www.facebook.com" ${disabled}>${safe(Array.isArray(tabs.urls)?tabs.urls.join('\n'):'')}</textarea></label>
+          <label>启动网址（每行一个）${privacyHelp('最多 20 个 HTTPS/HTTP URL；保存前会校验协议和长度。')}<textarea data-browser-v2="tabs.urls" rows="4" placeholder="https://www.google.com&#10;https://www.facebook.com" ${disabled}>${safe(Array.isArray(tabs.urls)?tabs.urls.join('\n'):'')}</textarea></label>
+          <div class="privacy-tab-url-tools"><input data-browser-v2-new-url data-help-text="填写一个 HTTP 或 HTTPS 启动网址；点击添加后才进入待打开列表。" placeholder="https://example.com" ${disabled}><button type="button" class="btn sm" id="privacy-browser-v2-add-url" data-help-text="把一个经过协议和长度校验的 URL 加入启动列表，最多 20 个。" ${disabled}>添加 URL</button><button type="button" class="btn sm" id="privacy-browser-v2-clear-urls" data-help-text="清空启动 URL 列表；不会自动启动或访问网址。" ${disabled}>清空全部</button></div>
+          <ol class="privacy-tab-url-list" id="privacy-browser-v2-tabs-list">${(Array.isArray(tabs.urls)?tabs.urls:[]).map((url,index)=>`<li><code>${safe(url)}</code><button type="button" class="btn sm" data-browser-v2-remove-url="${index}" data-help-text="从启动列表删除这一条 URL；不会删除网站数据。" ${disabled}>删除</button></li>`).join('')||'<li class="muted">尚未添加启动网址</li>'}</ol>
           ${select('tabs.startupMode','标签页启动方式',tabs.startupMode||'restore',[['restore','恢复上次标签页'],['urls','打开指定网址'],['blank','空白页']], '指定网址只在启动时使用，不会自动访问或预加载。')}
         </div>
       </details>
@@ -350,6 +364,11 @@ function renderPrivacy(el, arg) {
   const browserPage = () => browserHostCard() + `<div class="privacy-card"><h2>Chrome / Edge 配套扩展</h2><p>发行包中的 <span class="mono">browser-extension</span> 目录提供本地扩展。进入 <span class="mono">chrome://extensions</span> 或 <span class="mono">edge://extensions</span>，开启开发者模式后选择“加载已解压的扩展程序”。</p><p>扩展提供 WebRTC 非代理 UDP 限制、预测加载和云建议控制、第三方 Cookie 限制、网页敏感权限、手动链接清理，以及本地浏览环境自测。每项单独启用、读回验证和撤销。</p><div class="privacy-note warning">扩展只作用于安装它的浏览器配置。WebRTC 限制不等于完全禁用；原生应用、其他浏览器、隐身配置及所有脚本上下文不能据此判定受到保护。未连接桌面桥，桌面应用不会猜测扩展状态。</div></div>
     <div class="privacy-card"><h2>当前内嵌 WebView 的信息可见性</h2><p>此检查只读取当前客户端的 WebView。本地显示，不联网、不请求 GPS、摄像头或麦克风，不读取真实 IP 或设备序列号；不能代替 Chrome / Edge 扩展页的检查。</p><button class="btn sm" id="privacy-probe" ${model.busy ? 'disabled' : ''}>运行本地检查</button>${model.probe ? '<dl class="privacy-probe">' + Object.keys(model.probe).map(key => `<dt>${safe(key)}${privacyHelp('只描述当前客户端内嵌 WebView 的这项返回值；接口存在不代表已发生跟踪，接口不可用不代表其他应用或浏览器受到保护。')}</dt><dd>${safe(model.probe[key])}</dd>`).join('') + '</dl>' : ''}</div>${controls().filter(c => c.category === 'browser').map(controlCard).join('')}`;
   const metadataList = blocks => Array.isArray(blocks) && blocks.length ? '<table class="privacy-data-table"><thead><tr><th>元数据块类型</th><th>字节数</th></tr></thead><tbody>' + blocks.map(block => `<tr><td>${safe(block.type)}${privacyHelp('仅显示元数据块类型和大小，不解析或展示 GPS、作者、文本等实际内容；这不是全部可关联信息的清单。')}</td><td>${safe(block.bytes)}</td></tr>`).join('') + '</tbody></table>' : '<p class="muted">未发现此工具识别的指定块；这不代表文件没有其他元数据或身份信息。</p>';
+  const browserCoreFields = () => {
+    if (!model.browser) return `<p class="privacy-note">当前未读取到浏览器默认配置。</p>`;
+    const legacy = browserProfileCard();
+    return legacy.replace(/^<article[^>]*>/, '').replace(/<div class="privacy-card-head">[\s\S]*?<\/div>\s*<p>先选配置并预览，再打开浏览器。<\/p>/, '').replace(/<\/article>\s*$/, '');
+  };
   const metadataToolCard = () => {
     const status = model.metadataStatus, selection = model.metadataPreview, preview = selection && selection.preview;
     const fields = selection && selection.fields || status && status.fields || [];
@@ -432,8 +451,8 @@ function renderPrivacy(el, arg) {
     const cleanImage = el.querySelector('#privacy-image-clean');
     if (cleanImage) cleanImage.addEventListener('click', () => runData('PrivacyCleanImage', '清理'));
     el.querySelectorAll('[data-privacy-nav]').forEach(button => button.addEventListener('click', () => nav(button.dataset.privacyNav)));
-    privacyDecorateHelp(el);
     if (model.tab === 'browser') layoutBrowserEditor();
+    privacyDecorateHelp(el);
     if (arg && arg.controlId && controls().some(c => c.id === arg.controlId && c.category === 'browser') && model.tab !== 'browser') { model.tab = 'browser'; draw(); return; }
     if (arg && arg.controlId) { const target = Array.from(el.querySelectorAll('[data-privacy-control]')).find(card => card.dataset.privacyControl === arg.controlId); if (target) { target.scrollIntoView({ block: 'center' }); arg = null; } }
   }
@@ -441,9 +460,20 @@ function renderPrivacy(el, arg) {
     const panel=el.querySelector('#privacy-panel'), profile=panel && panel.querySelector('.privacy-browser-profile');
     if(!profile)return;
     const hero=el.querySelector('.privacy-hero');
-    if(hero){const details=document.createElement('details'),summary=document.createElement('summary');details.className='privacy-browser-context';summary.textContent='系统权限与本地检测';summary.dataset.helpText='查看本地报告、管理员助手和系统恢复入口；浏览器表单的编辑不需要在这里提交系统修改。';details.appendChild(summary);hero.parentNode.insertBefore(details,hero);details.appendChild(hero);const warnings=el.querySelector('.privacy-warnings');if(warnings)details.appendChild(warnings);details.open=!!model.browserContextOpen;details.addEventListener('toggle',()=>{model.browserContextOpen=details.open;});}
+    if(hero){const details=document.createElement('details'),summary=document.createElement('summary');details.className='privacy-browser-context';summary.textContent='系统权限与本地检测';summary.dataset.helpText='查看本地报告、管理员助手和系统恢复入口；浏览器表单的编辑不需要在这里提交系统修改。';summary.insertAdjacentHTML('beforeend',privacyHelp(summary.dataset.helpText,'系统权限与本地检测'));details.appendChild(summary);hero.parentNode.insertBefore(details,hero);details.appendChild(hero);const warnings=el.querySelector('.privacy-warnings');if(warnings)details.appendChild(warnings);details.open=!!model.browserContextOpen;details.addEventListener('toggle',()=>{model.browserContextOpen=details.open;});}
     const cards=Array.from(panel.children), fields=Array.from(profile.querySelectorAll('.privacy-browser-fields'));
-    if(fields.length!==2)return;
+    if(fields.length!==2){
+      if(!profile.querySelector('.privacy-unified-actions')){
+        const bar=document.createElement('section');bar.className='privacy-unified-actions';bar.setAttribute('aria-label','统一操作栏');
+        const heading=document.createElement('h3');heading.className='privacy-data-subtitle';heading.textContent='操作与保存';heading.dataset.helpText='所有浏览器配置操作集中在这里；保存、校验、启动和删除不会绕过当前草稿与能力门禁。';bar.appendChild(heading);
+        const library=profile.querySelector('.privacy-profile-library');
+        const finalAction=profile.querySelector('#privacy-browser-random')?.closest('.privacy-actions');
+        const v2Action=profile.querySelector('#privacy-browser-v2-generate')?.closest('.privacy-actions');
+        for(const node of [library,finalAction,v2Action])if(node){bar.appendChild(node);}
+        profile.appendChild(bar);
+      }
+      return;
+    }
     const title=profile.querySelector('.privacy-card-head h2');if(title && title.firstChild)title.firstChild.nodeValue='浏览器环境';
     const intro=profile.querySelector(':scope > p');if(intro)intro.textContent='选择环境、填写参数，再打开浏览器。';
     const navigation=document.createElement('div');navigation.className='privacy-editor-tabs';navigation.setAttribute('role','tablist');navigation.setAttribute('aria-label','浏览器配置分类');
@@ -655,6 +685,11 @@ function renderPrivacy(el, arg) {
       if(input.tagName==='TEXTAREA'&&input.dataset.browserV2==='tabs.urls')input.addEventListener('blur',()=>{try{browserV2Validate();}catch(error){model.browserV2Error=errText(error);}});
     });
     const cookie=el.querySelector('[data-browser-v2-cookie]'); if(cookie)cookie.addEventListener('input',()=>{if(model.browserBusy)return;model.browserCookieDraft=cookie.value;try{const count=browserV2ParseCookies(cookie.value,browserV2Get('storage.cookieFormat','json'));browserV2Set('storage.cookieCount',count);model.browserV2Error='';model.browserV2Message='Cookie 已解析 '+count+' 个，仅保留在本次会话内存。';}catch(error){model.browserV2Error=errText(error);} });
+    const parseCookie=el.querySelector('#privacy-browser-v2-cookie-parse'); if(parseCookie)parseCookie.addEventListener('click',()=>{try{const count=browserV2ParseCookies(model.browserCookieDraft,browserV2Get('storage.cookieFormat','json'));browserV2Set('storage.cookieCount',count);model.browserV2Error='';model.browserV2Message='Cookie 已解析 '+count+' 个，仅保留在本页内存。';}catch(error){model.browserV2Error=errText(error);model.browserV2Message='Cookie 解析失败，原文已保留。';}draw();});
+    const clearCookie=el.querySelector('#privacy-browser-v2-cookie-clear'); if(clearCookie)clearCookie.addEventListener('click',()=>{model.browserCookieDraft='';browserV2Set('storage.cookieCount',0);model.browserV2Error='';model.browserV2Message='Cookie 原文和数量已从当前页面内存清除。';draw();});
+    const newURL=el.querySelector('[data-browser-v2-new-url]'),addURL=el.querySelector('#privacy-browser-v2-add-url'); if(addURL)addURL.addEventListener('click',()=>{const value=String(newURL&&newURL.value||'').trim(),urls=Array.isArray(model.browserExtras.tabs.urls)?model.browserExtras.tabs.urls.slice():[];try{if(!/^https?:\/\/[^\s]+$/i.test(value)||value.length>2048)throw Error('启动网址必须是完整的 HTTP 或 HTTPS URL。');if(urls.length>=20)throw Error('启动网址最多 20 个。');urls.push(value);browserV2Set('tabs.urls',urls);model.browserV2Error='';model.browserV2Message='已添加启动网址。';markBrowserProfileEdited(true);draw();}catch(error){model.browserV2Error=errText(error);model.browserV2Message='未添加启动网址。';draw();}});
+    const clearURLs=el.querySelector('#privacy-browser-v2-clear-urls'); if(clearURLs)clearURLs.addEventListener('click',()=>{browserV2Set('tabs.urls',[]);model.browserV2Error='';model.browserV2Message='启动网址列表已清空。';markBrowserProfileEdited(true);draw();});
+    el.querySelectorAll('[data-browser-v2-remove-url]').forEach(button=>button.addEventListener('click',()=>{const urls=Array.isArray(model.browserExtras.tabs.urls)?model.browserExtras.tabs.urls.slice():[],index=Number(button.dataset.browserV2RemoveUrl);if(Number.isInteger(index)&&index>=0&&index<urls.length){urls.splice(index,1);browserV2Set('tabs.urls',urls);model.browserV2Message='已删除启动网址。';markBrowserProfileEdited(true);draw();}}));
     const generate=el.querySelector('#privacy-browser-v2-generate'); if(generate)generate.addEventListener('click',()=>{if(model.browserBusy)return;const seed=browserV2GenerateSeed();browserV2Set('fingerprint.seed',seed);model.browserV2Message='已生成新指纹种子；请先检查配置并在支持的内核中启动，实际效果仍需运行时读回。';markBrowserProfileEdited(true);draw();});
     const validate=el.querySelector('#privacy-browser-v2-validate'); if(validate)validate.addEventListener('click',()=>{try{browserV2Validate();model.browserV2Error='';model.browserV2Message='配置校验通过；所有运行时字段仍需启动后读回。';}catch(error){model.browserV2Error=errText(error);model.browserV2Message='配置校验未通过，未启动浏览器。';}draw();});
   }
