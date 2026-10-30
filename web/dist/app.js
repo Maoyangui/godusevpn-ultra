@@ -13,7 +13,10 @@ function setupWindowControls() {
   button.addEventListener('click',async()=>{if(button.disabled)return;button.disabled=true;const own=++generation;try{const actual=await bridge.ToggleMaximize();if(own===generation&&typeof actual==='boolean'){maximized=actual;updateWindowControlText();}}catch(_){toast(t('window.failed'),'err');}finally{button.disabled=false;sync();}});
   window.addEventListener('resize',sync);updateWindowControlText();sync();
 }
-const $ = s => document.querySelector(s);
+// Some page teardown callbacks can run after the WebView document has been
+// detached. Keep the tiny selector helper teardown-safe so an old dialog or
+// focus callback cannot turn navigation into an uncaught exception.
+const $ = s => (typeof document !== 'undefined' && document) ? document.querySelector(s) : null;
 const esc = s => String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 let state = null;          // 最新 UIState
 let view = null;           // 当前页面名:onboard / home / settings / profiles / conns / logs / about

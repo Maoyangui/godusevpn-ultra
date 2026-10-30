@@ -995,7 +995,86 @@ function privacyDecorateHelp(el) {
     'privacy-firewall-mode': '待应用。局域网规则限制指定地址范围；发现规则仅覆盖 IPv4/IPv6 组播和 IPv4 有限广播；不含定向广播、单播发现、蓝牙和系统代发。直接连接限制不保护回环、代理和转发路径。详细边界由后端报告说明。',
     'privacy-firewall-add': '保存并应用刚才选择的程序和范围。选择框本身不修改防火墙；不会修改原有隧道配置。',
     'privacy-probe': '只检查当前内嵌 WebView。无法据此推断 Chrome、Edge 或其他应用的实际暴露情况。',
-    'detection-export': '导出当前检测快照，文件只保存在本机，不会自动上传。'
+    'detection-export': '导出当前检测快照，文件只保存在本机，不会自动上传。',
+    'privacy-location-prepare': '准备本机的 Windows 定位组件并建立仅本机认证连接；不会开放局域网或无认证回退。',
+    'privacy-location-read': '只读取组件、覆盖和恢复状态，不会应用新的坐标或轨迹。',
+    'privacy-location-unprepare': '恢复本应用记录的组件准备；先恢复位置覆盖，遇到外部更改会停止并提示。',
+    'privacy-location-apply': '确认后应用当前坐标或轨迹，并读回门户配置；这不是其他应用的消费者证据。',
+    'privacy-location-observe': '通过独立 Windows 定位读取核对新鲜位置；结果仍只代表当前测试应用。',
+    'privacy-location-restore': '恢复本应用保存的位置覆盖；不会删除系统中其他来源的缓存或覆盖。',
+    'privacy-location-stop': '停止当前轨迹任务并保留可恢复的本应用记录。',
+    'privacy-location-connect': '仅核验 HTTPS 127.0.0.1、证书指纹和本次认证信息，不连接外部地址。',
+    'privacy-location-label': '仅作为本页的本地标签保存，不进行在线地理编码或上传。',
+    'privacy-location-latitude': '填写 −90 至 90 的十进制纬度；输入只保留在本页草稿，确认后才应用。',
+    'privacy-location-longitude': '填写 −180 至 180 的十进制经度；输入只保留在本页草稿，确认后才应用。',
+    'privacy-location-trajectory': '每行填写纬度,经度；最多 120 点，输入不会自动执行。',
+    'privacy-location-interval': '轨迹点间隔为 2–60 秒，总时长不超过 10 分钟。',
+    'privacy-location-port': '仅接受本机 HTTPS 位置门户端口，默认 58443。',
+    'privacy-location-pin': '填写 64 位小写 SHA-256 证书指纹，用于防止连接错误服务。',
+    'privacy-location-user': '本机门户用户名，仅用于本次认证，不会写入配置。',
+    'privacy-location-password': '本机门户密码仅在本次内存中使用，不写入配置或日志。'
+    , 'privacy-proxy-test': '仅测试当前填写代理的连通性与出口信息；结果不代表专用浏览器已经完成真实导航。'
+    , 'privacy-proxy-type': '选择代理协议，保存前不会修改系统或其他应用。'
+    , 'privacy-proxy-host': '填写域名或 IP，不要包含协议、路径或用户名。'
+    , 'privacy-proxy-port': '填写 1–65535 的代理端口；不会自动猜测端口。'
+    , 'privacy-proxy-username': '可选的代理用户名，仅在本页内存中使用。'
+    , 'privacy-proxy-password': '可选的代理密码，仅在本页内存中使用，不保存到配置。'
+    , 'privacy-browser-launch': '重新检查环境、内核、代理和控制连接后启动专用浏览器；不会把预览当成真实运行证据。'
+    , 'privacy-browser-close': '关闭当前专用浏览器会话并重新读取状态。'
+    , 'privacy-browser-ua': '按环境生成的 UA 预览，可手动修改；启动时仍会核对真实内核。'
+    , 'privacy-browser-ua-generate': '根据当前操作系统、内核和版本重新生成 UA 预览。'
+    , 'privacy-browser-profile-save': '保存当前环境配置，不包含代理地址、密码、订阅或启动授权。'
+    , 'privacy-browser-profile-list': '读取本机保存的配置清单，不启动浏览器。'
+    , 'privacy-browser-profile-new': '保留当前记录并另存为新的配置。'
+    , 'privacy-browser-profile-delete': '删除选中的配置记录；浏览器数据和已下载内核不受影响。'
+    , 'privacy-browser-profile-load': '载入所选配置到当前草稿，未保存修改会先请求确认。'
+    , 'privacy-engine-refresh': '重新读取已下载内核清单与校验状态。'
+    , 'privacy-engine-download': '下载并校验选择的官方内核版本，完成后可在列表中删除以释放空间。'
+    , 'privacy-engine-launch': '使用当前已核验的内核启动专用浏览器，并重新检查代理和运行时。'
+    , 'privacy-engine-kind': '选择要读取和下载的官方内核系列。'
+    , 'privacy-engine-version': '填写或选择官方目录中的准确版本；只接受可核验的版本。'
+    , 'privacy-engine-route': '选择内核下载连接；独立代理只使用当前页面的内存参数。'
+    , 'privacy-engine-local': '只读取本机已下载内核的文件清单和版本证据，不启动进程。'
+    , 'privacy-engine-close': '关闭当前独立内核会话并重新读取生命周期状态。'
+    , 'privacy-browser-engine': '选择专用浏览器实际使用的宿主内核。'
+    , 'privacy-browser-engine-version': '选择已经下载并核验的具体内核版本。'
+    , 'privacy-browser-profile-name': '给当前浏览器环境起一个本地配置名称。'
+    , 'privacy-browser-region': '选择语言、地区和时区组合，只影响专用浏览器环境。'
+    , 'privacy-browser-environment': '选择网页可见的系统设备模板，可继续手动编辑。'
+    , 'privacy-browser-os-version': '填写系统环境版本提示；不会改变真实 Windows 版本。'
+    , 'privacy-browser-identity-mode': '选择 UA 生成、手动填写或保留原生 UA。'
+    , 'privacy-browser-width': '设置浏览内容区域宽度，不更换物理显示器。'
+    , 'privacy-browser-height': '设置浏览内容区域高度，过小或过大会被拒绝。'
+    , 'privacy-browser-seed': '填写本地随机种子以生成成对的环境参数。'
+    , 'privacy-browser-graphics': '选择网页 WebGL 可见图形信息预设。'
+    , 'privacy-browser-webgpu': '选择是否请求阻断 WebGPU 原生适配器。'
+    , 'privacy-browser-gpu-vendor': '填写网页 WebGL 厂商名称，不能修改真实硬件。'
+    , 'privacy-browser-gpu-renderer': '填写网页 WebGL 渲染器名称，不能修改真实硬件。'
+    , 'privacy-browser-cpu-mode': '选择网页逻辑处理器显示为原生或自定义。'
+    , 'privacy-browser-cpu': '填写网页可见的逻辑处理器数，范围 1–64。'
+    , 'privacy-browser-profile-select': '选择要载入的本地配置记录。'
+    , 'privacy-browser-id': '只读的本地内部配置标识，不使用名称作为文件路径。'
+    , 'privacy-metadata-status': '检查随包 ExifTool 组件的文件与版本状态。'
+    , 'privacy-metadata-select': '主动选择一张本地图片并读取可处理字段清单，不上传文件。'
+    , 'privacy-metadata-values': '只显示已选字段的实际值，结果仅留在当前页面。'
+    , 'privacy-metadata-copy': '清理已选字段并写入新副本，原图不会覆盖。'
+    , 'detection-refresh': '重新读取一份带有效期的本地检测快照。'
+    , 'detection-export': '审阅当前检测快照后再导出，过期或历史结果不能导出。'
+    , 'detection-privacy': '打开隐私保护设置，不改变当前检测结果。'
+    , 'detection-browser': '打开专用浏览器与自测入口；其他浏览器仍需单独核对。'
+    , 'detection-search': '只筛选当前检测快照，不修改系统设置。'
+    , 'detection-audience': '按读取方筛选检测项。'
+    , 'detection-category': '按检测类别筛选检测项。'
+    , 'detection-filter': '按结果状态筛选检测项。'
+    , 'detection-export-scope': '选择当前筛选结果或完整快照作为导出范围。'
+    , 'detection-export-environment': '可选包含时区和地区字段，保存前仍可审阅。'
+    , 'detection-export-observer': '可选包含观察身份与权限字段，可能增加敏感信息。'
+    , 'detection-preview': '生成将要保存的脱敏报告预览，不会立即写入文件。'
+    , 'detection-export-cancel': '关闭报告预览并丢弃当前未保存的导出状态。'
+    , 'detection-save': '保存已经审阅的检测报告到本地。'
+    , 'detection-text-preview': '生成一份更短的文字报告预览。'
+    , 'detection-text-copy': '复制已经审阅的精简报告。'
+    , 'privacy-engine-delete': '删除对应内核安装文件以释放空间，保留配置和浏览数据。'
   };
   el.querySelectorAll('button:not(.privacy-help), input, select, summary').forEach(control => {
     if (control.tagName === 'SUMMARY' && control.querySelector('.privacy-help')) return;

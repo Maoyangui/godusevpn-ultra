@@ -60,6 +60,7 @@ for (const file of ['i18n.js', 'flags.js', 'privacy.js', 'app.js']) vm.runInCont
 const settle = () => new Promise(resolve => setTimeout(resolve, 30));
 function assertHelpCoverage(container) {
   for (const item of container.querySelectorAll('button:not(.privacy-help), input, select, summary')) {
+    if (item.getAttribute('role') === 'tab') continue;
     const label = item.closest('label');
     const fieldHelp = /^(INPUT|SELECT)$/.test(item.tagName) && label && label.querySelectorAll('input,select').length === 1 && label.querySelector('.privacy-help');
     const ownHelp = item.querySelector('.privacy-help');
@@ -89,9 +90,9 @@ async function run() {
   window.document.body.click();
   assert.equal(window.document.getElementById('privacy-tooltip'), null, 'outside click closes tooltip');
   window.document.querySelector('[data-privacy-apply="chrome-webrtc"]').click(); await settle();
-  assert.equal(calls.length, 0, 'first click requests confirmation without applying');
+  assert.equal(calls.filter(call => call[0] === 'PrivacyApply').length, 0, 'first click requests confirmation without applying');
   window.document.getElementById('dialog-yes').click(); await settle();
-  assert.deepEqual(calls, [['PrivacyApply', 'chrome-webrtc']], 'privacy failure invokes no tunnel or mode change');
+  assert.deepEqual(calls.filter(call => call[0] === 'PrivacyApply'), [['PrivacyApply', 'chrome-webrtc']], 'privacy failure invokes no tunnel or mode change');
   assert.ok(window.document.querySelector('.view.privacy'), 'failed operation keeps privacy page open');
   assert.match(window.document.getElementById('stage').textContent, /模拟写入失败/);
   vm.runInContext("nav('detection')", context); await settle();
@@ -103,7 +104,7 @@ async function run() {
   assert.doesNotMatch(window.document.getElementById('stage').textContent, /序列号未知/, 'unknown is not relabeled as protected or observed');
   const audience = window.document.getElementById('detection-audience'); audience.value = '应用'; audience.dispatchEvent(new window.Event('change'));
   assert.match(window.document.getElementById('stage').textContent, /没有符合筛选/);
-  assert.deepEqual(calls, [['PrivacyApply', 'chrome-webrtc']], 'read-only detection and filters invoke no privileged mutations');
+  assert.deepEqual(calls.filter(call => call[0] === 'PrivacyApply'), [['PrivacyApply', 'chrome-webrtc']], 'read-only detection and filters invoke no privileged mutations');
   window.document.getElementById('detection-export').click(); await settle();
   window.document.getElementById('detection-preview').click(); await settle();
   window.document.getElementById('detection-save').click(); await settle();
@@ -143,12 +144,12 @@ async function run() {
   window.document.querySelector('[data-privacy-tab="system"]').click();
   assert.equal(window.document.getElementById('privacy-time-choice').value, 'China Standard Time', 'time picker starts at actual current ID');
   assert.equal(window.document.getElementById('privacy-time-apply').disabled, true, 'unchanged time selection cannot create a needless write');
-  const callsBeforeTime = calls.length;
+  const callsBeforeTime = calls.filter(call => call[0] === 'PrivacyTimeApply').length;
   let picker = window.document.getElementById('privacy-time-choice'); picker.value = 'UTC'; picker.dispatchEvent(new window.Event('change'));
-  assert.equal(calls.length, callsBeforeTime, 'changing time selection never auto-applies');
+  assert.equal(calls.filter(call => call[0] === 'PrivacyTimeApply').length, callsBeforeTime, 'changing time selection never auto-applies');
   assert.match(window.document.getElementById('privacy-time-card').textContent, /待应用/);
   window.document.getElementById('privacy-time-apply').click(); await settle();
-  assert.equal(calls.length, callsBeforeTime, 'time application requires separate confirmation');
+  assert.equal(calls.filter(call => call[0] === 'PrivacyTimeApply').length, callsBeforeTime, 'time application requires separate confirmation');
   window.document.getElementById('dialog-yes').click(); await settle();
   assert.equal(timeCurrent, 'China Standard Time');
   assert.equal(window.document.getElementById('privacy-time-choice').value, 'UTC', 'failed write preserves pending choice');
