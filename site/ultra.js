@@ -94,6 +94,7 @@
     qa('[data-language]').forEach(function (button) { button.classList.toggle('is-active', button.dataset.language === state.language); });
     renderStage(state.stage); renderPath(state.path); updateProfile(state.browserEnv); updateEngine(state.engine);
     languageListeners.forEach(function (listener) { listener(); });
+    document.documentElement.classList.add('is-hydrated');
     try { history.replaceState(null, '', state.language === 'en' ? '?lang=en' : location.pathname); } catch (_) {}
   }
   function updateProfile(env) {
