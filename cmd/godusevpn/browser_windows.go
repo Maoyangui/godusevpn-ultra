@@ -586,6 +586,27 @@ func (a *App) BrowserProfilePreview(configJSON string, seed string) (BrowserProf
 	return c.preview(configJSON, seed)
 }
 
+// BrowserProfileV2Preview validates the complete profile envelope before
+// delegating to the legacy pure preview. Unsupported extras are returned in a
+// capability receipt and never silently discarded.
+func (a *App) BrowserProfileV2Preview(requestJSON string, seed string) (BrowserProfileV2PreviewResult, error) {
+	request, receipt, err := parseBrowserProfileV2Request(requestJSON)
+	if err != nil {
+		return BrowserProfileV2PreviewResult{}, err
+	}
+	if request.Engine.EngineID != "webview2" && request.Engine.EngineID != "webview" {
+		receipt = browserProfileV2Unsupported(receipt, "engine")
+	}
+	if !receipt.Accepted {
+		return BrowserProfileV2PreviewResult{Status: "unsupported", Detail: "请求包含当前主机未实现的字段；未启动浏览器。", Receipt: receipt}, nil
+	}
+	preview, err := a.BrowserProfilePreview(string(request.Config), seed)
+	if err != nil {
+		return BrowserProfileV2PreviewResult{}, err
+	}
+	return BrowserProfileV2PreviewResult{Status: "preview", Detail: preview.Detail, Receipt: receipt, Preview: &preview}, nil
+}
+
 // BrowserProfileIdentity plans browser-visible identity from local inventory.
 // It neither starts a runtime nor treats a product version as observed CH.
 func (a *App) BrowserProfileIdentity(configJSON string) (browserhost.IdentityPreview, error) {
@@ -614,6 +635,26 @@ func (a *App) BrowserProfileLaunch(configJSON string) (BrowserProfileLaunchResul
 	return c.launch(configJSON)
 }
 
+// BrowserProfileV2Launch refuses any valid-but-unimplemented extra before the
+// trusted Windows controller can create a process or bind a proxy.
+func (a *App) BrowserProfileV2Launch(requestJSON string) (BrowserProfileV2LaunchResult, error) {
+	request, receipt, err := parseBrowserProfileV2Request(requestJSON)
+	if err != nil {
+		return BrowserProfileV2LaunchResult{}, err
+	}
+	if request.Engine.EngineID != "webview2" && request.Engine.EngineID != "webview" {
+		receipt = browserProfileV2Unsupported(receipt, "engine")
+	}
+	if !receipt.Accepted {
+		return BrowserProfileV2LaunchResult{Status: "unsupported", Detail: "请求包含当前主机未实现的字段；未启动浏览器。", Receipt: receipt}, nil
+	}
+	launch, err := a.BrowserProfileLaunch(string(request.Config))
+	if err != nil {
+		return BrowserProfileV2LaunchResult{}, err
+	}
+	return BrowserProfileV2LaunchResult{Status: launch.Status, Detail: launch.Detail, Receipt: receipt, Launch: &launch}, nil
+}
+
 // The custom proxy remains layered over the same freshly verified strict
 // Ultra tunnel. A probe result never authorizes launch or replaces that lease.
 func (a *App) BrowserProfileLaunchProxy(configJSON, proxyJSON string) (BrowserProfileLaunchResult, error) {
@@ -622,6 +663,24 @@ func (a *App) BrowserProfileLaunchProxy(configJSON, proxyJSON string) (BrowserPr
 		return BrowserProfileLaunchResult{}, err
 	}
 	return c.launchProxy(configJSON, proxyJSON)
+}
+
+func (a *App) BrowserProfileV2LaunchProxy(requestJSON, proxyJSON string) (BrowserProfileV2LaunchResult, error) {
+	request, receipt, err := parseBrowserProfileV2Request(requestJSON)
+	if err != nil {
+		return BrowserProfileV2LaunchResult{}, err
+	}
+	if request.Engine.EngineID != "webview2" && request.Engine.EngineID != "webview" {
+		receipt = browserProfileV2Unsupported(receipt, "engine")
+	}
+	if !receipt.Accepted {
+		return BrowserProfileV2LaunchResult{Status: "unsupported", Detail: "请求包含当前主机未实现的字段；未启动浏览器。", Receipt: receipt}, nil
+	}
+	launch, err := a.BrowserProfileLaunchProxy(string(request.Config), proxyJSON)
+	if err != nil {
+		return BrowserProfileV2LaunchResult{}, err
+	}
+	return BrowserProfileV2LaunchResult{Status: launch.Status, Detail: launch.Detail, Receipt: receipt, Launch: &launch}, nil
 }
 func (a *App) BrowserProfileClose() error {
 	a.browserMu.Lock()

@@ -46,14 +46,38 @@ func (*App) BrowserProfileDefaults(string) (BrowserProfileDefaultsResult, error)
 func (*App) BrowserProfilePreview(string, string) (BrowserProfilePreviewResult, error) {
 	return BrowserProfilePreviewResult{}, errors.New("BROWSER_UNSUPPORTED")
 }
+func (*App) BrowserProfileV2Preview(requestJSON, _ string) (BrowserProfileV2PreviewResult, error) {
+	_, receipt, err := parseBrowserProfileV2Request(requestJSON)
+	if err != nil {
+		return BrowserProfileV2PreviewResult{}, err
+	}
+	receipt = browserProfileV2Unsupported(receipt, "engine", "runtime")
+	return BrowserProfileV2PreviewResult{Status: "unsupported", Detail: "当前平台没有可用的独立浏览器主机；未启动浏览器。", Receipt: receipt}, nil
+}
 func (*App) BrowserProfileIdentity(string) (browserhost.IdentityPreview, error) {
 	return browserhost.IdentityPreview{}, errors.New("BROWSER_UNSUPPORTED")
 }
 func (*App) BrowserProfileLaunch(string) (BrowserProfileLaunchResult, error) {
 	return BrowserProfileLaunchResult{}, errors.New("BROWSER_UNSUPPORTED")
 }
+func (*App) BrowserProfileV2Launch(requestJSON string) (BrowserProfileV2LaunchResult, error) {
+	_, receipt, err := parseBrowserProfileV2Request(requestJSON)
+	if err != nil {
+		return BrowserProfileV2LaunchResult{}, err
+	}
+	receipt = browserProfileV2Unsupported(receipt, "engine", "runtime")
+	return BrowserProfileV2LaunchResult{Status: "unsupported", Detail: "当前平台没有可用的独立浏览器主机；未启动浏览器。", Receipt: receipt}, nil
+}
 func (*App) BrowserProfileLaunchProxy(string, string) (BrowserProfileLaunchResult, error) {
 	return BrowserProfileLaunchResult{}, errors.New("BROWSER_UNSUPPORTED")
+}
+func (*App) BrowserProfileV2LaunchProxy(requestJSON, _ string) (BrowserProfileV2LaunchResult, error) {
+	_, receipt, err := parseBrowserProfileV2Request(requestJSON)
+	if err != nil {
+		return BrowserProfileV2LaunchResult{}, err
+	}
+	receipt = browserProfileV2Unsupported(receipt, "engine", "runtime")
+	return BrowserProfileV2LaunchResult{Status: "unsupported", Detail: "当前平台没有可用的独立浏览器主机；未启动浏览器。", Receipt: receipt}, nil
 }
 func (*App) BrowserProfileClose() error { return nil }
 func (*App) shutdownBrowser()           {}
