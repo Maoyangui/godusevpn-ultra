@@ -54,3 +54,5 @@ body{background:radial-gradient(1000px 520px at 92% -12%,rgba(84,140,255,.22),tr
 
 /* keep every showcase section discoverable on desktop */
 @media(min-width:1051px){.nav-inner{gap:14px}.desktop-nav{gap:1px;min-width:0}.desktop-nav a{font-size:11px;padding:8px 7px;letter-spacing:0}.desktop-nav a[href='#dns'],.desktop-nav a[href='#defense']{display:block}.nav-actions{gap:7px}.nav-actions .nav-link{font-size:11px;padding-left:7px;padding-right:7px}.nav-button{font-size:11px;padding:8px 11px}}
+
+@media(min-width:1051px) and (max-width:1280px){.desktop-nav a{font-size:10px;padding-left:5px;padding-right:5px}.nav-actions .nav-link{font-size:10px}.nav-button{font-size:10px;padding-left:9px;padding-right:9px}}
