@@ -42,6 +42,11 @@ if (fs.existsSync(shots)) copyDir(shots, path.join(DIST, 'assets/shots'));
 // 在线演示:客户端页面原样一份 + 演示数据
 const app = path.join(DIST, 'demo/app');
 copyDir(path.join(ROOT, 'web/dist'), app);
+// web/dist/index.html is also served as a standalone embedded demo.  Its
+// relative brand/favicons must live beside the app, not only at site root;
+// otherwise the online demo renders with broken image requests.
+const appAssets = path.join(app, 'assets');
+if (fs.existsSync(path.join(SITE, 'assets'))) copyDir(path.join(SITE, 'assets'), appAssets);
 fs.copyFileSync(path.join(SITE, 'demo/demo.js'), path.join(app, 'demo.js'));
 fs.rmSync(path.join(DIST, 'demo/demo.js'), { force: true });
 const idx = path.join(app, 'index.html');
