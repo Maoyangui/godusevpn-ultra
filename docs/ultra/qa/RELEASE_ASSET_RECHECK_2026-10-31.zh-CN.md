@@ -2,7 +2,7 @@
 
 这份记录只对应当前发布资产，不把历史 QA 包当成当前版本。
 
-- 源码提交：`75d2384`（Ultra 页面与客户端代码）
+- 源码提交：以包内 `ULTRA_PACKAGE.json` 的 `sourceCommit` 为准
 - 发布标签：`v0.02`
 - 资产：`godusevpn-ultra-0.02-windows-amd64.zip`
 - ZIP SHA-256：以 Release 资产 digest 和同名 `.zip.sha256` sidecar 为准

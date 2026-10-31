@@ -75,7 +75,7 @@
 
 仍未宣称完成的项目：真实 Cookie 导入、启动标签页、完整 WebRTC/噪音/字体/地理位置、RAM/MAC/设备名、DNT/端口扫描/TLS/同步、OOPIF/Worker/WebGPU 全上下文读回，以及 ARM64 和真实 Windows VPS 矩阵。这些继续按“运行时待验证”“当前宿主不支持”或“需要原生适配器”分类。
 
-## 最终复核追加（75d2384，2026-10-31）
+## 最终复核追加（当前审核记录，2026-10-31）
 
 本轮只修改 `godusevpn-ultra`，没有触碰 `m-ui`、`godusevpn` 或 `liumeiti.vip`。当前 `main` 与 `codex/windows-privacy` 均指向 `fdea889`，工作树干净。
 
@@ -83,7 +83,7 @@
 - 指纹种子必须先生成实际配置预览，未形成预览的种子不能直接启动；运行时读回默认保持 `partial/unknown`，不会冒充完整验证。
 - `site/docs.html` 与 `site/demo/index.html` 已改为 Ultra 所有权的 canonical、OG、GitHub、Release 和 Issues 链接，并明确基础客户端演示不等于原生运行时证据。
 - 本地测试：`go test -tags with_clash_api ./...`、`go vet`、`node --check`、静态站点构建、演示页资源扫描、8 组浏览器 UI fixture、Edge 视觉回归均通过；视觉 QA 结果为 20/92/12 张截图，错误、阻断请求和布局问题均为 0。
-- GitHub Actions：Ultra Pages 与 Windows Beta 在 `75d2384` 均通过；Windows Beta 完成包校验、Go 回归、浏览器 UI、Edge 视觉、打包和最终 payload 审计。
+- GitHub Actions：Ultra Pages 与 Windows Beta 的构建与部署均通过；Windows Beta 完成包校验、Go 回归、浏览器 UI、Edge 视觉、打包和最终 payload 审计。
 - v0.02 Release 包已用当前审核提交重建并替换旧包；当前 ZIP 以 Release 资产和同名 `.sha256` sidecar 为准；`ULTRA_PACKAGE.json` 为 `sourceDirty=false`。
 - GitHub Pages、Ultra 文档/演示页和五种 GodUseVPN 首页语言入口均可访问；正式首页在无查询参数的浏览器页面中可见 Ultra 入口，入口链接到 Ultra 展示页和节点订阅页，控制台无错误且无横向溢出。
 - 浏览器档案导出/导入已加入统一编辑器（提交 `1008f29`）：档案包含配置、内核、权限、启动网址与当前 Cookie 草稿；导入回填当前草稿后需检查并保存。只有显式导出才落盘 Cookie，代理密码和订阅令牌排除；Chrome native 宿主已接入 CDP `Storage.getCookies` / `Storage.setCookies`，启动前导入并在会话内导出；Firefox BiDi 与 WebView2 仍保持待适配，尚未在真实 VPS 完成全量 Cookie 读回/写入验收，因此界面不会冒充已恢复全部网站 Cookie。
