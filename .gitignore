@@ -17,3 +17,7 @@ site/dist/
 /qa-transfer-*/
 # Local compiler/SDK caches and browser-host test binaries.
 /.codex/
+
+docs/ultra/qa/ultra-final-*.png
+docs/ultra/qa/ultra-redesign-*.png
+docs/ultra/qa/ultra-top-*.png
