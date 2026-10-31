@@ -86,9 +86,10 @@
 - GitHub Actions：Ultra Pages 与 Windows Beta 在 `968c618` 均通过；Windows Beta 完成包校验、Go 回归、浏览器 UI、Edge 视觉、打包和最终 payload 审计。
 - v0.02 Release 包已用 `968c618` 重新构建并替换旧包，当前 ZIP SHA-256 为 `b2d5835fc7dd3cd8e63e412f9394764b0df0e1f47ba1ea73bea5798300156b8f`；`ULTRA_PACKAGE.json` 为 `sourceDirty=false`。
 - GitHub Pages、Ultra 文档/演示页和五种 GodUseVPN 首页语言入口均可访问；正式首页在无查询参数的浏览器页面中可见 Ultra 入口，入口链接到 Ultra 展示页和节点订阅页，控制台无错误且无横向溢出。
+- 浏览器档案导出/导入已加入统一编辑器（提交 `1008f29`）：档案包含配置、内核、权限、启动网址与当前 Cookie 草稿；导入回填当前草稿后需检查并保存。只有显式导出才落盘 Cookie，代理密码和订阅令牌排除；当前 native Chrome/Firefox 宿主尚未提供全量运行时 Cookie 读回/写入，界面保持“未读回/待适配”，不会冒充已恢复全部网站 Cookie。
 - Trial Worker 生产 `/healthz` 和 `/status` 正常，计划为 `free`；当前 `panelConfigured=false`、`subscriptionSource=static`。真实面板 API 前缀已固定为用户提供的地址，服务端令牌尚未由管理页写入，因此不能把面板刷新闭环写成完成。
 
-## 原有管理后台集成（Trial Worker 7680be35）
+## 原有管理后台集成（Trial Worker b5efd05b）
 
 本轮没有新增第二个试用 Worker，也没有修改 `m-ui`、`godusevpn` 或商业站仓库。现有
 `godusevpn-trial-api` 继续承载 `/app/api/trial/*`，并接管原有
@@ -101,7 +102,8 @@
 - 生产管理页注入检查：原始页面 35018 字节，集成页 38435 字节，仅增加 Ultra 卡片；未登录接口 `/manage/ultra-settings` 返回 401。
 - 生产健康检查：`/app/api/trial/healthz` 返回 200、D1/HMAC 正常、计划 `free`；当前仍为 `panelConfigured=false`，必须由管理员在管理页输入令牌后才能取得真实面板 claim/refresh 证据。
 - 本地加密链路回归：管理页保存令牌返回 200；D1 中没有明文令牌；面板模拟调用收到 `Bearer` 令牌，同一设备首次 `claimed`、第二次 `refreshed`，轮换后的订阅 URL 替换成功。
-- Worker 本地 `node --check src/index.js` 与 6 项测试全部通过；部署版本为 `88c05990-47f6-42c3-b9b1-4b4acaa69097`。
+- 管理卡在未登录首次加载后会等待 `#admin-layout` 进入已登录状态并自动重读，不再把登录前的 401 固定成错误；复选框与保存栏已做紧凑响应式样式。
+- Worker 本地 `node --check src/index.js` 与 6 项测试全部通过；部署版本为 `b5efd05b-ab7b-4490-8fa7-64782a299b3e`。
 
 以下仍是未完成或未取得真实证据的硬性项目：真实 Cookie 导入、启动标签页、完整 WebRTC/Canvas/Audio/媒体/ClientRects/SpeechVoices 噪音、字体/地理位置/DNT/端口扫描/TLS/同步适配器、OOPIF/Worker 全量读回、真实普通用户 Chrome/Firefox 代理出口、Win10 1809/19044 与 Win11 x64/ARM64 VPS 矩阵、GPS provider 写入/恢复、D03/N08、CEF/uBlock，以及面板 token 注入后的真实 claim/refresh。当前界面会保持“待验证/部分支持/不支持/未知”，不以静态页面或模拟数据替代这些证据。
 
