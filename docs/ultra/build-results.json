@@ -9,7 +9,7 @@
     {
       "name": "godusevpn.exe",
       "bytes": 20358144,
-      "sha256": "298ad8cd39b6e58579d9f6a440d96ab8c550aa4d2f84cb9c2d36cc054fe841d0",
+      "sha256": "967213402e1d8ea0349e2da57db2094eb516edf7e1fba7d35fc1dd59901bbb41",
       "machine": "amd64",
       "executionLevel": "asInvoker",
       "assemblyIdentity": "godusevpn-ultra",
@@ -20,7 +20,7 @@
     {
       "name": "godusevpn-svc.exe",
       "bytes": 43179520,
-      "sha256": "ab6c221bb02243dd133d643c83e79e49482de3402947c4bbcbec77cb7dde8905",
+      "sha256": "90da31d1cb48698e95d750189ead0c1dd4f2064e275bdeda7735c75c4d076931",
       "machine": "amd64",
       "executionLevel": "asInvoker",
       "assemblyIdentity": "godusevpn-ultra-svc",
@@ -31,7 +31,7 @@
     {
       "name": "godusevpn-cli.exe",
       "bytes": 10138112,
-      "sha256": "b50465f59d88b06e0663e688f9a5d1666c5153f5ad1d8b952142045e1968d107",
+      "sha256": "47377b6e443d0749f6e6e5f81fdb60b27703210d516b05aeb4933436acb43294",
       "machine": "amd64",
       "executionLevel": "asInvoker",
       "assemblyIdentity": "godusevpn-ultra-cli",
@@ -53,7 +53,7 @@
       {
         "name": "browser-host/GodUseVPN.Ultra.BrowserHost.exe",
         "bytes": 145408,
-        "sha256": "29b08263dfad80fde1f9ee97ba76ff2758fcee60027e59503c4644d4aa2b0662"
+        "sha256": "f601ade35daa209587b1af91a45ee2e325a9d4ad8ae3f49fb72348f4bd147336"
       },
       {
         "name": "browser-host/GodUseVPN.Ultra.BrowserHost.exe.config",
@@ -109,7 +109,7 @@
       {
         "name": "location-consumer/GodUseVPN.Ultra.LocationConsumer.exe",
         "bytes": 14848,
-        "sha256": "59c20d2ca47b3ac8a279c004298db23b351dcd7e7ac5f2e3aef915d8f648eec4"
+        "sha256": "5b3ee15f698631f38cc07172b8d9de918ccaea6a252cc0a655d9484917e3732c"
       },
       {
         "name": "location-consumer/GodUseVPN.Ultra.LocationConsumer.exe.config",
