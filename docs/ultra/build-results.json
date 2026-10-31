@@ -1,50 +1,121 @@
 {
-  "version": "0.1.0-ultra.1",
+  "version": "0.02",
+  "numericVersion": "0.2.0.0",
   "architecture": "amd64",
-  "verification": "read-only PE resources and binary hashes; no process launched",
+  "verification": "read-only PE manifests, VERSIONINFO and binary hashes; runtime version was not executed or independently verified",
+  "runtimeVersionVerified": false,
   "unsignedDeclared": true,
   "binaries": [
     {
       "name": "godusevpn.exe",
-      "bytes": 15922688,
-      "sha256": "49e0ad45cadb7f8833a9c7e4af65f3807e743f2269671b64f54dc55426ef883f",
+      "bytes": 20358144,
+      "sha256": "bc119943884e714e24328da5b86ec0c9a749530e286f1c03ac85b89366a49a06",
       "machine": "amd64",
       "executionLevel": "asInvoker",
-      "assemblyIdentity": "godusevpn-ultra"
+      "assemblyIdentity": "godusevpn-ultra",
+      "fixedFileVersion": "0.2.0.0",
+      "fixedProductVersion": "0.2.0.0",
+      "productVersion": "0.02"
     },
     {
       "name": "godusevpn-svc.exe",
-      "bytes": 43045376,
-      "sha256": "5386a6c92ee7aca38359574635dcaacd871e4ae6be5085741b3b0e377acd3d62",
+      "bytes": 43179520,
+      "sha256": "3e98302fd9b5a879b0963b672da39b48d0bd6d8d0e1d388c589c49656a295377",
       "machine": "amd64",
       "executionLevel": "asInvoker",
-      "assemblyIdentity": "godusevpn-ultra-svc"
+      "assemblyIdentity": "godusevpn-ultra-svc",
+      "fixedFileVersion": "0.2.0.0",
+      "fixedProductVersion": "0.2.0.0",
+      "productVersion": "0.02"
     },
     {
       "name": "godusevpn-cli.exe",
-      "bytes": 8488960,
-      "sha256": "bf728ab1a000b4a8aae5329d7ba76cc25aae4c7a87667fecc0bfdf4d9f5ffaa1",
+      "bytes": 10138112,
+      "sha256": "19b4bbdd21db47a02cbadee238b0cbbc5112524a5b169be344e782701f97b717",
       "machine": "amd64",
       "executionLevel": "asInvoker",
-      "assemblyIdentity": "godusevpn-ultra-cli"
+      "assemblyIdentity": "godusevpn-ultra-cli",
+      "fixedFileVersion": "0.2.0.0",
+      "fixedProductVersion": "0.2.0.0",
+      "productVersion": "0.02"
     }
   ],
-  "frontend": [
-    {
-      "path": "web/dist/privacy.js",
-      "currentSourceEmbedded": true
-    },
-    {
-      "path": "web/dist/privacy.css",
-      "currentSourceEmbedded": true
-    },
-    {
-      "path": "web/dist/app.js",
-      "currentSourceEmbedded": true
-    },
-    {
-      "path": "web/dist/index.html",
-      "currentSourceEmbedded": true
-    }
-  ]
+  "browserHost": {
+    "schemaVersion": 1,
+    "implementation": "webview2-winforms",
+    "architecture": "amd64",
+    "sdkVersion": "1.0.4314.35",
+    "nativeRuntimeBundled": false,
+    "executionLevel": "asInvoker",
+    "version": "0.02",
+    "runtimeVerified": false,
+    "files": [
+      {
+        "name": "browser-host/GodUseVPN.Ultra.BrowserHost.exe",
+        "bytes": 145408,
+        "sha256": "cdcacf4bdf2ca2385b3c44dbf806f28e9fcab43febd7a85dba230b0bfe438068"
+      },
+      {
+        "name": "browser-host/GodUseVPN.Ultra.BrowserHost.exe.config",
+        "bytes": 204,
+        "sha256": "e5791f6cf3e3a04f6e87f8f804036509c1036068a40209b45acf5cb077f4b5f5"
+      },
+      {
+        "name": "browser-host/Microsoft.Web.WebView2.Core.dll",
+        "bytes": 703328,
+        "sha256": "acdd517b951829f763d1255f32df1e6a936cb8623a7ebff6b8b24172dede6bd6"
+      },
+      {
+        "name": "browser-host/Microsoft.Web.WebView2.WinForms.dll",
+        "bytes": 38792,
+        "sha256": "c66437f80886aecf074804b61af4cc10ad90a95310c8e0a717f31ea377c26b03"
+      },
+      {
+        "name": "browser-host/WebView2Loader.dll",
+        "bytes": 194912,
+        "sha256": "d3fce90bdeecb08596e377dea6a316354dd8949e32ff09b89d51be00c14e21b6"
+      },
+      {
+        "name": "browser-host/Microsoft.Web.WebView2.LICENSE.txt",
+        "bytes": 1487,
+        "sha256": "0af8f1b807512aae39c2ac1aa4d0cae65cabecb6fd554b8439a5162a0d6eca55"
+      },
+      {
+        "name": "browser-host/README.md",
+        "bytes": 28811,
+        "sha256": "37efaad41d17b277fc90234159e5bd468f960b748d626b8e83f7ea6b1b9fcede"
+      }
+    ]
+  },
+  "metadataTool": {
+    "version": "13.59",
+    "implementation": "exiftool",
+    "manifestSHA256": "d1316fddf986e2d17761f85034c753b28375f25bf73235c1084a7c5a38e22faf",
+    "fileCount": 1501,
+    "vmValidated": false,
+    "bytes": 46706184,
+    "runtimeVerified": false
+  },
+  "locationConsumer": {
+    "schemaVersion": 1,
+    "implementation": "winrt-geolocator",
+    "architecture": "amd64",
+    "minimumFramework": "4.6.2",
+    "nativeRuntimeBundled": false,
+    "vmValidated": false,
+    "executionLevel": "asInvoker",
+    "runtimeVerified": false,
+    "files": [
+      {
+        "name": "location-consumer/GodUseVPN.Ultra.LocationConsumer.exe",
+        "bytes": 14848,
+        "sha256": "87e400077b7d161b60689d449eaba9dec5de665b9332d9a058dfc974bd6d5616"
+      },
+      {
+        "name": "location-consumer/GodUseVPN.Ultra.LocationConsumer.exe.config",
+        "bytes": 140,
+        "sha256": "789e5aa49c78324f9669fcd5aecbfc08baf7f808e17e3cc2c0a19499d32050ec"
+      }
+    ]
+  }
 }
