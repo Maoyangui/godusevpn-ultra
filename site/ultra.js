@@ -71,7 +71,7 @@
   };
 
   function renderStage(name) {
-    var item = stageData[name] || stageData.privacy, rows = item.rows[state.language] || item.rows['zh-CN'], kicker = item.kicker[state.language] || item.kicker['zh-CN'];
+    var item = stageData[name] || stageData.privacy, rows = state.language === 'en' ? item.rows.en : item.rows['zh-CN'], kicker = state.language === 'en' ? item.kicker.en : item.kicker['zh-CN'];
     var content = '<div class="screen-kicker"><span>' + kicker + '</span><b>' + t(item.badge) + '</b></div>' +
       '<div class="screen-title">' + item.title[state.language] + '</div><div class="screen-grid">' + rows.map(function (row) { return '<div class="screen-row"><i class="' + row[2] + '"></i><span>' + row[0] + '</span><b>' + row[1] + '</b></div>'; }).join('') + '</div><div class="screen-meter"><i style="width:' + item.meter + '%"></i></div>';
     var target = q('[data-stage-content]'); if (target) target.innerHTML = content;
