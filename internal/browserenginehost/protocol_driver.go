@@ -21,6 +21,8 @@ type protocolLaunch struct {
 type protocolDriver interface {
 	Configure(context.Context) error
 	Navigate(context.Context, string) error
+	ExportCookies(context.Context) (json.RawMessage, error)
+	ImportCookies(context.Context, json.RawMessage) error
 	Close()
 }
 

@@ -662,6 +662,16 @@ function renderPrivacy(el, arg) {
     if(Number(x.storage.cookieCount)>10000)throw Error('Cookie 数量超过 10000。'); return true;
   }
   function browserV2SaveExtras() { browserV2EnsureState(); const copy=JSON.parse(JSON.stringify(model.browserExtras)); if(copy.storage){delete copy.storage.values;delete copy.storage.raw;copy.storage.cookieSessionOnly=true;} if(copy.readback){copy.readback.state='unknown';copy.readback.runtimeVerified=false;} return copy; }
+  function browserV2RuntimeCookieArchive() {
+    browserV2EnsureState();
+    const storage=model.browserExtras.storage||{};
+    if(Number(storage.cookieCount)<=0) return null;
+    if(storage.cookieFormat!=='json') throw Error('原生内核恢复 Cookie 目前需要 JSON 格式。');
+    let value; try { value=JSON.parse(String(model.browserCookieDraft||'')); } catch (_) { throw Error('Cookie JSON 格式无效。'); }
+    const cookies=Array.isArray(value)?value:(value&&Array.isArray(value.cookies)?value.cookies:null);
+    if(!cookies||cookies.length>10000||cookies.some(item=>!item||typeof item!=='object'||typeof item.name!=='string'||typeof item.value!=='string')) throw Error('Cookie 档案缺少可恢复的 name/value。');
+    return {cookies};
+  }
   function browserArchiveBuild(capturedCookies) {
     browserV2EnsureState();
     const config=JSON.parse(JSON.stringify(model.browser.config||{}));
@@ -697,7 +707,7 @@ function renderPrivacy(el, arg) {
   function browserV2LaunchGate() {
     browserV2Validate(); const x=model.browserExtras, unsupported=[];
     browserV2StartupGate(model.browserEngine.engineId);
-    if(Number(x.storage.cookieCount)>0)unsupported.push('Cookie 导入');
+    if(Number(x.storage.cookieCount)>0){if(model.browserEngine.engineId==='chrome-for-testing'&&x.storage.cookieFormat==='json'){try{browserV2RuntimeCookieArchive();}catch(error){unsupported.push('Cookie 档案格式');}}else unsupported.push('当前内核的运行时 Cookie 导入');}
     if(x.proxy&&x.proxy.mode&&x.proxy.mode!=='no-proxy')unsupported.push('代理来源策略');
     const fp=x.fingerprint||{}, n=fp.noise||{};
     if(fp.webrtc&&fp.webrtc!=='disable-non-proxied-udp')unsupported.push('WebRTC 多态策略');
@@ -850,7 +860,7 @@ function renderPrivacy(el, arg) {
     const name=el.querySelector('#privacy-browser-profile-name');if(name)name.addEventListener('input',()=>{if(!alive()||model.tab!=='browser'||!el.contains(name)||model.browserBusy)return;model.browserProfileName=name.value;markBrowserProfileEdited(false);});
     const exitCleanup=el.querySelector('#privacy-browser-exit-cleanup');if(exitCleanup)exitCleanup.addEventListener('change',()=>{if(!alive()||model.tab!=='browser'||!model.browser||model.browserBusy)return;model.browser.config.exitCleanup=exitCleanup.value==='delete-owned-profile'?'delete-owned-profile':'retain-profile';markBrowserProfileEdited(true);draw();});
     const select=el.querySelector('#privacy-browser-profile-select');if(select)select.addEventListener('change',()=>{model.browserSavedSelection=select.value;const button=el.querySelector('#privacy-browser-profile-load');if(button)button.disabled=!select.value;});
-    const archiveExport=el.querySelector('#privacy-browser-archive-export');if(archiveExport)archiveExport.addEventListener('click',async()=>{if(!alive()||model.tab!=='browser'||model.browserBusy||!model.browser)return;model.browserBusy=true;model.browserArchiveError='';model.browserArchiveMessage='正在准备档案…';draw();try{let captured=null;try{const state=model.browserStart&&model.browserStart.status&&model.browserStart.status.state;if(state==='ready'){const result=await api('BrowserProfileCookiesExport',model.browser.config.profileId);if(result&&Array.isArray(result.values))captured=result;}}catch(_){captured=null;}const archive=browserArchiveBuild(captured);browserArchiveDownload(archive);model.browserArchiveMessage=archive.cookies.runtimeCaptured?'已导出配置与运行时 Cookie。':'已导出配置与当前页面 Cookie 草稿；宿主未提供运行时 Cookie 读回。';}catch(error){model.browserArchiveError=errText(error);model.browserArchiveMessage='';}finally{model.browserBusy=false;draw();}});
+    const archiveExport=el.querySelector('#privacy-browser-archive-export');if(archiveExport)archiveExport.addEventListener('click',async()=>{if(!alive()||model.tab!=='browser'||model.browserBusy||!model.browser)return;model.browserBusy=true;model.browserArchiveError='';model.browserArchiveMessage='正在准备档案…';draw();try{let captured=null;try{const state=model.browserStart&&model.browserStart.status&&model.browserStart.status.state;if(state==='ready'){const result=await api('BrowserProfileCookiesExport',model.browser.config.profileId);const value=typeof result==='string'?JSON.parse(result):result;if(value&&Array.isArray(value.cookies))captured={values:value.cookies};}}catch(_){captured=null;}const archive=browserArchiveBuild(captured);browserArchiveDownload(archive);model.browserArchiveMessage=archive.cookies.runtimeCaptured?'已导出配置与运行时 Cookie。':'已导出配置与当前页面 Cookie 草稿；宿主未提供运行时 Cookie 读回。';}catch(error){model.browserArchiveError=errText(error);model.browserArchiveMessage='';}finally{model.browserBusy=false;draw();}});
     const archiveImport=el.querySelector('#privacy-browser-archive-import'),archiveFile=el.querySelector('#privacy-browser-archive-file');if(archiveImport&&archiveFile){archiveImport.addEventListener('click',()=>{if(!model.browserBusy)archiveFile.click();});archiveFile.addEventListener('change',async()=>{const file=archiveFile.files&&archiveFile.files[0];archiveFile.value='';if(!file){return;}if(file.size>2*1024*1024){model.browserArchiveError='档案文件超过 2 MB，已拒绝读取。';model.browserArchiveMessage='';draw();return;}try{const archive=JSON.parse(await file.text());browserArchiveApply(archive);draw();}catch(error){model.browserArchiveError=errText(error);model.browserArchiveMessage='';draw();}});}
     for(const action of ['save','list','load','new','delete']){
       const button=el.querySelector('#privacy-browser-profile-'+action);if(!button)continue;
@@ -978,7 +988,7 @@ function renderPrivacy(el, arg) {
     if(startupURL)request.startupURL=startupURL;
     if(c.hardware){if(engineId==='firefox')throw new Error('Firefox 当前不支持自定义网页 CPU 核数；请恢复原生信息或选择 Chrome / WebView2。');request.hardware=JSON.parse(JSON.stringify(c.hardware));}
     if(!identityOnly&&engineId==='firefox'){if(c.graphics)request.graphics=JSON.parse(JSON.stringify(c.graphics));if(c.webgpu==='disabled')request.webgpu='disabled';}
-    if(c.environment)request.environment=JSON.parse(JSON.stringify(c.environment));return request;
+    if(c.environment)request.environment=JSON.parse(JSON.stringify(c.environment));if(engineId==='chrome-for-testing'&&Number((model.browserExtras.storage||{}).cookieCount)>0)request.cookies=browserV2RuntimeCookieArchive();return request;
   }
   function browserStartControls(){
     if(!model.browserStart)return '';

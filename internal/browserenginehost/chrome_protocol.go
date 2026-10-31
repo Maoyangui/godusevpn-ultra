@@ -182,9 +182,54 @@ func (d *chromeDriver) Configure(ctx context.Context) (err error) {
 		d.mu.Unlock()
 		return ErrRefused
 	}
+	d.mu.Unlock()
+	if len(d.config.CookieArchive) > 0 {
+		if err := d.ImportCookies(ctx, d.config.CookieArchive); err != nil {
+			return err
+		}
+	}
+	d.mu.Lock()
+	if d.closed {
+		d.mu.Unlock()
+		return ErrRefused
+	}
 	d.ready = true
 	d.mu.Unlock()
 	return nil
+}
+
+func (d *chromeDriver) ExportCookies(ctx context.Context) (json.RawMessage, error) {
+	d.mu.Lock()
+	contextID, closed := d.contextID, d.closed
+	d.mu.Unlock()
+	if closed || contextID == "" {
+		return nil, ErrRefused
+	}
+	raw, err := d.call(ctx, "Storage.getCookies", map[string]any{"browserContextId": contextID}, "")
+	if err != nil {
+		return nil, err
+	}
+	if _, err := validateCookieArchive(raw); err != nil {
+		return nil, err
+	}
+	return raw, nil
+}
+
+func (d *chromeDriver) ImportCookies(ctx context.Context, raw json.RawMessage) error {
+	cookies, err := validateCookieArchive(raw)
+	if err != nil {
+		return err
+	}
+	d.mu.Lock()
+	contextID, closed := d.contextID, d.closed
+	d.mu.Unlock()
+	if closed || contextID == "" {
+		return ErrRefused
+	}
+	items := make([]json.RawMessage, len(cookies))
+	copy(items, cookies)
+	_, err = d.call(ctx, "Storage.setCookies", map[string]any{"cookies": items, "browserContextId": contextID}, "")
+	return err
 }
 
 func (d *chromeDriver) applyIdentity(ctx context.Context, session string, plan ChromeIdentity, top bool) error {

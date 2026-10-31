@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/Maoyangui/godusevpn/internal/browserengine"
 	"github.com/Maoyangui/godusevpn/internal/browserengineguard"
@@ -39,6 +40,7 @@ type browserEngineProfileRequest struct {
 	Graphics    *browserhost.GraphicsConfig    `json:"graphics,omitempty"`
 	WebGPU      string                         `json:"webgpu,omitempty"`
 	ExitCleanup string                         `json:"exitCleanup,omitempty"`
+	Cookies     json.RawMessage                `json:"cookies,omitempty"`
 }
 
 func validEngineStartupURL(raw string) bool {
@@ -100,7 +102,7 @@ var engineSessionID = regexp.MustCompile(`^[0-9a-f]{64}$`)
 
 func parseBrowserEngineRequest(data string) (browserEngineProfileRequest, error) {
 	var request browserEngineProfileRequest
-	if len(data) == 0 || len(data) > 4096 {
+	if len(data) == 0 || len(data) > (2<<20)+128<<10 {
 		return request, errBrowserEngineConfig
 	}
 	d := json.NewDecoder(strings.NewReader(data))
@@ -117,7 +119,7 @@ func parseBrowserEngineRequest(data string) (browserEngineProfileRequest, error)
 		}
 		seen[strings.ToLower(key)] = true
 		switch key {
-		case "engineId", "version", "profileId", "language", "timezone", "width", "height", "startupURL", "identity", "environment", "hardware", "graphics", "webgpu", "exitCleanup":
+		case "engineId", "version", "profileId", "language", "timezone", "width", "height", "startupURL", "identity", "environment", "hardware", "graphics", "webgpu", "exitCleanup", "cookies":
 		default:
 			return request, errBrowserEngineConfig
 		}
@@ -252,7 +254,7 @@ func strictBrowserEngineFields(data []byte, allowed map[string]bool) bool {
 	return err == io.EOF
 }
 func (r browserEngineProfileRequest) hostConfig(proxy browserproxy.Config) browserenginehost.Config {
-	return browserenginehost.Config{EngineID: r.EngineID, Version: r.Version, ProfileID: r.ProfileID, Language: r.Language, Timezone: r.Timezone, Width: r.Width, Height: r.Height, StartupURL: r.StartupURL, ExitCleanup: r.ExitCleanup, Identity: r.Identity, Environment: r.Environment, Hardware: r.Hardware, Graphics: r.Graphics, WebGPU: r.WebGPU, Proxy: proxy}
+	return browserenginehost.Config{EngineID: r.EngineID, Version: r.Version, ProfileID: r.ProfileID, Language: r.Language, Timezone: r.Timezone, Width: r.Width, Height: r.Height, StartupURL: r.StartupURL, ExitCleanup: r.ExitCleanup, CookieArchive: r.Cookies, Identity: r.Identity, Environment: r.Environment, Hardware: r.Hardware, Graphics: r.Graphics, WebGPU: r.WebGPU, Proxy: proxy}
 }
 
 // BrowserEngineIdentity is a local plan for the selected actual engine version.
@@ -630,6 +632,48 @@ func (c *browserEngineController) navigate(rawURL string) error {
 	}
 	return nil
 }
+func (c *browserEngineController) exportCookies(ctx context.Context) (json.RawMessage, error) {
+	c.mu.Lock()
+	r := c.current
+	c.mu.Unlock()
+	if r == nil {
+		return nil, errBrowserEngineRefused
+	}
+	r.mu.Lock()
+	session, stopped := r.session, r.stopped
+	r.mu.Unlock()
+	if session == nil || stopped || r.ctx.Err() != nil || !session.Status().Ready {
+		return nil, errBrowserEngineRefused
+	}
+	holder, ok := session.(interface {
+		ExportCookies(context.Context) (json.RawMessage, error)
+	})
+	if !ok {
+		return nil, errBrowserEngineRefused
+	}
+	return holder.ExportCookies(ctx)
+}
+func (c *browserEngineController) importCookies(ctx context.Context, raw json.RawMessage) error {
+	c.mu.Lock()
+	r := c.current
+	c.mu.Unlock()
+	if r == nil {
+		return errBrowserEngineRefused
+	}
+	r.mu.Lock()
+	session, stopped := r.session, r.stopped
+	r.mu.Unlock()
+	if session == nil || stopped || r.ctx.Err() != nil || !session.Status().Ready {
+		return errBrowserEngineRefused
+	}
+	holder, ok := session.(interface {
+		ImportCookies(context.Context, json.RawMessage) error
+	})
+	if !ok {
+		return errBrowserEngineRefused
+	}
+	return holder.ImportCookies(ctx, raw)
+}
 func (c *browserEngineController) close(permanent bool) error {
 	c.mu.Lock()
 	if permanent {
@@ -699,6 +743,28 @@ func (a *App) BrowserEngineProfileNavigate(rawURL string) error {
 		return errBrowserEngineRefused
 	}
 	return c.navigate(rawURL)
+}
+func (a *App) BrowserProfileCookiesExport(string) (json.RawMessage, error) {
+	c, err := a.browserEngineController()
+	if err != nil {
+		return nil, err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	return c.exportCookies(ctx)
+}
+func (a *App) BrowserProfileCookiesImport(raw string) error {
+	c, err := a.browserEngineController()
+	if err != nil {
+		return err
+	}
+	var archive json.RawMessage = json.RawMessage(raw)
+	if len(archive) == 0 || len(archive) > (2<<20) {
+		return errBrowserEngineConfig
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	return c.importCookies(ctx, archive)
 }
 func (a *App) BrowserEngineProfileClose() error {
 	a.invalidatePrivacyEvidence()

@@ -167,6 +167,8 @@ func startAcceptance(parent context.Context, engines *browserengine.Manager, c C
 		driver = newFirefoxDriver(transport, c, launch, life.revoke)
 	}
 	life.driver = driver
+	session.exportCookies = driver.ExportCookies
+	session.importCookies = driver.ImportCookies
 	if startupCheckpoint(ctx) != nil || driver == nil {
 		return nil, ErrRefused
 	}

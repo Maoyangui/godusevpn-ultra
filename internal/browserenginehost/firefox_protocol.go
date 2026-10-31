@@ -39,6 +39,14 @@ func newFirefoxDriver(t protocolTransport, c Config, launch protocolLaunch, abor
 	return d
 }
 
+// Firefox BiDi storage commands are not yet exposed by the pinned Gecko
+// driver. Keep the capability explicit so the UI can report that runtime
+// Cookie export/import is unavailable instead of treating a draft as proof.
+func (d *firefoxDriver) ExportCookies(context.Context) (json.RawMessage, error) {
+	return nil, ErrRefused
+}
+func (d *firefoxDriver) ImportCookies(context.Context, json.RawMessage) error { return ErrRefused }
+
 func (d *firefoxDriver) call(ctx context.Context, method string, params any) (json.RawMessage, error) {
 	return d.client.call(ctx, method, params, "")
 }
@@ -201,6 +209,9 @@ func (d *firefoxDriver) Configure(ctx context.Context) (err error) {
 		if err = d.configureGraphics(ctx, ua); err != nil {
 			return err
 		}
+	}
+	if len(d.config.CookieArchive) > 0 {
+		return ErrRefused
 	}
 	d.mu.Lock()
 	if d.closed {

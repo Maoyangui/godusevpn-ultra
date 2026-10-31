@@ -20,6 +20,9 @@ func validateConfig(c Config) error {
 	if c.EngineID != browserengine.Chrome && c.EngineID != browserengine.Firefox || !safeProfileID.MatchString(c.ProfileID) || strings.HasSuffix(c.ProfileID, "-") || c.ExitCleanup != "" && c.ExitCleanup != "retain-profile" && c.ExitCleanup != "delete-owned-profile" || browserproxy.Validate(c.Proxy) != nil || validateIdentity(c) != nil || validateNativeHardware(c) != nil || ValidateGraphicsConfig(c) != nil {
 		return ErrRefused
 	}
+	if _, err := validateCookieArchive(c.CookieArchive); err != nil {
+		return ErrRefused
+	}
 	if c.StartupURL != "" && !allowedNavigation(c.StartupURL) {
 		return ErrRefused
 	}

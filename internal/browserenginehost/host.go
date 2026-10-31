@@ -4,6 +4,7 @@ package browserenginehost
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"sync"
 
@@ -30,14 +31,15 @@ type Config struct {
 	// network guard have been verified, but before the session is reported
 	// ready. It is intentionally a single value; multi-tab startup needs a
 	// separate per-target lifecycle and readback contract.
-	StartupURL  string
-	ExitCleanup string
-	Proxy       browserproxy.Config
-	Identity    browserhost.ProfileIdentity
-	Environment *browserhost.EnvironmentConfig
-	Hardware    *browserhost.HardwareConfig
-	Graphics    *browserhost.GraphicsConfig
-	WebGPU      string
+	StartupURL    string
+	ExitCleanup   string
+	Proxy         browserproxy.Config
+	Identity      browserhost.ProfileIdentity
+	Environment   *browserhost.EnvironmentConfig
+	Hardware      *browserhost.HardwareConfig
+	Graphics      *browserhost.GraphicsConfig
+	WebGPU        string
+	CookieArchive json.RawMessage
 }
 type Guard interface {
 	Install(context.Context, browserengineguard.InstallRequest) (browserengineguard.Result, error)
@@ -56,14 +58,16 @@ type Status struct {
 	Diagnostic  *browserengineguard.Diagnostic `json:"diagnostic,omitempty"`
 }
 type Session struct {
-	mu       sync.Mutex
-	id       string
-	status   Status
-	done     chan struct{}
-	close    func() error
-	navigate func(context.Context, string) error
-	once     sync.Once
-	closeErr error
+	mu            sync.Mutex
+	id            string
+	status        Status
+	done          chan struct{}
+	close         func() error
+	navigate      func(context.Context, string) error
+	exportCookies func(context.Context) (json.RawMessage, error)
+	importCookies func(context.Context, json.RawMessage) error
+	once          sync.Once
+	closeErr      error
 }
 
 func (s *Session) ID() string { return s.id }
@@ -92,6 +96,20 @@ func (s *Session) Navigate(ctx context.Context, url string) error {
 		return ErrNotReady
 	}
 	return s.navigate(ctx, url)
+}
+
+func (s *Session) ExportCookies(ctx context.Context) (json.RawMessage, error) {
+	if s.exportCookies == nil {
+		return nil, ErrRefused
+	}
+	return s.exportCookies(ctx)
+}
+
+func (s *Session) ImportCookies(ctx context.Context, raw json.RawMessage) error {
+	if s.importCookies == nil {
+		return ErrRefused
+	}
+	return s.importCookies(ctx, raw)
 }
 
 func Start(ctx context.Context, engines *browserengine.Manager, config Config, guard Guard) (*Session, error) {
