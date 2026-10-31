@@ -1,0 +1,34 @@
+{
+  "kind": "ultra-current-baseline",
+  "commit": "78f401284d941d2f6e54593e104cb7ca1e26f511",
+  "branch": "codex/windows-privacy",
+  "remote": "https://github.com/Maoyangui/godusevpn-ultra.git",
+  "worktree": "clean",
+  "scope": {
+    "allowed": ["godusevpn-ultra", "independent trial worker", "independent home bridge"],
+    "forbidden": ["m-ui", "godusevpn", "liumeiti.vip-main", "liumeiti.vip"]
+  },
+  "checks": {
+    "site_build": "pass",
+    "demo_smoke": "pass",
+    "ultra_js_syntax": "pass",
+    "git_diff_check": "pass"
+  },
+  "page": {
+    "pages_commit": "78f4012",
+    "cache_css": "0.02-ultra-rebuild",
+    "cache_js": "0.02-ultra-rebuild",
+    "logo_asset": "site/assets/godusevpn-logo.svg",
+    "cua": ["desktop online load", "workspace tab switch", "browser environment switch", "English switch"]
+  },
+  "status": {
+    "v2_extras_backend_contract": "not_verified",
+    "encrypted_archive": "not_verified",
+    "multi_tab_launch": "not_verified",
+    "full_runtime_fingerprint": "not_verified",
+    "qa_npm_ci": "not_verified",
+    "azure_matrix": "not_verified",
+    "production_trial": "not_verified"
+  },
+  "historical_evidence": "non-authoritative"
+}
