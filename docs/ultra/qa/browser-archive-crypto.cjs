@@ -6,6 +6,9 @@ const vm = require('node:vm');
 const crypto = require('node:crypto').webcrypto;
 
 const source = fs.readFileSync(require('node:path').resolve(__dirname, '../../../web/dist/privacy.js'), 'utf8');
+assert.match(source, /browserArchiveDiff\(archive\)/, 'archive import must build a difference preview');
+assert.match(source, /const confirmed=await askConfirm\(diff/, 'archive import must require explicit confirmation');
+assert.match(source, /已取消，当前草稿未改变/, 'archive cancel path must preserve the current draft');
 const start = source.indexOf('  const archiveDangerousKey =');
 const end = source.indexOf('  function browserV2GenerateSeed', start);
 assert.ok(start >= 0 && end > start, 'archive helper body must exist');

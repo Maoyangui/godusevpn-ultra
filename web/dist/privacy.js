@@ -694,16 +694,47 @@ function renderPrivacy(el, arg) {
   async function browserArchiveDownload(archive) {
     const password=await askInput('为浏览器档案设置加密密码（至少 12 个字符）。密码不会保存。','',{password:true,ok:'导出加密档案'});if(password===null)return false;if(String(password).length<12)throw Error('档案密码至少需要 12 个字符。');const encrypted=await browserArchiveEncrypt(archive,String(password));const blob=new Blob([JSON.stringify(encrypted,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),anchor=document.createElement('a');anchor.href=url;anchor.download=((String(model.browserProfileName||'browser-profile').trim()||'browser-profile').replace(/[^\w\-\u4e00-\u9fff]+/g,'-').slice(0,48)||'browser-profile')+'.ultra-profile.json';document.body.appendChild(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);return true;
   }
-  function browserArchiveApply(archive) {
+  function browserArchivePrepare(archive) {
     if(!archive||archive.kind!=='godusevpn-ultra-browser-profile'||archive.archiveVersion!==1||!archive.profile||!archive.profile.config||!archive.profile.engine)throw Error('档案内容格式不受支持。');
     const config=browserArchiveClean(JSON.parse(JSON.stringify(archive.profile.config)));
     if(!config.profileId||typeof config.profileId!=='string')throw Error('档案缺少浏览器配置标识。');
     browserV2EnsureState();
     const currentId=model.browser&&model.browser.config&&model.browser.config.profileId;
     if(currentId)config.profileId=currentId;
-    model.browser.config=config;model.browserEngine=browserArchiveClean(JSON.parse(JSON.stringify(archive.profile.engine)));model.browserMeta=browserArchiveClean(JSON.parse(JSON.stringify(archive.profile.meta||{})));model.browserExtras=browserArchiveClean(JSON.parse(JSON.stringify(archive.profile.extras||model.browserExtras)));browserV2EnsureState();
-    const cookie=archive.cookies||{};model.browserCookieDraft=String(cookie.raw||'');if(Array.isArray(cookie.values)&&!model.browserCookieDraft)model.browserCookieDraft=JSON.stringify(cookie.values,null,2);try{const count=browserV2ParseCookies(model.browserCookieDraft,browserV2Get('storage.cookieFormat',cookie.format||'json'));browserV2Set('storage.cookieCount',count);}catch(_){browserV2Set('storage.cookieCount',Number(cookie.count)||0);}
-    model.browserProfileName=String(archive.profile.name||model.browserProfileName||'');model.browserArchiveError='';model.browserArchiveMessage='档案已解密并载入草稿；请检查后保存。';markBrowserProfileEdited(true);
+    const engine=browserArchiveClean(JSON.parse(JSON.stringify(archive.profile.engine)));
+    const meta=browserArchiveClean(JSON.parse(JSON.stringify(archive.profile.meta||{})));
+    const extras=browserArchiveClean(JSON.parse(JSON.stringify(archive.profile.extras||model.browserExtras)));
+    const cookie=archive.cookies||{};
+    const cookieDraft=String(cookie.raw||'');
+    const cookieFormat=String(extras.storage&&extras.storage.cookieFormat||cookie.format||'json');
+    let cookieCount=Number(cookie.count)||0;
+    if(Array.isArray(cookie.values)&&!cookieDraft) { const raw=JSON.stringify(cookie.values,null,2); cookieCount=browserV2ParseCookies(raw,cookieFormat); }
+    else if(cookieDraft) { try { cookieCount=browserV2ParseCookies(cookieDraft,cookieFormat); } catch (_) { cookieCount=Math.max(0,cookieCount); } }
+    if(!extras.storage||typeof extras.storage!=='object')extras.storage={};
+    extras.storage.cookieCount=cookieCount;
+    extras.storage.cookieSessionOnly=true;
+    if(extras.readback&&typeof extras.readback==='object') { extras.readback.state='unknown'; extras.readback.runtimeVerified=false; extras.readback.warnings=['配置已导入，尚未启动读回。']; }
+    return {config,engine,meta,extras,cookieDraft,cookieCount,profileName:String(archive.profile.name||model.browserProfileName||'')};
+  }
+  function browserArchiveDiff(archive) {
+    const next=browserArchivePrepare(archive);
+    const changed=[];
+    if(String(model.browserProfileName||'')!==next.profileName)changed.push('配置名称');
+    if(JSON.stringify(model.browserEngine||{})!==JSON.stringify(next.engine))changed.push('浏览器内核');
+    if(JSON.stringify(model.browser.config||{})!==JSON.stringify(next.config))changed.push('浏览器参数');
+    if(JSON.stringify(model.browserMeta||{})!==JSON.stringify(next.meta))changed.push('环境信息');
+    if(JSON.stringify(model.browserExtras||{})!==JSON.stringify(next.extras))changed.push('隐私策略与启动设置');
+    const currentCookie=String(model.browserCookieDraft||'');
+    if(currentCookie!==next.cookieDraft)changed.push('Cookie 草稿（'+next.cookieCount+' 条）');
+    return changed.length?'已解密。确认后将更新：'+changed.join('、')+'。取消不会改变当前草稿。':'档案内容与当前草稿一致，无需更新。';
+  }
+  function browserArchiveApply(archive) {
+    const next=browserArchivePrepare(archive);
+    // Prepare and validate every value before touching the live draft. A
+    // malformed archive therefore cannot leave a half-applied configuration.
+    model.browser.config=next.config; model.browserEngine=next.engine; model.browserMeta=next.meta; model.browserExtras=next.extras; browserV2EnsureState();
+    model.browserCookieDraft=next.cookieDraft; model.browserProfileName=next.profileName;
+    model.browserArchiveError=''; model.browserArchiveMessage='档案已解密并载入草稿；请检查后保存。'; markBrowserProfileEdited(true);
   }
   function browserV2GenerateSeed() { const bytes=new Uint8Array(16); if(window.crypto&&window.crypto.getRandomValues)window.crypto.getRandomValues(bytes); else for(let i=0;i<bytes.length;i++)bytes[i]=Math.floor(Math.random()*256); return Array.from(bytes).map(value=>value.toString(16).padStart(2,'0')).join(''); }
   function browserV2StartupGate(engineId) {
@@ -872,7 +903,7 @@ function renderPrivacy(el, arg) {
     const exitCleanup=el.querySelector('#privacy-browser-exit-cleanup');if(exitCleanup)exitCleanup.addEventListener('change',()=>{if(!alive()||model.tab!=='browser'||!model.browser||model.browserBusy)return;model.browser.config.exitCleanup=exitCleanup.value==='delete-owned-profile'?'delete-owned-profile':'retain-profile';markBrowserProfileEdited(true);draw();});
     const select=el.querySelector('#privacy-browser-profile-select');if(select)select.addEventListener('change',()=>{model.browserSavedSelection=select.value;const button=el.querySelector('#privacy-browser-profile-load');if(button)button.disabled=!select.value;});
     const archiveExport=el.querySelector('#privacy-browser-archive-export');if(archiveExport)archiveExport.addEventListener('click',async()=>{if(!alive()||model.tab!=='browser'||model.browserBusy||!model.browser)return;model.browserBusy=true;model.browserArchiveError='';model.browserArchiveMessage='正在准备加密档案…';draw();try{let captured=null;try{const state=model.browserStart&&model.browserStart.status&&model.browserStart.status.state;if(state==='ready'){const result=await api('BrowserProfileCookiesExport',model.browser.config.profileId);const value=typeof result==='string'?JSON.parse(result):result;if(value&&Array.isArray(value.cookies))captured={values:value.cookies};}}catch(_){captured=null;}const archive=browserArchiveBuild(captured);const downloaded=await browserArchiveDownload(archive);if(downloaded)model.browserArchiveMessage=archive.cookies.runtimeCaptured?'已导出加密档案与运行时 Cookie。':'已导出加密档案与当前 Cookie 草稿；宿主未提供运行时 Cookie 读回。';else model.browserArchiveMessage='已取消导出。';}catch(error){model.browserArchiveError=errText(error);model.browserArchiveMessage='';}finally{model.browserBusy=false;draw();}});
-    const archiveImport=el.querySelector('#privacy-browser-archive-import'),archiveFile=el.querySelector('#privacy-browser-archive-file');if(archiveImport&&archiveFile){archiveImport.addEventListener('click',()=>{if(!model.browserBusy)archiveFile.click();});archiveFile.addEventListener('change',async()=>{const file=archiveFile.files&&archiveFile.files[0];archiveFile.value='';if(!file){return;}if(file.size>2*1024*1024){model.browserArchiveError='档案文件超过 2 MB，已拒绝读取。';model.browserArchiveMessage='';draw();return;}try{const container=JSON.parse(await file.text());const password=await askInput('输入浏览器档案密码。密码只用于本次解密，不会保存。','',{password:true,ok:'解密并预览'});if(password===null)return;const archive=await browserArchiveDecrypt(container,String(password));browserArchiveApply(archive);draw();}catch(error){model.browserArchiveError=errText(error);model.browserArchiveMessage='';draw();}});}
+    const archiveImport=el.querySelector('#privacy-browser-archive-import'),archiveFile=el.querySelector('#privacy-browser-archive-file');if(archiveImport&&archiveFile){archiveImport.addEventListener('click',()=>{if(!model.browserBusy)archiveFile.click();});archiveFile.addEventListener('change',async()=>{const file=archiveFile.files&&archiveFile.files[0];archiveFile.value='';if(!file)return;if(model.browserBusy)return;model.browserBusy=true;model.browserArchiveError='';model.browserArchiveMessage='正在读取加密档案…';draw();try{if(file.size>2*1024*1024)throw Error('档案文件超过 2 MB，已拒绝读取。');const container=JSON.parse(await file.text());const password=await askInput('输入浏览器档案密码。密码只用于本次解密，不会保存。','',{password:true,ok:'解密并预览'});if(password===null){model.browserArchiveMessage='已取消，当前草稿未改变。';return;}const archive=await browserArchiveDecrypt(container,String(password));const diff=browserArchiveDiff(archive);const confirmed=await askConfirm(diff,{ok:'应用到当前草稿',danger:false});if(!confirmed){model.browserArchiveMessage='已取消，当前草稿未改变。';return;}browserArchiveApply(archive);}catch(error){model.browserArchiveError=errText(error);model.browserArchiveMessage='';}finally{model.browserBusy=false;draw();}});}
     for(const action of ['save','list','load','new','delete']){
       const button=el.querySelector('#privacy-browser-profile-'+action);if(!button)continue;
       button.addEventListener('click',async()=>{
