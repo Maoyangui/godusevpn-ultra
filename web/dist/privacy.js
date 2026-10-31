@@ -237,7 +237,7 @@ function renderPrivacy(el, arg) {
       <div class="privacy-card-head"><div><h2>浏览器环境编辑器${privacyHelp('按 AdsPower / 比特浏览器式的完整环境配置组织。每个字段先保存为配置草稿，再在启动时按能力范围逐项读回；无法由当前宿主实现的项目保持“未知/不支持”，不会伪装成已生效。')}</h2><p class="privacy-profile-kicker">${safe(model.browserProfileName||'未命名浏览器')} · ${safe(meta.environmentName||'未命名环境')}</p></div>${status(editorState,editorState==='运行时已读回'?'verified':editorState==='已保存'?'configured':editorState==='配置冲突'||editorState==='版本冲突'?'limited':'pending')}</div>
       <dl class="privacy-profile-meta"><dt>配置 ID</dt><dd>${safe(savedRecord.id||runtimeConfig.profileId||'未保存')}</dd><dt>Revision</dt><dd>${safe(savedRecord.revision||'未保存')}</dd><dt>最后保存</dt><dd>${safe(savedRecord.updatedAt||'未保存')}</dd><dt>最后读回</dt><dd>${safe(readback.timestamp||'未读回')}</dd></dl>
       ${conflicts.length?`<p class="privacy-profile-conflict" role="alert">配置冲突：${safe(conflicts.join('；'))}。未自动覆盖旧值，请检查后保存或另存。</p>`:''}
-      <p class="muted">配置名称是浏览器配置记录名称；环境名称、分组和备注用于管理。Cookie 原文只在本次会话内存中解析，默认不落盘。</p>
+      <p class="muted">配置名称是浏览器配置记录名称；环境名称、分组和备注用于管理。Cookie 原文默认只在本次会话内存中解析；只有你显式导出档案时才写入本地文件。</p>
       <section class="privacy-browser-core" aria-label="基础浏览器配置"><h3 class="privacy-data-subtitle">基础浏览器配置</h3>${browserCoreFields()}</section>
       <div class="privacy-browser-fields">
         ${select('meta.browser','浏览器家族',meta.browser||'chromium',[['sunbrowser','SunBrowser（家族标签）'],['flowerbrowser','FlowerBrowser（家族标签）'],['chromium','Chrome / Chromium'],['firefox','Firefox / Gecko'],['webview2','WebView2 / Edge']], '家族标签与实际内核分开保存；选择 SunBrowser 或 FlowerBrowser 不会伪装成未安装的真实内核。')}
