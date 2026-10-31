@@ -672,9 +672,19 @@ function renderPrivacy(el, arg) {
     if(!cookies||cookies.length>10000||cookies.some(item=>!item||typeof item!=='object'||typeof item.name!=='string'||typeof item.value!=='string')) throw Error('Cookie 档案缺少可恢复的 name/value。');
     return {cookies};
   }
-  const archiveDangerousKey = key => /^(binding|servicepid|service_pid|pid|proxycredentials|proxycredential|proxypassword|proxy_password|subscriptiontoken|subscription_token|paneltoken|panel_token|extrargs|extraargs|adminauthorization|admin_authorization|administratorauthorization)$/i.test(String(key||''));
+  // Archives are encrypted, but they can still be copied to another machine.
+  // Strip credential-like fields by meaning instead of maintaining a short
+  // list of panel-specific spellings. Cookie values are deliberately kept in
+  // the separate cookies envelope and are therefore not matched here.
+  const archiveDangerousKey = key => {
+    const normalized=String(key||'').replace(/[\s_-]/g,'').toLowerCase();
+    return /^(binding|servicepid|pid|proxycredentials?|proxypassword|subscriptiontoken|paneltoken|extraargs|adminauthorization|administratorauthorization)$/.test(normalized)
+      || /(apikey|accesstoken|refreshtoken|clientsecret|privatekey|authorization|credential|password|secret|token)$/.test(normalized);
+  };
   function browserArchiveClean(value, depth=0) {
-    if(depth>16||value===null||value===undefined)return value;
+    // A bounded archive must never return an uncleaned deep object. Drop the
+    // over-deep branch so a maliciously nested token cannot bypass the scrub.
+    if(depth>16)return undefined;
     if(Array.isArray(value))return value.map(item=>browserArchiveClean(item,depth+1));
     if(typeof value!=='object')return value;
     const out={}; Object.keys(value).forEach(key=>{if(!archiveDangerousKey(key))out[key]=browserArchiveClean(value[key],depth+1);}); return out;
