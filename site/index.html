@@ -9,7 +9,9 @@
 <link rel="canonical" href="https://maoyangui.github.io/godusevpn-ultra/">
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link rel="alternate" hreflang="zh-CN" href="https://maoyangui.github.io/godusevpn-ultra/">
+<link rel="alternate" hreflang="zh-TW" href="https://maoyangui.github.io/godusevpn-ultra/?lang=zh-Hant">
 <link rel="alternate" hreflang="en" href="https://maoyangui.github.io/godusevpn-ultra/?lang=en">
+<link rel="alternate" hreflang="es" href="https://maoyangui.github.io/godusevpn-ultra/?lang=es">
 <link rel="alternate" hreflang="x-default" href="https://maoyangui.github.io/godusevpn-ultra/">
 <meta name="theme-color" content="#080c14">
 <meta property="og:type" content="website">
@@ -18,8 +20,8 @@
 <meta property="og:url" content="https://maoyangui.github.io/godusevpn-ultra/">
 <meta property="og:image" content="https://maoyangui.github.io/godusevpn-ultra/assets/favicon.svg">
 <meta name="twitter:card" content="summary_large_image">
-<script>(function(){var q=new URLSearchParams(location.search).get('lang')||'';if(q==='en'||q.indexOf('en-')===0)document.documentElement.dataset.initialLang='en';})();</script>
-<style>html[data-initial-lang="en"] body{visibility:hidden}html[data-initial-lang="en"].is-hydrated body{visibility:visible}</style>
+<script>(function(){var q=(new URLSearchParams(location.search).get('lang')||'').toLowerCase();if(q==='en'||q.indexOf('en-')===0)document.documentElement.dataset.initialLang='en';else if(q==='es'||q.indexOf('es-')===0)document.documentElement.dataset.initialLang='es';else if(q==='zh-hant'||q.indexOf('zh-tw')===0||q.indexOf('zh-hk')===0)document.documentElement.dataset.initialLang='zh-Hant';})();</script>
+<style>html[data-initial-lang] body{visibility:hidden}html[data-initial-lang].is-hydrated body{visibility:visible}</style>
 <link rel="stylesheet" href="ultra.css?v=0.02-showcase-8f4e191">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"GodUseVPN Ultra","applicationCategory":"SecurityApplication","operatingSystem":"Windows 10 1809+, Windows 11","softwareVersion":"0.02","license":"https://www.gnu.org/licenses/gpl-3.0.html","url":"https://maoyangui.github.io/godusevpn-ultra/","downloadUrl":"https://github.com/Maoyangui/godusevpn-ultra/releases/tag/v0.02","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
 </head>
@@ -29,7 +31,7 @@
   <div class="wrap nav-inner">
     <a class="brand" href="#top" aria-label="GodUseVPN Ultra"><span class="brand-mark"><img src="assets/godusevpn-logo.svg" alt=""></span><span class="brand-name">GodUseVPN <b>Ultra</b></span><span class="brand-version">v0.02</span></a>
     <nav class="desktop-nav" aria-label="主导航" data-i18n-aria="main"><a href="#story" data-i18n="nav.story">产品路径</a><a href="#vpn" data-i18n="nav.vpn">基础连接</a><a href="#dns" data-i18n="nav.dns">加密解析</a><a href="#privacy" data-i18n="nav.privacy">隐私中心</a><a href="#defense" data-i18n="nav.defense">防护层级</a><a href="#browser" data-i18n="nav.browser">浏览器实验室</a><a href="#evidence" data-i18n="nav.evidence">检测证据</a><a href="#journal" data-i18n="nav.journal">文章</a></nav>
-    <div class="nav-actions"><div class="language" role="group" aria-label="界面语言" data-i18n-aria="language"><button type="button" class="is-active" data-language="zh-CN">中</button><button type="button" data-language="en">EN</button></div><a class="nav-link" href="https://godusevpn.org/subscription/" data-i18n="nav.subscription">订阅节点</a><a class="nav-button" href="https://github.com/Maoyangui/godusevpn-ultra/releases/tag/v0.02" data-i18n="nav.download">下载 v0.02</a></div>
+    <div class="nav-actions"><div class="language" role="group" aria-label="界面语言" data-i18n-aria="language"><button type="button" class="is-active" data-language="zh-CN">中</button><button type="button" data-language="zh-Hant">繁</button><button type="button" data-language="en">EN</button><button type="button" data-language="es">ES</button></div><a class="nav-link" href="https://godusevpn.org/subscription/" data-i18n="nav.subscription">订阅节点</a><a class="nav-button" href="https://github.com/Maoyangui/godusevpn-ultra/releases/tag/v0.02" data-i18n="nav.download">下载 v0.02</a></div>
     <button class="menu-toggle" type="button" aria-label="打开导航菜单" data-i18n-aria="menu" aria-expanded="false" data-menu-toggle>☰</button>
   </div>
   <nav id="mobile-nav" class="mobile-nav" aria-label="移动端导航" data-i18n-aria="mobile" data-mobile-nav><a href="#story" data-i18n="nav.story">产品路径</a><a href="#vpn" data-i18n="nav.vpn">基础连接</a><a href="#dns" data-i18n="nav.dns">加密解析</a><a href="#privacy" data-i18n="nav.privacy">隐私中心</a><a href="#defense" data-i18n="nav.defense">防护层级</a><a href="#browser" data-i18n="nav.browser">浏览器实验室</a><a href="#evidence" data-i18n="nav.evidence">检测证据</a><a href="#journal" data-i18n="nav.journal">文章</a></nav>
@@ -54,6 +56,6 @@
   <section id="download" class="download wrap" data-reveal><div class="download-copy"><small data-i18n="section.downloadKicker">10 / GET ULTRA</small><h2 data-i18n-html="download.title">把展示看完，<br><em>再开始一次可复核的设置。</em></h2><p data-i18n="download.copy">Ultra 是 Windows 隐私增强客户端。节点订阅仍由 GodUseVPN 提供，面板密钥不会放进客户端。</p><div class="download-meta"><span data-i18n="download.os">Windows 10 1809+ / Windows 11</span><span data-i18n="download.open">GPL-3.0 开源</span><span data-i18n="download.status">v0.02 预览版</span></div></div><div class="download-actions"><a class="button primary" href="https://github.com/Maoyangui/godusevpn-ultra/releases/tag/v0.02" data-i18n="download.release">下载 v0.02</a><a class="button secondary" href="https://godusevpn.org/subscription/" data-i18n="download.subscription">节点订阅</a><small data-i18n="download.note">发布包和 SHA256 校验见 GitHub Release</small></div></section>
 </main>
 <footer class="site-footer"><div class="wrap footer-inner"><a class="brand" href="#top" aria-label="GodUseVPN Ultra"><span class="brand-mark"><img src="assets/godusevpn-logo.svg" alt=""></span><span class="brand-name">GodUseVPN <b>Ultra</b></span></a><span data-i18n="footer.copy">Windows 隐私增强客户端 · 独立浏览器配置 · 本地证据链</span><div><a href="https://github.com/Maoyangui/godusevpn-ultra">GitHub</a><a href="https://godusevpn.org/">godusevpn.org</a></div></div></footer>
-<script src="ultra.js?v=0.02-showcase-29af5cc" defer></script>
+<script src="ultra.js?v=0.02-showcase-locale-zh-hant-es" defer></script>
 </body>
 </html>
