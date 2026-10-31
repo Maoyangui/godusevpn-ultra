@@ -1,0 +1,20 @@
+{
+  "name": "godusevpn-ultra-qa",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Development-only DOM and visual checks; not bundled with the application",
+  "devDependencies": {
+    "jsdom": "26.1.0",
+    "playwright": "1.62.1"
+  },
+  "scripts": {
+    "browser-profile-ui": "node browser-profile-ui.cjs",
+    "browser-saved-profiles-ui": "node browser-saved-profiles-ui.cjs",
+    "browser-engine-ui": "node browser-engine-ui.cjs",
+    "browser-hardware-ui": "node browser-hardware-ui.cjs",
+    "browser-identity-ui": "node browser-identity-ui.cjs",
+    "browser-proxy-dirty-ui": "node browser-proxy-dirty-ui.cjs",
+    "browser-start-ui": "node browser-start-ui.cjs",
+    "browser-engine-delete-ui": "node browser-engine-delete-ui.cjs"
+  }
+}
