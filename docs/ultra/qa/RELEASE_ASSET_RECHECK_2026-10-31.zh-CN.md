@@ -5,7 +5,7 @@
 - 源码提交：`75d2384`（Ultra 页面与客户端代码）
 - 发布标签：`v0.02`
 - 资产：`godusevpn-ultra-0.02-windows-amd64.zip`
-- ZIP SHA-256：`ae9d8c914d3c7ba4fbc2db29f6b60102dbbbebb5253793525fd0241c0a50a91f`
+- ZIP SHA-256：以 Release 资产 digest 和同名 `.zip.sha256` sidecar 为准
 - 发布页：<https://github.com/Maoyangui/godusevpn-ultra/releases/tag/v0.02>
 - 展示页：<https://maoyangui.github.io/godusevpn-ultra/>
 
