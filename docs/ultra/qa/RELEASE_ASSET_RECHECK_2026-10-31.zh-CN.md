@@ -2,10 +2,10 @@
 
 这份记录只对应当前发布资产，不把历史 QA 包当成当前版本。
 
-- 源码提交：`fdea889`（Ultra 页面与客户端代码）
+- 源码提交：`75d2384`（Ultra 页面与客户端代码）
 - 发布标签：`v0.02`
 - 资产：`godusevpn-ultra-0.02-windows-amd64.zip`
-- ZIP SHA-256：`fc724eb0a4f325691f0f73500759fdc490008dc3d6c0c24edc2f28fcd0b9050c`
+- ZIP SHA-256：`ae9d8c914d3c7ba4fbc2db29f6b60102dbbbebb5253793525fd0241c0a50a91f`
 - 发布页：<https://github.com/Maoyangui/godusevpn-ultra/releases/tag/v0.02>
 - 展示页：<https://maoyangui.github.io/godusevpn-ultra/>
 
