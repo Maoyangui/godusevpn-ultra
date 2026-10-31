@@ -15,6 +15,7 @@
     "browser-identity-ui": "node browser-identity-ui.cjs",
     "browser-proxy-dirty-ui": "node browser-proxy-dirty-ui.cjs",
     "browser-start-ui": "node browser-start-ui.cjs",
-    "browser-engine-delete-ui": "node browser-engine-delete-ui.cjs"
+    "browser-engine-delete-ui": "node browser-engine-delete-ui.cjs",
+    "browser-archive-crypto": "node browser-archive-crypto.cjs"
   }
 }
