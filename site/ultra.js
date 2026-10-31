@@ -71,9 +71,9 @@
   };
 
   function renderStage(name) {
-    var item = stageData[name] || stageData.privacy, rows = state.language === 'en' ? item.rows.en : item.rows['zh-CN'], kicker = state.language === 'en' ? item.kicker.en : item.kicker['zh-CN'];
+    var item = stageData[name] || stageData.privacy, language = document.documentElement.lang === 'en' ? 'en' : 'zh-CN', rows = language === 'en' ? item.rows.en : item.rows['zh-CN'], kicker = language === 'en' ? item.kicker.en : item.kicker['zh-CN'];
     var content = '<div class="screen-kicker"><span>' + kicker + '</span><b>' + t(item.badge) + '</b></div>' +
-      '<div class="screen-title">' + item.title[state.language] + '</div><div class="screen-grid">' + rows.map(function (row) { return '<div class="screen-row"><i class="' + row[2] + '"></i><span>' + row[0] + '</span><b>' + row[1] + '</b></div>'; }).join('') + '</div><div class="screen-meter"><i style="width:' + item.meter + '%"></i></div>';
+      '<div class="screen-title">' + item.title[language] + '</div><div class="screen-grid">' + rows.map(function (row) { return '<div class="screen-row"><i class="' + row[2] + '"></i><span>' + row[0] + '</span><b>' + row[1] + '</b></div>'; }).join('') + '</div><div class="screen-meter"><i style="width:' + item.meter + '%"></i></div>';
     var target = q('[data-stage-content]'); if (target) target.innerHTML = content;
     qa('[data-stage-tab]').forEach(function (button) { var active = button.dataset.stageTab === name; button.classList.toggle('is-active', active); button.setAttribute('aria-selected', String(active)); });
   }
