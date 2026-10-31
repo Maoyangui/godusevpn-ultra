@@ -53,9 +53,9 @@
   };
 
   var stageData = {
-    privacy: { kicker:'PRIVACY CENTER', badge:'path.state', title:{'zh-CN':'系统策略','en':'System policy'}, rows:{'zh-CN':[['应用权限','可检查','green'],['浏览器策略','可编辑','blue'],['恢复记录','可核对','violet']],en:[['App permissions','Checkable','green'],['Browser policy','Editable','blue'],['Recovery record','Reviewable','violet']]}, meter:64 },
-    browser: { kicker:'BROWSER PROFILES', badge:'browser.example', title:{'zh-CN':'浏览器环境','en':'Browser profile'}, rows:{'zh-CN':[['系统环境','可选择','green'],['User-Agent','可手改','blue'],['GPU / WebGL','可预览','violet']],en:[['System profile','Selectable','green'],['User-Agent','Editable','blue'],['GPU / WebGL','Previewable','violet']]}, meter:76 },
-    evidence: { kicker:'DETECTION EVIDENCE', badge:'evidence.localRead', title:{'zh-CN':'检测快照','en':'Detection snapshot'}, rows:{'zh-CN':[['读取来源','本地','green'],['核对状态','待执行','blue'],['导出预览','可选','violet']],en:[['Read source','Local','green'],['Verify state','Pending','blue'],['Export preview','Optional','violet']]}, meter:48 }
+    privacy: { kicker:{'zh-CN':'隐私中心',en:'PRIVACY CENTER'}, badge:'path.state', title:{'zh-CN':'系统策略','en':'System policy'}, rows:{'zh-CN':[['应用权限','可检查','green'],['浏览器策略','可编辑','blue'],['恢复记录','可核对','violet']],en:[['App permissions','Checkable','green'],['Browser policy','Editable','blue'],['Recovery record','Reviewable','violet']]}, meter:64 },
+    browser: { kicker:{'zh-CN':'浏览器环境',en:'BROWSER PROFILES'}, badge:'browser.example', title:{'zh-CN':'浏览器环境','en':'Browser profile'}, rows:{'zh-CN':[['系统环境','可选择','green'],['User-Agent','可手改','blue'],['GPU / WebGL','可预览','violet']],en:[['System profile','Selectable','green'],['User-Agent','Editable','blue'],['GPU / WebGL','Previewable','violet']]}, meter:76 },
+    evidence: { kicker:{'zh-CN':'检测证据',en:'DETECTION EVIDENCE'}, badge:'evidence.localRead', title:{'zh-CN':'检测快照','en':'Detection snapshot'}, rows:{'zh-CN':[['读取来源','本地','green'],['核对状态','待执行','blue'],['导出预览','可选','violet']],en:[['Read source','Local','green'],['Verify state','Pending','blue'],['Export preview','Optional','violet']]}, meter:48 }
   };
   var pathData = {
     scope:{icon:'◎',title:{'zh-CN':'先看作用范围','en':'Start with the scope'},copy:{'zh-CN':'系统设置、指定应用和受控浏览器的作用范围不同。Ultra 先把边界摆在设置之前。','en':'System settings, selected apps, and controlled browsers have different boundaries. Ultra shows the boundary before the switch.'},state:{'zh-CN':'等待选择','en':'Waiting for a choice'},tags:{'zh-CN':['作用范围','确认后执行','未知保留为未知'],en:['Visible scope','Confirm before writing','Unknown stays unknown']}},
@@ -71,8 +71,8 @@
   };
 
   function renderStage(name) {
-    var item = stageData[name] || stageData.privacy, rows = item.rows[state.language] || item.rows['zh-CN'];
-    var content = '<div class="screen-kicker"><span>' + item.kicker + '</span><b>' + t(item.badge) + '</b></div>' +
+    var item = stageData[name] || stageData.privacy, rows = item.rows[state.language] || item.rows['zh-CN'], kicker = item.kicker[state.language] || item.kicker['zh-CN'];
+    var content = '<div class="screen-kicker"><span>' + kicker + '</span><b>' + t(item.badge) + '</b></div>' +
       '<div class="screen-title">' + item.title[state.language] + '</div><div class="screen-grid">' + rows.map(function (row) { return '<div class="screen-row"><i class="' + row[2] + '"></i><span>' + row[0] + '</span><b>' + row[1] + '</b></div>'; }).join('') + '</div><div class="screen-meter"><i style="width:' + item.meter + '%"></i></div>';
     var target = q('[data-stage-content]'); if (target) target.innerHTML = content;
     qa('[data-stage-tab]').forEach(function (button) { var active = button.dataset.stageTab === name; button.classList.toggle('is-active', active); button.setAttribute('aria-selected', String(active)); });
