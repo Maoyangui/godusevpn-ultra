@@ -84,7 +84,7 @@
 - `site/docs.html` 与 `site/demo/index.html` 已改为 Ultra 所有权的 canonical、OG、GitHub、Release 和 Issues 链接，并明确基础客户端演示不等于原生运行时证据。
 - 本地测试：`go test -tags with_clash_api ./...`、`go vet`、`node --check`、静态站点构建、演示页资源扫描、8 组浏览器 UI fixture、Edge 视觉回归均通过；视觉 QA 结果为 20/92/12 张截图，错误、阻断请求和布局问题均为 0。
 - GitHub Actions：Ultra Pages 与 Windows Beta 在 `75d2384` 均通过；Windows Beta 完成包校验、Go 回归、浏览器 UI、Edge 视觉、打包和最终 payload 审计。
-- v0.02 Release 包已用 `75d2384` 重新构建并替换旧包，当前 ZIP SHA-256 为 `ae9d8c914d3c7ba4fbc2db29f6b60102dbbbebb5253793525fd0241c0a50a91f`；`ULTRA_PACKAGE.json` 为 `sourceDirty=false`。
+- v0.02 Release 包已用当前审核提交重建并替换旧包；当前 ZIP 以 Release 资产和同名 `.sha256` sidecar 为准；`ULTRA_PACKAGE.json` 为 `sourceDirty=false`。
 - GitHub Pages、Ultra 文档/演示页和五种 GodUseVPN 首页语言入口均可访问；正式首页在无查询参数的浏览器页面中可见 Ultra 入口，入口链接到 Ultra 展示页和节点订阅页，控制台无错误且无横向溢出。
 - 浏览器档案导出/导入已加入统一编辑器（提交 `1008f29`）：档案包含配置、内核、权限、启动网址与当前 Cookie 草稿；导入回填当前草稿后需检查并保存。只有显式导出才落盘 Cookie，代理密码和订阅令牌排除；Chrome native 宿主已接入 CDP `Storage.getCookies` / `Storage.setCookies`，启动前导入并在会话内导出；Firefox BiDi 与 WebView2 仍保持待适配，尚未在真实 VPS 完成全量 Cookie 读回/写入验收，因此界面不会冒充已恢复全部网站 Cookie。
 - Trial Worker 生产 `/healthz` 和 `/status` 正常，计划为 `free`；当前 `panelConfigured=false`、`subscriptionSource=static`。真实面板 API 前缀已固定为用户提供的地址，服务端令牌尚未由管理页写入，因此不能把面板刷新闭环写成完成。
