@@ -186,6 +186,7 @@
 .privacy-unified-actions .privacy-profile-library { margin-top:0; }
 .privacy-archive-actions { margin-top:8px; padding-top:10px; border-top:1px solid var(--line); }
 .privacy-archive-actions .btn { min-width:132px; }
+.privacy-archive-note { margin:8px 0 0; color:var(--muted); font-size:11px; line-height:1.6; }
 .privacy-unified-actions > .privacy-actions,
 .privacy-unified-actions .privacy-actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
 .privacy-tab-url-tools { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
