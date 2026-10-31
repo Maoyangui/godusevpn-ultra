@@ -89,7 +89,7 @@
 - 浏览器档案导出/导入已加入统一编辑器（提交 `1008f29`）：档案包含配置、内核、权限、启动网址与当前 Cookie 草稿；导入回填当前草稿后需检查并保存。只有显式导出才落盘 Cookie，代理密码和订阅令牌排除；Chrome native 宿主已接入 CDP `Storage.getCookies` / `Storage.setCookies`，启动前导入并在会话内导出；Firefox BiDi 与 WebView2 仍保持待适配，尚未在真实 VPS 完成全量 Cookie 读回/写入验收，因此界面不会冒充已恢复全部网站 Cookie。
 - Trial Worker 生产 `/healthz` 和 `/status` 正常，计划为 `free`；当前 `panelConfigured=false`、`subscriptionSource=static`。真实面板 API 前缀已固定为用户提供的地址，服务端令牌尚未由管理页写入，因此不能把面板刷新闭环写成完成。
 
-## 原有管理后台集成（Trial Worker b5efd05b）
+## 原有管理后台集成（Trial Worker 5332cef9）
 
 本轮没有新增第二个试用 Worker，也没有修改 `m-ui`、`godusevpn` 或商业站仓库。现有
 `godusevpn-trial-api` 继续承载 `/app/api/trial/*`，并接管原有
@@ -103,7 +103,8 @@
 - 生产健康检查：`/app/api/trial/healthz` 返回 200、D1/HMAC 正常、计划 `free`；当前仍为 `panelConfigured=false`，必须由管理员在管理页输入令牌后才能取得真实面板 claim/refresh 证据。
 - 本地加密链路回归：管理页保存令牌返回 200；D1 中没有明文令牌；面板模拟调用收到 `Bearer` 令牌，同一设备首次 `claimed`、第二次 `refreshed`，轮换后的订阅 URL 替换成功。
 - 管理卡在未登录首次加载后会等待 `#admin-layout` 进入已登录状态并自动重读，不再把登录前的 401 固定成错误；复选框与保存栏已做紧凑响应式样式。
-- Worker 本地 `node --check src/index.js` 与 6 项测试全部通过；部署版本为 `b5efd05b-ab7b-4490-8fa7-64782a299b3e`。
+- Worker 本地 `node --check src/index.js` 与 6 项测试全部通过；部署版本为 `5332cef9-f9c8-4ebe-a4b2-9e7c969ab348`。
+- 生产安全核验：status 60 次/分钟、claim 10 次/分钟、管理设置 30 次/分钟按哈希客户端地址限流；429 带 `Retry-After`；D1 订阅链接全部转为 HMAC 派生 AES-GCM 密文，远程核验明文行数为 0；healthz 不返回面板地址、令牌或订阅列表。
 
 以下仍是未完成或未取得真实证据的硬性项目：真实 Cookie 导入、启动标签页、完整 WebRTC/Canvas/Audio/媒体/ClientRects/SpeechVoices 噪音、字体/地理位置/DNT/端口扫描/TLS/同步适配器、OOPIF/Worker 全量读回、真实普通用户 Chrome/Firefox 代理出口、Win10 1809/19044 与 Win11 x64/ARM64 VPS 矩阵、GPS provider 写入/恢复、D03/N08、CEF/uBlock，以及面板 token 注入后的真实 claim/refresh。当前界面会保持“待验证/部分支持/不支持/未知”，不以静态页面或模拟数据替代这些证据。
 
